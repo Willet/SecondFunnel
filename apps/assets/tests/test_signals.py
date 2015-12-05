@@ -5,9 +5,9 @@ from django.db.models.signals import post_save, m2m_changed
 
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
-
 from apps.assets.signals import content_m2m_changed, content_saved, product_saved, \
                                 productimage_saved, tile_m2m_changed, tile_saved
+from apps.assets.utils import disable_tile_serialization
 
 # mock class
 # class LocalDjangoSignalsMock():
@@ -305,8 +305,8 @@ class SignalExecutionTest(TestCase):
         fix = Tile.objects.get(pk=10)
         pro = Product.objects.get(pk=3)
         fix.products.add(pro)
-        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock()) as mockery:
-            content_m2m_changed(Tile.products.through, model=Product, instance=fix, pk_set=[pro.pk], action="post_add")
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mockery:
+            tile_m2m_changed(Tile.products.through, model=Product, instance=fix, pk_set=[pro.pk], action="post_add")
             self.assertEqual(mockery.call_count, 1)
 
     def tile_m2m_changed_remove_product_test(self):
@@ -314,14 +314,9 @@ class SignalExecutionTest(TestCase):
         pro = Product.objects.get(pk=3)
         fix.products.add(pro)
         fix.products.remove(pro)
-        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock()) as mockery:
-            content_m2m_changed(Tile.products.through, model=Product, instance=fix, pk_set=[pro.pk], action="post_remove")
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mockery:
+            tile_m2m_changed(Tile.products.through, model=Product, instance=fix, pk_set=[pro.pk], action="post_remove")
             self.assertEqual(mockery.call_count, 1)
-            # self.assertEqual(specialcall['model'], Product)
-            # self.assertEqual(specialcall['action'], "post_remove")
-            # self.assertEqual(specialcall['sender'], Tile.products.through)
-            # self.assertEqual(specialcall['instance'], fix)
-            # self.assertEqual(specialcall['pk_set'], set([pro.pk]))
 
     def tile_m2m_changed_clear_product_test(self):
         fix = Tile.objects.get(pk=10)
@@ -329,40 +324,25 @@ class SignalExecutionTest(TestCase):
         fix.products.add(pro)
         fix.products.clear()
         with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock()) as mockery:
-            content_m2m_changed(Tile.products.through, model=Product, instance=fix, action="post_clear")
-            self.assertEqual(mockery.call_count, 1)
-            # self.assertEqual(specialcall['model'], Product)
-            # self.assertEqual(specialcall['action'], "post_clear")
-            # self.assertEqual(specialcall['sender'], Tile.products.through)
-            # self.assertEqual(specialcall['instance'], fix)
-            # self.assertEqual(specialcall['pk_set'], None)
+            tile_m2m_changed(Tile.products.through, model=Product, instance=fix, action="post_clear")
+            self.assertEqual(mockery.call_count, 0) # no tiles no call
 
     def tile_m2m_changed_add_content_test(self):
         fix = Tile.objects.get(pk=10)
         content = Content.objects.get(pk=6)
         fix.content.add(content)
-        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock()) as mockery:
-            content_m2m_changed(Tile.content.through, instance=fix, pk_set=[content.pk], action="post_add")
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mockery:
+            tile_m2m_changed(Tile.content.through, instance=fix, pk_set=[content.pk], action="post_add")
             self.assertEqual(mockery.call_count, 1)
-            # self.assertEqual(specialcall['model'], Content)
-            # self.assertEqual(specialcall['action'], "post_add")
-            # self.assertEqual(specialcall['sender'], Tile.content.through)
-            # self.assertEqual(specialcall['instance'], fix)
-            # self.assertEqual(specialcall['pk_set'], set([content.pk]))
 
     def tile_m2m_changed_remove_content_test(self):
         fix = Tile.objects.get(pk=10)
         content = Content.objects.get(pk=6)
         fix.content.add(content)
         fix.content.remove(content) # trigger signal
-        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock()) as mockery:
-            content_m2m_changed(Tile.content.through, instance=fix, pk_set=[content.pk], action="post_remove")
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mockery:
+            tile_m2m_changed(Tile.content.through, instance=fix, pk_set=[content.pk], action="post_remove")
             self.assertEqual(mockery.call_count, 1)
-            # self.assertEqual(specialcall['model'], Content)
-            # self.assertEqual(specialcall['action'], "post_remove")
-            # self.assertEqual(specialcall['sender'], Tile.content.through)
-            # self.assertEqual(specialcall['instance'], fix)
-            # self.assertEqual(specialcall['pk_set'], set([content.pk]))
 
     def tile_m2m_changed_clear_content_test(self):
         fix = Tile.objects.get(pk=10)
@@ -370,13 +350,8 @@ class SignalExecutionTest(TestCase):
         fix.content.add(content)
         fix.content.clear() # trigger signal
         with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock()) as mockery:
-            content_m2m_changed(Tile.content.through, instance=fix, action="post_clear")
-            self.assertEqual(mockery.call_count, 1)
-            # self.assertEqual(specialcall['model'], Content)
-            # self.assertEqual(specialcall['action'], "post_clear")
-            # self.assertEqual(specialcall['sender'], Tile.content.through)
-            # self.assertEqual(specialcall['instance'], fix)
-            # self.assertEqual(specialcall['pk_set'], None)
+            tile_m2m_changed(Tile.content.through, instance=fix, action="post_clear")
+            self.assertEqual(mockery.call_count, 0) # no tiles no call
 
     def tile_saved_test(self):
         fix = Tile.objects.get(pk=10)
@@ -384,4 +359,181 @@ class SignalExecutionTest(TestCase):
             tile_saved(fix, instance=fix)
             self.assertEqual(mockery.call_count, 1)
 
+class SerializationSignalTests(TestCase):
+    fixtures = ['assets_models.json']
+
+    def tile_saved_trigger_test(self):
+        tile = Tile.objects.get(pk=10)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            tile.save() # triggers signal
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def tile_saved_no_trigger_test(self):
+        tile = Tile.objects.get(pk=10)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                tile.save() # triggers signal
+                self.assertEquals(mocked_handler.call_count, 0)
+
+    def multiple_entry_test(self):
+        tile = Tile.objects.get(pk=10)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                with disable_tile_serialization():
+                    tile.save() # triggers signal
+                    self.assertEquals(mocked_handler.call_count, 0)
+                tile.save() # triggers signal
+                self.assertEquals(mocked_handler.call_count, 1) #something is wrong
+            tile.save() # triggers signal
+            self.assertEquals(mocked_handler.call_count, 2) #HELP
+
+    def productimage_saved_trigger_test(self):
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=13)
+        product_image = ProductImage.objects.get(pk=11)
+        tile.products.add(pro)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            product_image.save() # triggers signal
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def productimage_saved_no_trigger_test(self):
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=13)
+        product_image = ProductImage.objects.get(pk=11)
+        tile.products.add(pro)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                product_image.save() # triggers signal
+                self.assertEquals(mocked_handler.call_count, 0)
+
+    def product_saved_trigger_test(self):
+        tile = Tile.objects.get(pk=10)
+        fix = Product.objects.get(pk=3)
+        tile.products.add(fix)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            fix.save() # triggers signal
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def product_saved_no_trigger_test(self):
+        tile = Tile.objects.get(pk=10)
+        fix = Product.objects.get(pk=3)
+        tile.products.add(fix)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.save() # triggers signal
+                self.assertEquals(mocked_handler.call_count, 0)
+
+    def content_saved_trigger_test(self):
+        tile = Tile.objects.get(pk=10)
+        fix = Content.objects.get(pk=6)
+        tile.content.add(fix)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            fix.save() # triggers signal
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def content_saved_no_trigger_test(self):
+        fix = Content.objects.get(pk=6)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.save() # triggers signal
+                self.assertEquals(mocked_handler.call_count, 0)
+
+    def content_m2m_changed_call_product_test(self):
+        fix = Content.objects.get(pk=6)
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        pro2 = Product.objects.get(pk=12)
+        tile.products.add(pro)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                pro.similar_products.add(pro2) #triggers signal
+                self.assertEquals(mocked_handler.call_count, 0)
+            pro.similar_products.add(pro2) #triggers signal
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def content_m2m_changed_call_test(self):
+        fix = Content.objects.get(pk=6)
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        tile.content.add(fix)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.tagged_products.add(pro)
+                self.assertEquals(mocked_handler.call_count, 0)
+            fix.tagged_products.add(pro)
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def tile_m2m_changed_add_product_test(self):
+        fix = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.products.add(pro)
+                self.assertEquals(mocked_handler.call_count, 0)
+                fix.products.remove(pro)
+            fix.products.add(pro)
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def tile_m2m_changed_remove_product_test(self):
+        fix = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        fix.products.add(pro)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.products.remove(pro)
+                self.assertEquals(mocked_handler.call_count, 0)
+            fix.products.remove(pro)
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def tile_m2m_changed_clear_product_test(self):
+        fix = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        fix.products.add(pro)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.products.clear()
+                self.assertEquals(mocked_handler.call_count, 0)
+            fix.products.clear()
+            self.assertEquals(mocked_handler.call_count, 0)
+
+    def tile_m2m_changed_add_content_test(self):
+        fix = Tile.objects.get(pk=10)
+        content = Content.objects.get(pk=6)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.content.add(content)
+                self.assertEquals(mocked_handler.call_count, 0)
+            fix.content.add(content)
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def tile_m2m_changed_remove_content_test(self):
+        fix = Tile.objects.get(pk=10)
+        content = Content.objects.get(pk=6)
+        fix.content.add(content)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.content.remove(content) # trigger signal
+                self.assertEquals(mocked_handler.call_count, 0)
+            fix.content.remove(content) # trigger signal
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def tile_m2m_changed_clear_content_test(self):
+        fix = Tile.objects.get(pk=10)
+        content = Content.objects.get(pk=6)
+        fix.content.add(content)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.content.clear() # trigger signal
+                self.assertEquals(mocked_handler.call_count, 0)
+            fix.content.clear() # trigger signal
+            self.assertEquals(mocked_handler.call_count, 0)
+
+    def tile_saved_call_test(self):
+        fix = Tile.objects.get(pk=10)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                fix.save() # triggers signal
+                self.assertEquals(mocked_handler.call_count, 0)
+            fix.save() # triggers signal
+            self.assertEquals(mocked_handler.call_count, 1)
 
