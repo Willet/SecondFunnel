@@ -106,10 +106,13 @@ class PageMaintainer(object):
             'recreate_tiles': <bool> Recreate tiles the already exist.  Useful for removing out-dated associations & data.
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
+            'skip_similar_products': <bool> Do not update similar products.
         }
         """
         # Add more logic here re start_urls
-        start_urls = set(self.feed.get_all_products().values_list('url', flat=True))
+        start_urls = set(self.feed.get_all_products(
+                            skip_similar_products=options.get('skip_similar_products', False)
+                        ).values_list('url', flat=True))
 
         # Override for page's spider_name to enable added spider functionality
         spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
