@@ -1174,10 +1174,12 @@ class Feed(BaseModel):
         raise ValueError("remove() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
-    def get_all_products(self, pk_set=False):
+    def get_all_products(self, pk_set=False, skip_similar_products=False, skip_tagged_products=False):
         """Gets all tagged, related & similar products to this feed. Useful for bulk updates
 
         pk_set (bool): if True, return a set of primary keys
+        skip_similar_products (bool): if True, don't add product.similar_products
+        skip_tagged_products (bool): if True, don't add content.tagged_products
 
         :returns <QuerySet> of products"""
         product_pks = set()
@@ -1186,11 +1188,12 @@ class Feed(BaseModel):
         for tile in self.tiles.all():
             for product in tile.products.all():
                 product_pks.add(product.pk)
-                if product.similar_products:
+                if not skip_similar_products and product.similar_products:
                     product_pks.update(product.similar_products.values_list('pk', flat=True))
-            for content in tile.content.all():
-                if content.tagged_products:
-                    product_pks.update(content.tagged_products.values_list('pk', flat=True))
+            if not skip_tagged_products:
+                for content in tile.content.all():
+                    if content.tagged_products:
+                        product_pks.update(content.tagged_products.values_list('pk', flat=True))
         if pk_set:
             return product_pks
         else:
