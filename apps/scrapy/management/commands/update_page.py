@@ -23,7 +23,7 @@ class Command(BaseCommand):
         Use page scrapers (default is use datafeed).
 
     -f, --fast
-        Skips similar products (note: can 3x - 4x scrape time)
+        Skips similar products (note: can reduce scrape time by 3x - 4x)
     """
     option_list = BaseCommand.option_list + (
             make_option('-t','--recreate-tiles',
