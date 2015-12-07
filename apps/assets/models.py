@@ -498,7 +498,7 @@ class Product(BaseModel):
         :param other_products - a list or QuerySet of <Product>s to replace relations with
         """
         if isinstance(other_products, Product):
-            other_products = list(other_products)
+            other_products = [other_products]
         for p in other_products:
             if self.store != p.store:
                 raise ValueError('Can not merge products from different stores')
