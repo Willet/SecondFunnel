@@ -237,7 +237,8 @@ class ContentTest(TestCase):
     def update_test(self):
         t = Content.objects.get(pk=6)
         self.assertEqual(t.update(), t)
-    #     t.update(author="John")
+        # if the update function was not broken, we would also test this:
+        # t.update(author="John")
 
 class ImageTest(TestCase):
     # Image has no methods
@@ -279,6 +280,7 @@ class ImageTest(TestCase):
         self.assertEqual(t.width, 640)
         self.assertEqual(t.height, 480)
 
+    # delete_cloudinary_resource is called anytime we delete an Image
     @mock.patch('apps.imageservice.utils.delete_cloudinary_resource', mock.Mock())
     def delete_test(self):
         url = "/content.jpg"
@@ -309,6 +311,7 @@ class CategoryTest(TestCase):
     def clean_fields_test(self):
         for i in range(2):
             with self.assertRaises(ValidationError):
+                # categories can't have the same name
                 name = "TestCategory"
                 store = Store.objects.get(pk=1)
                 c = Category.objects.get(name=name)
@@ -324,6 +327,7 @@ class CategoryTest(TestCase):
                 c2 = Category.objects.create(name="OtherName", store=store)
                 c2.pk = 7
                 c2.save()
+                # categories can't have the same pk
                 c.clean_fields()
         
 
@@ -441,7 +445,7 @@ class PageTest(TestCase):
         f = Feed.objects.get(pk=9)
         p.feed = f
         p.save()
-        p.add()
+        p.add() # call triggered
         Feed.add.assert_called_once_with()
 
     @mock.patch('apps.assets.models.Feed.remove', mock.Mock())
@@ -450,7 +454,7 @@ class PageTest(TestCase):
         f = Feed.objects.get(pk=9)
         p.feed = f
         p.save()
-        p.remove()
+        p.remove() # call triggered
         Feed.remove.assert_called_once_with()
 
 
@@ -545,6 +549,8 @@ class FeedTest(TestCase):
         f._deepdelete_tiles(f.tiles.all())
         self.assertEqual(set(f.get_in_stock_tiles()), set([]))
 
+    # These tests make sure the correct subfunction is called when .add() is called
+
     @mock.patch('apps.assets.models.Feed._add_product', mock.Mock())
     def only_add_product_test(self):
         f = Feed.objects.get(pk=9)
@@ -565,6 +571,8 @@ class FeedTest(TestCase):
         t = Tile.objects.get(pk=10)
         f.add(t)
         Feed._copy_tile.assert_called_once_with(tile=t, priority=0, category=None)
+
+    # these are the actual sub-function tests
 
     def add_product_test(self):
         cat = Category.objects.get(pk=7)
@@ -790,7 +798,7 @@ class TileTest(TestCase):
     @mock.patch('apps.intentrank.serializers.DefaultTileSerializer.to_str', mock.Mock())
     def tile_to_string_test(self):
         t = Tile.objects.get(pk = 10)
-        t.to_str(skip_cache=False)
+        t.to_str(skip_cache=False) # mock called
         ir_serializers.DefaultTileSerializer.to_str.assert_called_once_with([t], skip_cache=False)
 
     def get_first_content_of_test(self):
