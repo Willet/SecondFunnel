@@ -13,7 +13,6 @@ from django.db import models, transaction
 from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
-from django.db.models.signals import post_save, m2m_changed
 
 import apps.api.serializers as cg_serializers
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource, is_hex_color
@@ -564,11 +563,6 @@ class ProductImage(BaseModel):
     class Meta(BaseModel.Meta):
         ordering = ('id', )
 
-    def image_tag(self):
-        return u'<img src="%s" style="width: 400px;"/>' % self.url
-
-    image_tag.allow_tags = True
-
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
         if not self.attributes:
@@ -672,11 +666,6 @@ class Content(BaseModel):
 
     serializer = ir_serializers.ContentSerializer
     cg_serializer = cg_serializers.ContentSerializer
-
-    def image_tag(self):
-        return u'<img src="%s" style="width: 400px;"/>' % self.url
-
-    image_tag.allow_tags = True
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)

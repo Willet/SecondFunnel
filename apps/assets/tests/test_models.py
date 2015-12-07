@@ -8,7 +8,6 @@ import time
 import factory
 import logging
 import itertools
-from decimal import *
 from django.test import TestCase
 from django.db.models.signals import post_save, m2m_changed
 
@@ -115,15 +114,6 @@ class ProductTest(TestCase):
         Product.clean(p)
         self.assertEqual(p.default_image, i1)
 
-    def two_image_clean_order_test(self):
-        p = Product.objects.get(pk=3)
-        i1 = ProductImage.objects.get(pk=4)
-        i2 = ProductImage.objects.get(pk=11)
-        p.product_images.add(i2)
-        p.product_images.add(i1)
-        Product.clean(p)
-        self.assertEqual(p.default_image, i2)
-
     def blank_clean_fields_test(self):
         p = Product.objects.get(pk=3)
         p.price = None
@@ -134,7 +124,7 @@ class ProductTest(TestCase):
         price = 19.99
         p = Product.objects.get(pk=3)
         p.clean_fields()
-        self.assertNotEqual(p.price, price)
+        self.assertNotEqual(p.price, price) # price should be converted to float
 
     def error_clean_fields_test(self):
         with self.assertRaises(ValidationError):
@@ -143,31 +133,22 @@ class ProductTest(TestCase):
             p.clean_fields()
 
     def exclude_clean_fields_test(self):
+        # test passes if it doesn't throw an exception
         p = Product.objects.get(pk=3)
         p.price = "Error"
         p.clean_fields(["price"])
 
-    #BROKEN
-    
-#     Traceback (most recent call last):
-#   File "/opt/secondfunnel/app/apps/assets/tests/test_models.py", line 148, in merge_test
-#     p.merge(p2)
-#   File "/opt/secondfunnel/app/apps/assets/models.py", line 497, in merge
-#     other_products = list(other_products)
-#   File "/opt/secondfunnel/app/apps/assets/models.py", line 78, in __getitem__
-#     return getattr(self, key, None)
-# TypeError: getattr(): attribute name must be string
-
-    # def merge_test(self):
-    #     p = Product.objects.get(pk=3)
-    #     p2 = Product.objects.get(pk=15)
-    #     i = ProductImage.objects.get(pk=4)
-    #     p2.product_images.add(i)
-    #     p.merge(p2)
-    #     # assure product has been deleted
-    #     # with self.assertRaises(ObjectDoesNotExist):
-    #     Product.objects.get(pk=15)
-
+    def merge_test(self):
+        p = Product.objects.get(pk=3)
+        p2 = Product.objects.get(pk=13)
+        i = ProductImage.objects.get(pk=4)
+        p2.product_images.add(i)
+        p.merge([p2])
+        # assure product has been deleted
+        with self.assertRaises(ObjectDoesNotExist):
+            Product.objects.get(pk=13)
+        # make sure product images got merged too
+        self.assertEqual(p.product_images.first(), i)
 
 
 class ProductImageTest(TestCase):
@@ -216,11 +197,8 @@ class ProductImageTest(TestCase):
     def delete_test(self):
         t = ProductImage.objects.get(pk=4)
         t.delete()
-
-    def image_tag_test(self):
-        t = ProductImage.objects.get(pk=4)
-        url = "/image.jpg"
-        self.assertEqual(t.image_tag(), u'<img src="{}" style="width: 400px;"/>'.format(url))
+        with self.assertRaises(ObjectDoesNotExist):
+            t = ProductImage.objects.get(pk=4)
 
 class TagTest(TestCase):
     # Tag has no methods
@@ -253,11 +231,6 @@ class ContentTest(TestCase):
         self.assertTrue(t.pk > 0)
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
-
-    def image_tag_test(self):
-        t = Content.objects.get(pk=6)
-        url = "/content.jpg"
-        self.assertEqual(t.image_tag(), u'<img src="{}" style="width: 400px;"/>'.format(url))
 
     # the update function is broken
 
@@ -444,26 +417,6 @@ class PageTest(TestCase):
         p.feed = feed
         pp = Page.objects.get(pk=17)
         pp.replace(p)
-        # assure page has been deleted
-        with self.assertRaises(ObjectDoesNotExist):
-            Page.objects.get(pk=8)
-        self.assertIsNone(pp.campaign)
-        self.assertIsNone(pp.campaign_id)
-        self.assertIsNot(pp.cg_created_at, None)
-        self.assertIsNot(pp.cg_updated_at, None)
-        self.assertTrue(pp.id > 0)
-        self.assertIsNone(pp.ir_cache)
-        self.assertIsNone(pp.last_published_at)
-        self.assertIsNone(pp.legal_copy)
-        self.assertEqual(pp.name, name)
-        self.assertTrue(pp.pk > 0)
-        self.assertFalse(pp.feed)
-        self.assertEqual(pp.store, store)
-        self.assertEqual(pp.store_id, store.id)
-        self.assertIsNone(pp.theme)
-        self.assertIsNone(pp.theme_id)
-        self.assertIs(type(pp.theme_settings), dict)
-        self.assertEqual(pp.theme_settings_fields, [('image_tile_wide', 0.0), ('desktop_hero_image', ''), ('mobile_hero_image', ''), ('column_width', 256), ('social_buttons', []), ('enable_tracking', 'true')])
         self.assertEqual(pp.url_slug, url_slug)
 
     def page_get_incremented_url_slug_test(self):

@@ -9,56 +9,8 @@ from apps.assets.signals import content_m2m_changed, content_saved, product_save
                                 productimage_saved, tile_m2m_changed, tile_saved
 from apps.assets.utils import disable_tile_serialization
 
-# mock class
-# class LocalDjangoSignalsMock():
-#     def __init__(self, to_mock):
-#         """ 
-#         Replaces registered django signals with MagicMocks
-
-#         :param to_mock: list of signal handlers to mock
-#         """
-#         self.mocks = {handler:mock.MagicMock() for handler in to_mock}
-#         self.reverse_mocks = {magicmock:mocked
-#                               for mocked,magicmock in self.mocks.items()}
-#         django_signals = [post_save, m2m_changed]
-#         self.registered_receivers = [signal.receivers
-#                                      for signal in django_signals]
-
-#     def _apply_mocks(self):
-#         for receivers in self.registered_receivers:
-#             for receiver_index in xrange(len(receivers)):
-#                 handler = receivers[receiver_index]
-#                 handler_function = handler[1]()
-#                 if handler_function in self.mocks:
-#                     receivers[receiver_index] = (
-#                         handler[0], self.mocks[handler_function])
-
-#     def _reverse_mocks(self):
-#         for receivers in self.registered_receivers:
-#             for receiver_index in xrange(len(receivers)):
-#                 handler = receivers[receiver_index]
-#                 handler_function = handler[1]
-#                 if not isinstance(handler_function, mock.MagicMock):
-#                     continue
-#                 receivers[receiver_index] = (
-#                     handler[0], weakref.ref(self.reverse_mocks[handler_function]))
-
-#     def __enter__(self):
-#         self._apply_mocks()
-#         return self.mocks
-
 class SignalsTest(TestCase):
     fixtures = ['assets_models.json']
-
-    # @mock.patch('apps.assets.signals.tile_saved', mock.Mock())
-    # def save_signal_test(self):
-    #     t = Tile.objects.get(pk=10)
-    #     # pagse
-    #     to_mock = [post_save]
-    #     with LocalDjangoSignalsMock(to_mock) as mocks:
-    #         t.save()
-    #         for mocked in to_mock:
-    #             assert(mocks[mocked].call_count)
 
     def productimage_saved_call_test(self):
         product_image = ProductImage.objects.get(pk=4)
