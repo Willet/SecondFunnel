@@ -1,0 +1,201 @@
+[
+  {
+    "model": "assets.Store",
+    "pk": 1,
+    "fields": {
+      "name": "MyStore",
+      "description": "",
+      "slug": "store_slug", 
+      "default_theme": null,
+      "default_page": null,
+      "public_base_url": "gifts.mystore.com",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Store",
+    "pk": 14,
+    "fields": {
+      "name": "MyOtherStore",
+      "description": "",
+      "slug": "store_slug", 
+      "default_theme": null,
+      "default_page": null,
+      "public_base_url": "gifts.mystore.com",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Theme",
+    "pk": 2,
+    "fields": {
+      "name": "Default",
+      "template": "mystore/landingpage/default/index.html",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 3,
+    "fields": {
+      "name": "Default",
+      "store": 1,
+      "price": 19.99,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 12,
+    "fields": {
+      "name": "Default",
+      "store": 1,
+      "price": 19.99,
+      "in_stock": false,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 13,
+    "fields": {
+      "name": "Default",
+      "store": 1,
+      "price": 19.99,
+      "in_stock": true,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 15,
+    "fields": {
+      "name": "OtherDefault",
+      "store": 14,
+      "price": 29.99,
+      "in_stock": true,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.ProductImage",
+    "pk": 4,
+    "fields": {
+      "url": "/image.jpg",
+      "original_url": "test.com/image.jpg",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.ProductImage",
+    "pk": 11,
+    "fields": {
+      "product": 13,
+      "url": "/another-image.jpg",
+      "original_url": "test.com/another-image.jpg",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tag",
+    "pk": 5,
+    "fields": {
+      "name": "TestTag",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 6,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 16,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "store": 14,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Image",
+    "pk": 6,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "original_url": "test.com/image.jpg",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Category",
+    "pk": 7,
+    "fields": {
+      "name": "TestCategory",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Page",
+    "pk": 8,
+    "fields": {
+      "name": "TestPage",
+      "url_slug": "test_page",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Page",
+    "pk": 17,
+    "fields": {
+      "name": "TestPage",
+      "url_slug": "other_test_page",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Feed",
+    "pk": 9,
+    "fields": {
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Feed",
+    "pk": 18,
+    "fields": {
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Feed",
+    "pk": 19,
+    "fields": {
+      "store": 14,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tile",
+    "pk": 10,
+    "fields": {
+      "template": "default",
+      "feed": 9,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  }
+]

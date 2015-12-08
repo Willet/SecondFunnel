@@ -1,8 +1,10 @@
-import os
-import djcelery
-
 from datetime import timedelta, datetime
+import djcelery
+import os
+import sys
+
 import django.conf.global_settings as DEFAULT_SETTINGS
+
 
 # default debug settings
 DEBUG = False

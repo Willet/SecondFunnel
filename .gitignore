@@ -26,6 +26,8 @@ ghostdriver.log
 
 # Local settings
 secondfunnel/settings/local.py
+/htmlcov
+.coverage
 
 # Testing directories
 apps/testing/resources

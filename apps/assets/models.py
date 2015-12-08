@@ -563,11 +563,6 @@ class ProductImage(BaseModel):
     class Meta(BaseModel.Meta):
         ordering = ('id', )
 
-    def image_tag(self):
-        return u'<img src="%s" style="width: 400px;"/>' % self.url
-
-    image_tag.allow_tags = True
-
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
         if not self.attributes:
@@ -672,11 +667,6 @@ class Content(BaseModel):
     serializer = ir_serializers.ContentSerializer
     cg_serializer = cg_serializers.ContentSerializer
 
-    def image_tag(self):
-        return u'<img src="%s" style="width: 400px;"/>' % self.url
-
-    image_tag.allow_tags = True
-
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
@@ -701,6 +691,8 @@ class Content(BaseModel):
             other['tagged-products'] = [Product.objects.get(id=x) for x in
                                         other['tagged-products']]
 
+        # WARNING THIS METHOD DOESN'T EXIST IN THE SUPERCLASS
+        # Error: AttributeError: 'super' object has no attribute 'update'
         return super(Content, self).update(other=other)
 
 
