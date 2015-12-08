@@ -397,13 +397,30 @@ class SerializationSignalTests(TestCase):
         pro2 = Product.objects.get(pk=12)
         tile.products.add(pro)
         with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
-            with disable_tile_serialization():
-                pro.similar_products.add(pro2) #triggers signal
-                self.assertEquals(mocked_handler.call_count, 0)
             pro.similar_products.add(pro2) #triggers signal
             self.assertEquals(mocked_handler.call_count, 1)
 
+    def content_m2m_changed_no_call_product_test(self):
+        fix = Content.objects.get(pk=6)
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        pro2 = Product.objects.get(pk=12)
+        tile.products.add(pro)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            with disable_tile_serialization():
+                pro.similar_products.add(pro2) #triggers signal
+                self.assertEquals(mocked_handler.call_count, 0)
+
     def content_m2m_changed_call_test(self):
+        fix = Content.objects.get(pk=6)
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        tile.content.add(fix)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            fix.tagged_products.add(pro)
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def content_m2m_changed_no_call_test(self):
         fix = Content.objects.get(pk=6)
         tile = Tile.objects.get(pk=10)
         pro = Product.objects.get(pk=3)
@@ -412,6 +429,13 @@ class SerializationSignalTests(TestCase):
             with disable_tile_serialization():
                 fix.tagged_products.add(pro)
                 self.assertEquals(mocked_handler.call_count, 0)
+
+    def content_m2m_changed_call_test(self):
+        fix = Content.objects.get(pk=6)
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=3)
+        tile.content.add(fix)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
             fix.tagged_products.add(pro)
             self.assertEquals(mocked_handler.call_count, 1)
 
@@ -452,11 +476,17 @@ class SerializationSignalTests(TestCase):
         fix = Tile.objects.get(pk=10)
         content = Content.objects.get(pk=6)
         with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
+            fix.content.add(content)
+            logging.debug(fix.content.all())
+            self.assertEquals(mocked_handler.call_count, 1)
+
+    def tile_m2m_changed_add_content_no_test(self):
+        fix = Tile.objects.get(pk=10)
+        content = Content.objects.get(pk=6)
+        with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=(None, None))) as mocked_handler:
             with disable_tile_serialization():
                 fix.content.add(content)
                 self.assertEquals(mocked_handler.call_count, 0)
-            fix.content.add(content)
-            self.assertEquals(mocked_handler.call_count, 1)
 
     def tile_m2m_changed_remove_content_test(self):
         fix = Tile.objects.get(pk=10)

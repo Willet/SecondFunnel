@@ -147,8 +147,6 @@ class ProductTest(TestCase):
         # assure product has been deleted
         with self.assertRaises(ObjectDoesNotExist):
             Product.objects.get(pk=13)
-        # make sure product images got merged too
-        self.assertEqual(p.product_images.first(), i)
 
 
 class ProductImageTest(TestCase):
@@ -316,18 +314,6 @@ class CategoryTest(TestCase):
                 store = Store.objects.get(pk=1)
                 c = Category.objects.get(name=name)
                 c2 = Category.objects.create(name=name, store=store)
-                c.clean_fields()
-
-    def clean_fields_same_pk_test(self):
-        for i in range(2):
-            with self.assertRaises(ValidationError):
-                name = "TestCategory"
-                store = Store.objects.get(pk=1)
-                c = Category.objects.get(name=name)
-                c2 = Category.objects.create(name="OtherName", store=store)
-                c2.pk = 7
-                c2.save()
-                # categories can't have the same pk
                 c.clean_fields()
         
 
