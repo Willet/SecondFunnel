@@ -61,7 +61,7 @@
     "fields": {
       "name": "Default",
       "store": 1,
-      "price": 19.99,
+      "price": 21.99,
       "in_stock": true,
       "updated_at": "2015-11-18 00:43:26"
     }
