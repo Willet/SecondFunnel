@@ -1,5 +1,4 @@
 import json
-import logging
 
 from django.db import models, transaction
 from django.db.models.signals import post_save, m2m_changed
@@ -70,7 +69,6 @@ def content_m2m_changed(sender, **kwargs):
                 # validation can be skipped because 
                 # only 2nd order product/content relationships are changed
                 ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-                logging.debug("tile_saved {}".format(ir_cache))
                 if updated:
                     post_save.disconnect(tile_saved, sender=Tile)
                     models.Model.save(tile, update_fields=['ir_cache'])
@@ -99,7 +97,6 @@ def tile_m2m_changed(sender, **kwargs):
         for tile in tiles:
             # must validate
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-            logging.debug("tile m2m {}".format(ir_cache))
             if updated:
                 post_save.disconnect(tile_saved, sender=Tile)
                 tile.save() # run full clean before saving ir cache
@@ -114,7 +111,6 @@ def tile_saved(sender, **kwargs):
         return
 
     ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-    logging.debug("tile_saved {}".format(ir_cache))
     if updated:
         post_save.disconnect(tile_saved, sender=Tile)
         models.Model.save(tile, update_fields=['ir_cache']) # skip full_clean
