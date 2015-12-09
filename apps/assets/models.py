@@ -15,7 +15,7 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
-from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource, is_hex_color
+from apps.imageservice.utils import delete_resource, is_hex_color
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
@@ -96,7 +96,7 @@ class BaseModel(models.Model, SerializableMixin):
             obj_id=self.pk).encode('ascii', 'ignore')
 
     @classmethod
-    def _copy(cls, obj, update_fields={}, exclude_fields=[]):
+    def _copy(cls, obj, update_fields=None, exclude_fields=None):
         """Copies fields over to new instance of class & saves it
         
         Note: related m2m fields not copied over by default! add to update_fields
@@ -114,6 +114,10 @@ class BaseModel(models.Model, SerializableMixin):
 
         :raises: ValidationError
         """
+        if update_fields is None:
+            update_fields = {}
+        if exclude_fields is None:
+            exclude_fields = []
         # NOTE: _meta API updated in Django 1.8, will need to re-implement
         default_exclude = ['id', 'ir_cache']
         autofields = [f.name for f in obj._meta.fields if isinstance(f, models.AutoField)]
@@ -156,7 +160,7 @@ class BaseModel(models.Model, SerializableMixin):
             new_obj.save() # run full_clean to validate
         return new_obj
 
-    def _replace_relations(self, others, exclude_fields=[]):
+    def _replace_relations(self, others, exclude_fields=None):
         """
         Any relations pointing to `others` are replaced with `self`
         This is a core part of merging duplicate models
@@ -164,7 +168,10 @@ class BaseModel(models.Model, SerializableMixin):
         :param others - list of objects to replace with self
         :param exclude_fields - list of field names to exclude from merging
         """
-        exclude_fields = set(exclude_fields)
+        if exclude_fields is None:
+            exclude_fields = set()
+        else:
+            exclude_fields = set(exclude_fields)
 
         for obj in others:
             local_fields = set([f.name for f in obj._meta.local_fields])
@@ -597,10 +604,14 @@ class ProductImage(BaseModel):
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
-            if settings.CLOUDINARY_BASE_URL in self.url:
-                delete_cloudinary_resource(self.url)
-            elif settings.IMAGE_SERVICE_BUCKET in self.url:
-                delete_s3_resource(self.url)
+            delete_resource(self.url)
+
+            if 'sizes' in self.attributes:
+                # Image service has transfered common image sizes to s3
+                for obj in self.attributes['sizes'].values():
+                    url = obj.get('url', None)
+                    if url:
+                        delete_resource(url)
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
@@ -615,6 +626,40 @@ class ProductImage(BaseModel):
             if red > threshold and blue > threshold and green > threshold:
                 product_shot = True
         return product_shot
+
+    def find_image_size(self, size):
+        """
+        Finds image size obj in self.attributes['sizes'] with matching width or height
+
+        size: expected SizeConf object (at minimum, has width and height properties)
+
+        returns: (size name <str>, size obj <dict>)
+        TODO: move sizes into its own property"""
+        if self.attributes['sizes']:
+            if size.width:
+                return next(((name, obj) for name, obj in self.attributes['sizes'].iteritems()
+                             if obj.get('width', None) == size.width), None)
+            elif size.height:
+                return next(((name, obj) for name, obj in self.attributes['sizes'].iteritems()
+                             if s.get('height', None) == size.height), None)
+        else:
+            return (None, None)
+
+    def delete_image_size(self, size):
+        """
+        Deletes image size obj in self.attributes['sizes'] with matching width or height
+
+        size: expected SizeConf object (at minimum, has width and height properties)
+
+        returns: True if match found & deleted, False if no match found
+        """
+        (name, obj) = self.find_image_size(size)
+        if name:
+            delete_resource(obj['url'])
+            del self.attributes['sizes'][name]
+            return True
+        else:
+            return False
 
 
 class Tag(BaseModel):
@@ -746,10 +791,7 @@ class Image(Content):
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
-            if settings.CLOUDINARY_BASE_URL in self.url:
-                delete_cloudinary_resource(self.url)
-            elif settings.IMAGE_SERVICE_BUCKET in self.url:
-                delete_s3_resource(self.url)
+            delete_resource(self.url)
         super(Image, self).delete(*args, **kwargs)
 
 

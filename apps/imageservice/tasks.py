@@ -10,8 +10,9 @@ from threading import Semaphore
 import urllib2
 
 from apps.imageservice.models import SizeConf
-from apps.imageservice.utils import create_image, create_image_path, delete_cloudinary_resource, get_filetype, \
-                                    get_public_id, IMAGE_SIZES, upload_to_cloudinary, within_color_range
+from apps.imageservice.utils import create_image, create_image_path, delete_cloudinary_resource, \
+                                    delete_s3_resource, get_filetype, get_public_id, IMAGE_SIZES, \
+                                    upload_to_cloudinary, within_color_range
 from apps.utils.aws import upload_to_bucket
 
 

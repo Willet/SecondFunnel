@@ -70,6 +70,9 @@ class Command(BaseCommand):
                 # Ex: http://res.cloudinary.com/secondfunnel/image/upload
                 #            /v1441808107/sur%20la%20table/6a6bd03ec8a5b8ce.jpg
                 for size in sizes:
+                    # Check if image already exists. If so, delete it
+                    cover_image.delete_image_size(cover_image)
+
                     try:
                         (s3_image, s3_url) = transfer_cloudinary_image_to_s3(cover_image.url, store, size)
                     except:
