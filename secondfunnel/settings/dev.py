@@ -46,7 +46,7 @@ CACHES = {
 }
 
 INSTALLED_APPS += (
-    'django_nose',  # for testing...? we don't use it, but here it is
+    'django_nose', # must be added after south
     'debug_toolbar',
     'devserver',
 )
