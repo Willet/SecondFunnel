@@ -2,6 +2,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db.models.loading import get_model
 import json
+import logging
 
 from apps.utils.functional import find_where, get_image_file_type, may_be_json
 
@@ -274,7 +275,7 @@ class CollectionTileSerializer(TileSerializer):
         else:
             # Grab first tagged image
             try:
-                image = self.get_dump_first_content_of(self.contenttype)
+                image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
                 raise SerializerError("Collection Tile #{} expecting content to \
                                        include an image".format(tile.id))
@@ -312,7 +313,7 @@ class HeroTileSerializer(TileSerializer):
         }
         """
         try:
-            image = self.get_dump_first_content_of(self.contenttype)
+            image = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
             raise SerializerError("Hero Tile expecting content to include an image".format(tile.id))
 
