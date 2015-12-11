@@ -5,14 +5,15 @@ import logging
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
 import apps.intentrank.serializers as ir_serializers
-from apps.intentrank.serializers.utils import SerializerError
+from apps.intentrank.serializers.utils import SerializerError, camelize_JSON
 
 class ProductSerializerTest(TestCase):
     fixtures = ['assets_models.json']
 
     def get_dump_object_test(self):
         product = Product.objects.get(pk=3)
-        data = product.serializer().get_dump_object(product)
+        s = ir_serializers.ProductSerializer()
+        data = s.get_dump_object(product)
         self.assertEqual(data['default-image'], {})
         self.assertEqual(data['sizes'], {})
         self.assertEqual(data['orientation'], "portrait")
@@ -33,7 +34,8 @@ class ProductSerializerTest(TestCase):
         product = Product.objects.get(pk=12)
         image = ProductImage.objects.get(pk=4)
         product.product_images.add(image)
-        data = product.serializer().get_dump_object(product, shallow=True)
+        s = ir_serializers.ProductSerializer()
+        data = s.get_dump_object(product, shallow=True)
         self.assertEqual(data['default-image'], image.to_json())
         self.assertEqual(data['sizes'], None)
         self.assertEqual(data['orientation'], "portrait")
@@ -62,32 +64,36 @@ class ProductSerializerTest(TestCase):
             'id': 4,
         }])
 
-class ProductImageSerializer(TestCase):
+class ProductImageSerializerTest(TestCase):
     fixtures = ['assets_models.json']
 
     def get_dump_object_test(self):
-        # s = ProductImageSerializer()
+        s = ir_serializers.ProductImageSerializer()
         product_image = ProductImage.objects.get(pk=4)
+        attributes = {"random_field": "random_value"}
+        product_image.attributes = attributes
         data = product_image.serializer().get_dump_object(product_image)
         self.assertEqual(data["format"], product_image.file_type or "jpg")
         self.assertEqual(data["type"], "image")
         self.assertEqual(data["dominant-color"], "transparent")
         self.assertEqual(data["url"], product_image.url)
         self.assertEqual(data["id"], product_image.id)
-        self.assertEqual("orientation", product_image.orientation)
-        # "sizes": product_image.attributes.get('sizes', {
-        #     'width': getattr(product_image, "width", '100%'),
-        #     'height': getattr(product_image, "height", '100%'),
-        # }),
+        self.assertEqual(data["orientation"], product_image.orientation)
+        self.assertEqual(data["sizes"], product_image.attributes.get('sizes', {
+                    'width': getattr(product_image, "width", '100%'),
+                    'height': getattr(product_image, "height", '100%'),
+                }))
 
-        #need to test attributes
+        logging.debug(data)
+
+        self.assertEqual(data["randomField"], "random_value")
         #how to test product shot???
 
 class ContentSerializer(TestCase):
     fixtures = ['assets_models.json']
 
     def get_dump_object_test(self):
-        s = ContentSerializer()
+        s = ir_serializers.ContentSerializer()
         content = Content.objects.get(pk=6)
         data = s.get_dump_object(content)
         self.assertEqual(data['id'], content.id)
@@ -102,6 +108,15 @@ class ContentSerializer(TestCase):
 class ImageSerializer(TestCase):
     fixtures = ['assets_models.json']
 
-    def get_dump_object(self):
-        s = ImageSerializer()
-
+    def get_dump_object_test(self):
+        s = ir_serializers.ImageSerializer()
+        image = Image.objects.get(pk=6)
+        data = s.get_dump_object(image)
+        self.assertEqual(data["type"], "image")
+        self.assertEqual(data["dominant-color"], getattr(image, "dominant_color", "transparent"))
+        self.assertEqual(data["status"], image.status)
+        self.assertEqual(data["orientation"], getattr(image, 'orientation', 'portrait'))
+        self.assertEqual(data["sizes"], image.attributes.get('sizes', {
+                    'width': getattr(image, "width", '100%'),
+                    'height': getattr(image, "height", '100%'),
+                }))
