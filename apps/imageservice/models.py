@@ -1,8 +1,13 @@
+import json
 import math
+from pprint import pprint
+
+from django.db import models
 import numpy
 from PIL import Image
 
-from django.db import models
+from .utils import delete_resource as delete_remote_resource
+from .utils import get_dominant_color
 
 
 MAX_COLOR_DISTANCE = 510
@@ -23,6 +28,93 @@ class SizeConf(models.Model):
         @return: Tuple
         """
         return (self.width, self.height)
+
+
+class ImageSizes(object):
+    """
+    Holds various size representations of an image
+
+    Each size representation is a <dict> { 'width': ..., 'height': ..., 'url': ... }
+    It is necessary to have one of width or height, but not both
+    """
+    def __init__(self, internal_json=None):
+        """
+        internal_json should be provided by unicode call on ImageSizes object.
+        """
+        if isinstance(internal_json, unicode) and internal_json:
+            self._sizes = json.loads(internal_json)
+        else:
+            self._sizes = {}
+
+    def __unicode__(self):
+        return json.dumps(self._sizes)
+
+    def __repr__(self):
+        return u"{0}(internal_json={1})".format(self.__class__, unicode(self))
+
+    def __eq__(self, other):
+        # pprint sorts keys
+        return isinstance(other, self.__class__) and (pprint(self._sizes) == pprint(other._sizes))
+
+    def add(self, name, size, delete_resource=True):
+        """
+        Adds image size with key name
+
+        If an existing image size exists with the same name, it deletes that first
+
+        @param name: string key
+        @param size: <dict> must have a width and/or height key, optional url key (or anything else)
+        """
+        if not ('width' in size or 'height' in size):
+            raise ValueError("size must have a width or height")
+
+        if (name in self._sizes) and size.get('url', None) and \
+            (self._sizes[name].get('url', None) != size.get('url')):
+            # Replacing a size, so delete existing size & resource
+            self.remove(name, delete_resource=delete_resource)
+        self._sizes[name] = size
+
+    def find(self, name_or_size):
+        """
+        Finds image size with a) matching name OR b) matching width or height, width prioritized over height
+
+        @param name_or_size: <str> name or <dict> has keys width and/or height
+
+        returns: (name <str>, size <dict>)
+        """
+        if isinstance(name_or_size, basestring):
+            if name_or_size in self._sizes:
+                return (name_or_size, self._sizes[name_or_size])
+            else:
+                return (None, None)
+        elif isinstance(name_or_size, dict):
+            if name_or_size.get('width', None):
+                return next(((name, obj) for name, obj in self._sizes.items()
+                             if obj.get('width', None) == name_or_size.get('width')), (None, None))
+            elif name_or_size.get('height', None):
+                return next(((name, obj) for name, obj in self._sizes.items()
+                             if obj.get('height', None) == name_or_size.get('height')), (None, None))
+            else:
+                return (None, None)
+
+    def remove(self, name, delete_resource=True):
+        """
+        Deletes image size with name. If image size has url and delete_resource is True,
+        the remote resource at url is deleted.
+
+        @param name: key for size to delete
+        @param delete_resource (optional): over-ride delete remote resource
+
+        returns: True if match found & deleted, False if no match found
+        """
+        if name in self._sizes:
+            obj = self._sizes[name]
+            del self._sizes[name]
+            if delete_resource and ('url' in obj):
+                delete_remote_resource(obj['url'])
+            return True
+        else:
+            return False
 
 
 class COLOR(object):
@@ -124,10 +216,9 @@ class ExtendedImage(object):
         tmp = self.copy().resize(150, 150)
         # Generate a histogram for the image colour points
         # Begin by gathering into an array of points
-        from apps.imageservice.utils import get_dominant_color
 
-        colour = get_dominant_color(tmp)
-        return colour
+        color = get_dominant_color(tmp)
+        return color
 
     def copy(self):
         """
