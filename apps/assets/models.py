@@ -1,11 +1,11 @@
 import calendar
+from copy import deepcopy
 import datetime
 import decimal
 import json
 import logging
 import re
 
-from copy import deepcopy
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
@@ -574,6 +574,8 @@ class ProductImage(BaseModel):
         super(ProductImage, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
+        if not 'sizes' in self.attributes:
+            self.attributes['sizes'] = {}
 
     @property
     def orientation(self):
@@ -601,12 +603,11 @@ class ProductImage(BaseModel):
         if settings.ENVIRONMENT == "production":
             delete_resource(self.url)
 
-            if 'sizes' in self.attributes:
-                # Image service has transfered common image sizes to s3
-                for obj in self.attributes['sizes'].values():
-                    url = obj.get('url', None)
-                    if url:
-                        delete_resource(url)
+            # Image service has transfered common image sizes to s3
+            for obj in self.attributes['sizes'].values():
+                url = obj.get('url', None)
+                if url:
+                    delete_resource(url)
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
@@ -621,40 +622,6 @@ class ProductImage(BaseModel):
             if red > threshold and blue > threshold and green > threshold:
                 product_shot = True
         return product_shot
-
-    def find_image_size(self, size):
-        """
-        Finds image size obj in self.attributes['sizes'] with matching width or height
-
-        size: expected SizeConf object (at minimum, has width and height properties)
-
-        returns: (size name <str>, size obj <dict>)
-        TODO: move sizes into its own property"""
-        if self.attributes['sizes']:
-            if size.width:
-                return next(((name, obj) for name, obj in self.attributes['sizes'].iteritems()
-                             if obj.get('width', None) == size.width), None)
-            elif size.height:
-                return next(((name, obj) for name, obj in self.attributes['sizes'].iteritems()
-                             if s.get('height', None) == size.height), None)
-        else:
-            return (None, None)
-
-    def delete_image_size(self, size):
-        """
-        Deletes image size obj in self.attributes['sizes'] with matching width or height
-
-        size: expected SizeConf object (at minimum, has width and height properties)
-
-        returns: True if match found & deleted, False if no match found
-        """
-        (name, obj) = self.find_image_size(size)
-        if name:
-            delete_resource(obj['url'])
-            del self.attributes['sizes'][name]
-            return True
-        else:
-            return False
 
 
 class Tag(BaseModel):

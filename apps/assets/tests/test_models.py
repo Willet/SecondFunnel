@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist, Multiple
 import mock
 import datetime
 import time
-import factory
 import logging
 import itertools
 from django.test import TestCase
@@ -19,30 +18,6 @@ import apps.intentrank.serializers as ir_serializers
 
 from apps.assets.signals import content_m2m_changed, content_saved, product_saved, \
                                 productimage_saved, tile_m2m_changed, tile_saved
-
-"""
-We are avoiding fixtures because they are so slow:
-http://www.mattjmorrison.com/2011/09/mocking-django.html
-"""
-
-# class ProductFactory(factory.Factory):
-#     class Meta:
-#         model = Product
-
-# class ProductImageFactory(factory.Factory):
-#     class Meta:
-#         model = ProductImage
-
-# class StoreFactory(factory.Factory):
-#     class Meta:
-#         model = Store
-#     name = "Test Store"
-#     slug = "test_store"
-
-# class FeedFactory(factory.Factory):
-#     class Meta:
-#         model = Feed
-#     id=1
 
 # class BaseModelTest(TestCase):
 #     def setUp(self):
@@ -169,8 +144,7 @@ class ProductImageTest(TestCase):
         t = ProductImage.objects.get(pk=4)
         self.assertIsNone(t.width)
         self.assertIsNone(t.height)
-        with self.assertRaises(KeyError):
-            self.assertIsNone(t.attributes['sizes'])
+        self.assertEqual(t.attributes['sizes'], {})
         t.save()
         self.assertEqual(t.width, 0)
         self.assertEqual(t.height, 0)
