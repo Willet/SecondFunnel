@@ -106,4 +106,36 @@ class PageConfigSerializerclassTest(TestCase):
         s = ir_serializers.PageConfigSerializer()
         page = Page.objects.get(pk=8)
         feed = Feed.objects.get(pk=9)
-        data = s.to_json(None, page, feed)
+        page.feed = feed
+        data = s.to_json(None, page)
+        self.assertEqual(data['debug'], settings.DEBUG)
+        self.assertEqual(data['itemSelector'], '.tile')
+        self.assertEqual(data['store'], page.store.to_json())
+        self.assertEqual(data['page']['name'], page.to_json()['name'])
+        self.assertEqual(data['feed'], feed.to_json())
+        self.assertEqual(data['overlayButtonColor'], getattr(page, 'overlay_button_color', ''))
+        self.assertEqual(data['overlayMobileButtonColor'], getattr(page, 'overlay_mobile_button_color', ''))
+        self.assertEqual(data['disableBannerRedirectOnMobile'], getattr(page, 'disable_banner_redirect_on_mobile', False))
+        self.assertEqual(data['mobileTabletView'], getattr(page, 'mobile_table_view', False))
+        self.assertEqual(data['conditionalSocialButtons'], getattr(page, 'conditional_social_buttons', {}))
+        self.assertEqual(data['enableTracking'], True)
+        self.assertEqual(data['imageTileWide'], getattr(page, 'image_tile_wide', 0.0))
+        self.assertEqual(data['minImageWidth'], getattr(page, 'minImageWidth', 450))
+        self.assertEqual(data['minImageHeight'], getattr(page, 'minImageHeight', 100))
+        self.assertEqual(data['resultsThreshold'], getattr(page, 'results_threshold', None))
+        self.assertEqual(data['initialResults'], [])
+        keen = {
+            'projectId': settings.KEEN_CONFIG['projectId'],
+            'writeKey': settings.KEEN_CONFIG['writeKey'],
+        }
+        self.assertEqual(data['keen'], keen)
+        ad = {
+            'forceTwoColumns': getattr(page, 'forceTwoColumns', False),
+            'columnWidth': getattr(page, 'columnWidth', 240),
+            'tilePopupUrl': getattr(page, 'tile_popup_url', ''),
+            'tiles': {
+                'openTilesInPreview': getattr(page, 'tiles', {}).get('openTilesInPreview', False),
+                'openProductTilesInPDP': getattr(page, 'tiles', {}).get('openProductTileInPDP', False),
+            }
+        }
+        self.assertEqual(data['ad'], ad)
