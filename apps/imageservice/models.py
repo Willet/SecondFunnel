@@ -56,7 +56,7 @@ class ImageSizes(object):
         # pprint sorts keys
         return isinstance(other, self.__class__) and (pprint(self._sizes) == pprint(other._sizes))
 
-    def add(self, name, size, delete_resource=True):
+    def add(self, name, size, delete_existing_resource=True):
         """
         Adds image size with key name
 
@@ -71,7 +71,7 @@ class ImageSizes(object):
         if (name in self._sizes) and size.get('url', None) and \
             (self._sizes[name].get('url', None) != size.get('url')):
             # Replacing a size, so delete existing size & resource
-            self.remove(name, delete_resource=delete_resource)
+            self.remove(name, delete_resource=delete_existing_resource)
         self._sizes[name] = size
 
     def find(self, name_or_size):
@@ -115,6 +115,13 @@ class ImageSizes(object):
             return True
         else:
             return False
+
+    def delete_resources(self):
+        """
+        Deletes all resources!
+        """
+        for name in self._sizes:
+            self.remove(name, delete_resource=True)
 
 
 class COLOR(object):

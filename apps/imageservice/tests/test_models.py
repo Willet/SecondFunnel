@@ -1,5 +1,5 @@
 import json
-from mock import patch
+from mock import patch, call
 from unittest import TestCase
 
 from apps.imageservice.models import ImageSizes
@@ -111,3 +111,17 @@ class ImageSizesTest(TestCase):
         self.img_sizes.remove(self.name, delete_resource=True)
 
         mock_delete_resource.assert_called_once_with(self.size['url'])
+
+    def delete_test(self):
+        with patch.object(self.img_sizes, 'remove'):
+            self.img_sizes.delete_resources() # No resources
+            
+            self.assertEqual(self.img_sizes.remove.call_count, 0)
+
+            self.img_sizes.add(self.name, self.size)
+            self.img_sizes.add(self.name2, self.size5)
+            self.img_sizes.delete_resources() # 2 resources
+
+            calls = [call(self.name, delete_resource=True), call(self.name2, delete_resource=True)]
+            self.img_sizes.remove.assert_has_calls(calls, any_order=True)
+            self.assertEqual(self.img_sizes.remove.call_count, 2)
