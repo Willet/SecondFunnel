@@ -1,6 +1,8 @@
-from django.core.management.base import BaseCommand
-import traceback
+import logging
 from optparse import make_option
+import traceback
+
+from django.core.management.base import BaseCommand
 
 from apps.assets.models import Page
 from apps.imageservice.models import SizeConf
@@ -27,9 +29,17 @@ class Command(BaseCommand):
                 dest="num_tiles",
                 default=200,
                 help="Transfer this many tiles starting from the highest priority."),
+            make_option('-r','--replace',
+                action="store_true",
+                dest="replace",
+                default=False,
+                help="Replace images that have already been transfered."),
         )
 
     def handle(self, url_slug, **options):
+        num_tiles = options.get('num_tiles', 200) # Default is 200 tiles
+        replace_existing = options.get('replace', False)
+
         page = Page.objects.get(url_slug=url_slug)
         store = page.store
         sizes = []
@@ -45,9 +55,9 @@ class Command(BaseCommand):
                 )
             )
 
-        num_tiles = options.get('num_tiles', 200) # Default is 200 tiles
         tiles = page.feed.tiles.order_by("-priority")[0:num_tiles]
-        print "Will attempt to transfer {} tile images for {}".format(tiles.count(), url_slug)
+        logging.info(u"Transfering {} tile images for {}, {} existing images".format(tiles.count(), page, 
+                                                            "replacing" if replace_existing else "skipping"))
 
         for t in tiles.iterator():
             cover_image = None
@@ -70,24 +80,23 @@ class Command(BaseCommand):
                 # Ex: http://res.cloudinary.com/secondfunnel/image/upload
                 #            /v1441808107/sur%20la%20table/6a6bd03ec8a5b8ce.jpg
                 for size in sizes:
-                    # Check if image already exists. If so, delete it
-                    cover_image.delete_image_size(cover_image)
-
+                    if not replace_existing and cover_image.find(size.name)[0]:
+                        # already exists
+                        continue
                     try:
                         (s3_image, s3_url) = transfer_cloudinary_image_to_s3(cover_image.url, store, size)
                     except:
                         traceback.print_exc()
                         continue
                     else:
-                        # update product image with size / url combo
-                        if not cover_image.attributes['sizes']:
-                            cover_image.attributes['sizes'] = {}
-                        cover_image.attributes['sizes'][size.name] = {
+                        size_obj = {
                             'width': s3_image.width,
                             'height': s3_image.height,
                             'url': s3_url,
                         }
-                    cover_image.save(update_fields=['attributes'])
+                        # Note: if image already exists, its resource is deleted
+                        cover_image.image_sizes.add(size.name, size_obj, delete_existing_resource=True)
+                    cover_image.save(update_fields=['image_sizes'])
                 print "{} moved to s3.".format(cover_image)
 
 
