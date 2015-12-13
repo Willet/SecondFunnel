@@ -15,6 +15,7 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
+from apps.imageservice.fields import ImageSizesField
 from apps.imageservice.utils import delete_resource, is_hex_color
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
@@ -561,7 +562,7 @@ class ProductImage(BaseModel):
     height = models.PositiveSmallIntegerField(blank=True, null=True)
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
-
+    image_sizes = ImageSizesField(blank=True, null=True)
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     serializer = ir_serializers.ProductImageSerializer
@@ -601,13 +602,9 @@ class ProductImage(BaseModel):
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
+            # Delete stored image resources
             delete_resource(self.url)
-
-            # Image service has transfered common image sizes to s3
-            for obj in self.attributes['sizes'].values():
-                url = obj.get('url', None)
-                if url:
-                    delete_resource(url)
+            self.image_sizes.delete_resources()
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
