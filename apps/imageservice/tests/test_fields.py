@@ -14,7 +14,7 @@ class ImageSizesFieldTest(TestCase):
         self.empty_value = ImageSizes()
         self.full_value = ImageSizes()
         self.full_value[self.name] = self.size
-        self.json_value = unicode(self.full_value)
+        self.json_value = repr(self.full_value)
         self.field = ImageSizesField("test")
 
     def to_python_no_value_test(self):
@@ -22,7 +22,7 @@ class ImageSizesFieldTest(TestCase):
         self.assertEqual(r, self.empty_value)
 
     def to_python_value_test(self):
-        r = self.field.to_python(unicode(self.full_value))
+        r = self.field.to_python(self.json_value)
         self.assertEqual(r, self.full_value)
 
     def validate_test(self):

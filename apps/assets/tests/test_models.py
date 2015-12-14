@@ -140,6 +140,36 @@ class ProductImageTest(TestCase):
         self.assertEqual(product_image.url, url)
         self.assertEqual(product_image.original_url, original_url)
 
+    def init_image_sizes_test(self):
+        sizes = {
+            "master": {
+                "width": 640,
+                "height": 480,
+                "url": "http://images.secondfunnel.com/foo/bar.jpg",
+            },
+            "w400": {
+                "width": 400,
+                "height": 400,
+                "url": "http://images.secondfunnel.com/foo/w400/bar.jpg",
+            },
+            "h400": {
+                "height": 400,
+                "url": "http://images.secondfunnel.com/foo/h400/bar.jpg",
+            }
+        }
+        pi = ProductImage(
+                product=Product.objects.get(pk=3),
+                original_url="http://www.google.com/foo/bar.jpg",
+                image_sizes=sizes,
+                dominant_color="#FFFFFF",
+                url="http://images.secondfunnel.com/foo/bar.jpg",
+                file_type="jpg")
+        self.assertEqual(len(pi.image_sizes), 3)
+        self.assertTrue("master" in pi.image_sizes)
+        self.assertTrue("w400" in pi.image_sizes)
+        self.assertTrue("h400" in pi.image_sizes)
+        self.assertIsNotNone(pi.image_sizes.find({"height": 400}))
+
     def save_test(self):
         t = ProductImage.objects.get(pk=4)
         self.assertIsNone(t.width)

@@ -67,7 +67,7 @@ class ImageSizesTest(TestCase):
         # unicode should just be a json dump of the internal dict
         self.img_sizes[self.name] = self.size
 
-        self.assertEqual(unicode(self.img_sizes), json.dumps({self.name: self.size}))
+        self.assertEqual(unicode(self.img_sizes), json.dumps({self.name: self.size}, indent=2))
 
     def equality_test(self):
         self.img_sizes[self.name] = self.size

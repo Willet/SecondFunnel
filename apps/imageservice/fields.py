@@ -38,7 +38,7 @@ class ImageSizesField(models.TextField):
         super(ImageSizesField, self).validate(value, model_instance)
 
     def get_db_prep_value(self, value, connection=None, prepared=None):
-        return unicode(value)
+        return repr(value)
 
     def value_to_string(self, obj):
         # django internals

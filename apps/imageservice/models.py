@@ -1,7 +1,6 @@
 import collections
 import json
 import math
-from pprint import pprint
 
 from django.db import models
 import numpy
@@ -43,9 +42,9 @@ class ImageSizes(collections.MutableMapping):
     """
     def __init__(self, internal_json=None):
         """
-        internal_json should be provided by unicode call on ImageSizes object.
+        internal_json should be provided by repr call on ImageSizes object.
         """
-        if isinstance(internal_json, unicode) and internal_json:
+        if isinstance(internal_json, basestring) and internal_json:
             self._sizes = json.loads(internal_json)
         else:
             self._sizes = {}
@@ -54,11 +53,12 @@ class ImageSizes(collections.MutableMapping):
         return json.dumps(self._sizes, indent=2)
 
     def __repr__(self):
-        return u"{0}(internal_json={1})".format(self.__class__, unicode(self))
+        return json.dumps(self._sizes)
 
     def __eq__(self, other):
         # pprint sorts keys
-        return isinstance(other, self.__class__) and (pprint(self._sizes) == pprint(other._sizes))
+        return isinstance(other, self.__class__) and \
+               (sorted(self._sizes.items()) == sorted(other._sizes.items()))
 
     def __contains__(self, name):
         return (name in self._sizes)
