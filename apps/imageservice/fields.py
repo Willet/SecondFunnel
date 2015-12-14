@@ -21,8 +21,12 @@ class ImageSizesField(models.TextField):
     def to_python(self, value):
         if not value:
             return ImageSizes()
-        else:
+        elif isinstance(value, ImageSizes):
+            return value
+        elif isinstance(value, basestring):
             return ImageSizes(internal_json=value)
+        else:
+            raise ValueError("ImageSizesField recieved unexpected type {}".format(type(value)))
 
     def validate(self, value, model_instance):
         if not isinstance(value, ImageSizes):

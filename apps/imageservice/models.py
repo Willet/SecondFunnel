@@ -32,10 +32,13 @@ class SizeConf(models.Model):
 
 class ImageSizes(object):
     """
-    Holds various size representations of an image
+    Holds various size representations of an image and methods
+    A dict-like object with methods find & delete_resources
 
     Each size representation is a <dict> { 'width': ..., 'height': ..., 'url': ... }
     It is necessary to have one of width or height, but not both
+
+    Can be treated like a dict, but will automatically delete remote resources on removal / over-writing
     """
     def __init__(self, internal_json=None):
         """
@@ -47,7 +50,8 @@ class ImageSizes(object):
             self._sizes = {}
 
     def __unicode__(self):
-        return json.dumps(self._sizes)
+        print "self._sizes: {}".format(self._sizes)
+        return json.dumps(self._sizes, indent=2)
 
     def __repr__(self):
         return u"{0}(internal_json={1})".format(self.__class__, unicode(self))
@@ -56,7 +60,52 @@ class ImageSizes(object):
         # pprint sorts keys
         return isinstance(other, self.__class__) and (pprint(self._sizes) == pprint(other._sizes))
 
-    def add(self, name, size, delete_existing_resource=True):
+    def __contains__(self, name):
+        return (name in self._sizes)
+
+    def __iter__(self):
+        return iter(self._sizes)
+
+    def __len__(self):
+        return len(self._sizes)
+
+    def __getitem__(self, key):
+        return self._sizes[key]
+
+    def __setitem__(self, key, value):
+        self._add(key, value)
+
+    def __delitem__(self, key):
+        self._remove(key)
+
+    def find(self, size):
+        """
+        Finds image size with matching width or height, width prioritized over height
+
+        @param size: <dict> has keys width and/or height
+
+        returns: (name <str>, size <dict>) or (None, None)
+        """
+        if not isinstance(size, dict):
+            raise ValueError(u'Expected a dict, got {}'.format(type(size)))
+
+        if size.get('width', None):
+            return next(((name, obj) for name, obj in self._sizes.items()
+                         if obj.get('width', None) == size.get('width')), (None, None))
+        elif size.get('height', None):
+            return next(((name, obj) for name, obj in self._sizes.items()
+                         if obj.get('height', None) == size.get('height')), (None, None))
+        else:
+            return (None, None)
+
+    def delete_resources(self):
+        """
+        Deletes all resources!
+        """
+        for name in self._sizes:
+            self._remove(name, delete_resource=True)
+
+    def _add(self, name, size, delete_existing_resource=True):
         """
         Adds image size with key name
 
@@ -71,33 +120,11 @@ class ImageSizes(object):
         if (name in self._sizes) and size.get('url', None) and \
             (self._sizes[name].get('url', None) != size.get('url')):
             # Replacing a size, so delete existing size & resource
-            self.remove(name, delete_resource=delete_existing_resource)
+            self._remove(name, delete_resource=delete_existing_resource)
+        print "Adding {}: {}".format(name, size)
         self._sizes[name] = size
 
-    def find(self, name_or_size):
-        """
-        Finds image size with a) matching name OR b) matching width or height, width prioritized over height
-
-        @param name_or_size: <str> name or <dict> has keys width and/or height
-
-        returns: (name <str>, size <dict>)
-        """
-        if isinstance(name_or_size, basestring):
-            if name_or_size in self._sizes:
-                return (name_or_size, self._sizes[name_or_size])
-            else:
-                return (None, None)
-        elif isinstance(name_or_size, dict):
-            if name_or_size.get('width', None):
-                return next(((name, obj) for name, obj in self._sizes.items()
-                             if obj.get('width', None) == name_or_size.get('width')), (None, None))
-            elif name_or_size.get('height', None):
-                return next(((name, obj) for name, obj in self._sizes.items()
-                             if obj.get('height', None) == name_or_size.get('height')), (None, None))
-            else:
-                return (None, None)
-
-    def remove(self, name, delete_resource=True):
+    def _remove(self, name, delete_resource=True):
         """
         Deletes image size with name. If image size has url and delete_resource is True,
         the remote resource at url is deleted.
@@ -115,13 +142,6 @@ class ImageSizes(object):
             return True
         else:
             return False
-
-    def delete_resources(self):
-        """
-        Deletes all resources!
-        """
-        for name in self._sizes:
-            self.remove(name, delete_resource=True)
 
 
 class COLOR(object):

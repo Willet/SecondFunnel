@@ -144,22 +144,20 @@ class ProductImageTest(TestCase):
         t = ProductImage.objects.get(pk=4)
         self.assertIsNone(t.width)
         self.assertIsNone(t.height)
-        self.assertEqual(t.attributes['sizes'], {})
+        self.assertEqual(len(t.image_sizes), 0)
         t.save()
         self.assertEqual(t.width, 0)
         self.assertEqual(t.height, 0)
 
     def save_dimensions_test(self):
         t = ProductImage.objects.get(pk=4)
-        t.attributes['sizes'] = {
-            "master": {
-                "width": 640,
-                "height": 480
-            }
+        t.image_sizes["master"] = {
+            "width": 640,
+            "height": 480
         }
         self.assertIsNone(t.width)
         self.assertIsNone(t.height)
-        self.assertIsNotNone(t.attributes['sizes'])
+        self.assertIsNotNone(t.image_sizes['master'])
         t.save()
         self.assertEqual(t.width, 640)
         self.assertEqual(t.height, 480)

@@ -13,7 +13,7 @@ class ImageSizesFieldTest(TestCase):
     def setUp(self):
         self.empty_value = ImageSizes()
         self.full_value = ImageSizes()
-        self.full_value.add(self.name, self.size)
+        self.full_value[self.name] = self.size
         self.json_value = unicode(self.full_value)
         self.field = ImageSizesField("test")
 

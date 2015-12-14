@@ -80,8 +80,9 @@ class Command(BaseCommand):
                 # Ex: http://res.cloudinary.com/secondfunnel/image/upload
                 #            /v1441808107/sur%20la%20table/6a6bd03ec8a5b8ce.jpg
                 for size in sizes:
-                    if not replace_existing and cover_image.find(size.name)[0]:
+                    if not replace_existing and (size.name in cover_image.image_sizes):
                         # already exists
+                        print "Skipping {} for {} because it already exists".format(size.name, cover_image)
                         continue
                     try:
                         (s3_image, s3_url) = transfer_cloudinary_image_to_s3(cover_image.url, store, size)
@@ -89,13 +90,12 @@ class Command(BaseCommand):
                         traceback.print_exc()
                         continue
                     else:
-                        size_obj = {
+                        # Note: if image already exists, its resource is deleted
+                        cover_image.image_sizes[size.name] = {
                             'width': s3_image.width,
                             'height': s3_image.height,
                             'url': s3_url,
                         }
-                        # Note: if image already exists, its resource is deleted
-                        cover_image.image_sizes.add(size.name, size_obj, delete_existing_resource=True)
                     cover_image.save(update_fields=['image_sizes'])
                 print "{} moved to s3.".format(cover_image)
 

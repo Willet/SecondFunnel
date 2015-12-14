@@ -253,7 +253,7 @@ def process_image_now(source, path='', sizes=None, remove_background=False, forc
         print "To enable trimming and resizing, change \"remove_background\" and/or \"forced_image_ratio\""
         image_object = upload_to_cloudinary(source, path=path)
 
-    # Grab the dominant colour from cloudinary
+    # Grab the dominant color from cloudinary
     colors = image_object['colors']
     colors = sorted(colors, key=lambda c: c[1], reverse=True)
     dominant_color = colors[0][0]
@@ -265,6 +265,7 @@ def process_image_now(source, path='', sizes=None, remove_background=False, forc
     data['sizes']['master'] = {
         'width': image_object['width'],
         'height': image_object['height'],
+        'url': master_url,
     }
 
     data.update({
