@@ -1,3 +1,4 @@
+import collections
 import json
 import math
 from pprint import pprint
@@ -30,7 +31,7 @@ class SizeConf(models.Model):
         return (self.width, self.height)
 
 
-class ImageSizes(object):
+class ImageSizes(collections.MutableMapping):
     """
     Holds various size representations of an image and methods
     A dict-like object with methods find & delete_resources
@@ -50,7 +51,6 @@ class ImageSizes(object):
             self._sizes = {}
 
     def __unicode__(self):
-        print "self._sizes: {}".format(self._sizes)
         return json.dumps(self._sizes, indent=2)
 
     def __repr__(self):
@@ -121,7 +121,6 @@ class ImageSizes(object):
             (self._sizes[name].get('url', None) != size.get('url')):
             # Replacing a size, so delete existing size & resource
             self._remove(name, delete_resource=delete_existing_resource)
-        print "Adding {}: {}".format(name, size)
         self._sizes[name] = size
 
     def _remove(self, name, delete_resource=True):
