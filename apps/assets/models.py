@@ -1,11 +1,11 @@
 import calendar
+from copy import deepcopy
 import datetime
 import decimal
 import json
 import logging
 import re
 
-from copy import deepcopy
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
@@ -15,7 +15,9 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
-from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource, is_hex_color
+from apps.imageservice.fields import ImageSizesField
+from apps.imageservice.models import ImageSizes
+from apps.imageservice.utils import delete_resource, is_hex_color
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
@@ -96,7 +98,7 @@ class BaseModel(models.Model, SerializableMixin):
             obj_id=self.pk).encode('ascii', 'ignore')
 
     @classmethod
-    def _copy(cls, obj, update_fields={}, exclude_fields=[]):
+    def _copy(cls, obj, update_fields=None, exclude_fields=None):
         """Copies fields over to new instance of class & saves it
         
         Note: related m2m fields not copied over by default! add to update_fields
@@ -114,6 +116,10 @@ class BaseModel(models.Model, SerializableMixin):
 
         :raises: ValidationError
         """
+        if update_fields is None:
+            update_fields = {}
+        if exclude_fields is None:
+            exclude_fields = []
         # NOTE: _meta API updated in Django 1.8, will need to re-implement
         default_exclude = ['id', 'ir_cache']
         autofields = [f.name for f in obj._meta.fields if isinstance(f, models.AutoField)]
@@ -156,7 +162,7 @@ class BaseModel(models.Model, SerializableMixin):
             new_obj.save() # run full_clean to validate
         return new_obj
 
-    def _replace_relations(self, others, exclude_fields=[]):
+    def _replace_relations(self, others, exclude_fields=None):
         """
         Any relations pointing to `others` are replaced with `self`
         This is a core part of merging duplicate models
@@ -164,7 +170,10 @@ class BaseModel(models.Model, SerializableMixin):
         :param others - list of objects to replace with self
         :param exclude_fields - list of field names to exclude from merging
         """
-        exclude_fields = set(exclude_fields)
+        if exclude_fields is None:
+            exclude_fields = set()
+        else:
+            exclude_fields = set(exclude_fields)
 
         for obj in others:
             local_fields = set([f.name for f in obj._meta.local_fields])
@@ -554,7 +563,7 @@ class ProductImage(BaseModel):
     height = models.PositiveSmallIntegerField(blank=True, null=True)
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
-
+    image_sizes = ImageSizesField(blank=True, null=True)
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     serializer = ir_serializers.ProductImageSerializer
@@ -564,6 +573,14 @@ class ProductImage(BaseModel):
         ordering = ('id', )
 
     def __init__(self, *args, **kwargs):
+        # Convert image_sizes dict to ImageSizes
+        if isinstance(kwargs.get('image_sizes', None), dict):
+            image_sizes = kwargs['image_sizes']
+            sizes = ImageSizes()
+            for (name, size) in image_sizes.items():
+                sizes[name] = size
+            kwargs['image_sizes'] = sizes
+
         super(ProductImage, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
@@ -573,29 +590,27 @@ class ProductImage(BaseModel):
         return "landscape" if self.width > self.height else "portrait"
 
     def save(self, *args, **kwargs):
-        """attributes.sizes.master is populated by cloudinary
+        """self.image_sizes['master'] is populated by cloudinary
         """
-        master_size = default_master_size
         try:
-            master_size = self.attributes['sizes']['master']
+            master_size = self.image_sizes['master']
         except KeyError:
-            pass
-        except TypeError:
-            if isinstance(self.attributes, list):
-                self.attributes = {"sizes": default_master_size}
-
-        if master_size:
-            self.width = master_size.get('width', 0)
-            self.height = master_size.get('height', 0)
+            master_size = {
+                'width': 0,
+                'height': 0,
+            }
+        if not self.width:
+            self.width = master_size['width']
+        if not self.height:
+            self.height = master_size['height']
 
         return super(ProductImage, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
-            if settings.CLOUDINARY_BASE_URL in self.url:
-                delete_cloudinary_resource(self.url)
-            elif settings.IMAGE_SERVICE_BUCKET in self.url:
-                delete_s3_resource(self.url)
+            # Delete stored image resources
+            delete_resource(self.url)
+            self.image_sizes.delete_resources()
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
@@ -738,10 +753,7 @@ class Image(Content):
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
-            if settings.CLOUDINARY_BASE_URL in self.url:
-                delete_cloudinary_resource(self.url)
-            elif settings.IMAGE_SERVICE_BUCKET in self.url:
-                delete_s3_resource(self.url)
+            delete_resource(self.url)
         super(Image, self).delete(*args, **kwargs)
 
 

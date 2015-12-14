@@ -1,8 +1,13 @@
+import collections
+import json
 import math
+
+from django.db import models
 import numpy
 from PIL import Image
 
-from django.db import models
+from .utils import delete_resource as delete_remote_resource
+from .utils import get_dominant_color
 
 
 MAX_COLOR_DISTANCE = 510
@@ -23,6 +28,118 @@ class SizeConf(models.Model):
         @return: Tuple
         """
         return (self.width, self.height)
+
+
+class ImageSizes(collections.MutableMapping):
+    """
+    Holds various size representations of an image and methods
+    A dict-like object with methods find & delete_resources
+
+    Each size representation is a <dict> { 'width': ..., 'height': ..., 'url': ... }
+    It is necessary to have one of width or height, but not both
+
+    Will automatically delete remote resources on removal / over-writing
+    """
+    def __init__(self, internal_json=None):
+        """
+        internal_json should be provided by repr call on ImageSizes object.
+        """
+        if isinstance(internal_json, basestring) and internal_json:
+            self._sizes = json.loads(internal_json)
+        else:
+            self._sizes = {}
+
+    def __unicode__(self):
+        return json.dumps(self._sizes, indent=2)
+
+    def __repr__(self):
+        return json.dumps(self._sizes)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and \
+               (sorted(self._sizes.items()) == sorted(other._sizes.items()))
+
+    def __contains__(self, name):
+        return (name in self._sizes)
+
+    def __iter__(self):
+        return iter(self._sizes)
+
+    def __len__(self):
+        return len(self._sizes)
+
+    def __getitem__(self, key):
+        return self._sizes[key]
+
+    def __setitem__(self, key, value):
+        self._add(key, value)
+
+    def __delitem__(self, key):
+        self._remove(key)
+
+    def find(self, size):
+        """
+        Finds image size with matching width or height, width prioritized over height
+
+        @param size: <dict> has keys width and/or height
+
+        returns: (name <str>, size <dict>) or (None, None)
+        """
+        if not isinstance(size, dict):
+            raise ValueError(u'Expected a dict, got {}'.format(type(size)))
+
+        if size.get('width', None):
+            return next(((name, obj) for name, obj in self._sizes.items()
+                         if obj.get('width', None) == size.get('width')), (None, None))
+        elif size.get('height', None):
+            return next(((name, obj) for name, obj in self._sizes.items()
+                         if obj.get('height', None) == size.get('height')), (None, None))
+        else:
+            return (None, None)
+
+    def delete_resources(self):
+        """
+        Deletes all resources!
+        """
+        for name in self._sizes:
+            self._remove(name, delete_resource=True)
+
+    def _add(self, name, size, delete_existing_resource=True):
+        """
+        Adds image size with key name
+
+        If an existing image size exists with the same name, it deletes that first
+
+        @param name: string key
+        @param size: <dict> must have a width and/or height key, optional url key (or anything else)
+        """
+        if not ('width' in size or 'height' in size):
+            raise ValueError("size must have a width or height")
+
+        if (name in self._sizes) and size.get('url', None) and \
+            (self._sizes[name].get('url', None) != size.get('url')):
+            # Replacing a size, so delete existing size & resource
+            self._remove(name, delete_resource=delete_existing_resource)
+        self._sizes[name] = size
+
+    def _remove(self, name, delete_resource=True):
+        """
+        Deletes image size with name. If image size has url and delete_resource is True,
+        the remote resource at url is deleted.
+
+        @param name: key for size to delete
+        @param delete_resource (optional): over-ride delete remote resource
+
+        returns: True if match found & deleted, False if no match found
+        """
+        if name in self._sizes:
+            obj = self._sizes[name]
+            del self._sizes[name]
+            if delete_resource and ('url' in obj):
+                delete_remote_resource(obj['url'])
+            return True
+        else:
+            return False
 
 
 class COLOR(object):
@@ -124,10 +241,7 @@ class ExtendedImage(object):
         tmp = self.copy().resize(150, 150)
         # Generate a histogram for the image colour points
         # Begin by gathering into an array of points
-        from apps.imageservice.utils import get_dominant_color
-
-        colour = get_dominant_color(tmp)
-        return colour
+        return get_dominant_color(tmp)
 
     def copy(self):
         """
