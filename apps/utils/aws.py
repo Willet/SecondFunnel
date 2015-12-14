@@ -163,6 +163,18 @@ def download_from_bucket(bucket_name, filename, conn=None):
 
 
 @connection_required("s3")
+def delete_from_bucket(bucket_name, filename, conn=None):
+    """Deletes file with filename in bucket
+    """
+    bucket = conn.lookup(bucket_name)
+    if not bucket:
+        raise ValueError("Bucket {0} not found".format(bucket_name))
+
+    key = bucket.get_key(filename)
+    return bucket.delete_key(key) if key else None
+
+
+@connection_required("s3")
 def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
                        overwrite=False, auto_create_dest_bucket=False,
                        conn=None):

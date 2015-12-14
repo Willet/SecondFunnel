@@ -8,6 +8,8 @@ from south.modelsinspector import add_introspection_rules
 
 class ListField(models.TextField):
     """
+    A list of built-in python literal structures (strings, numbers, tuples, lists, dicts, booleans, and None)
+    
     type: (optional) type of list elements. Raises ValidationError during save if other types are added
 
     If we ever update to Django 1.8, this can be replaced with django.contrib.postgres.fields.ArrayField
