@@ -140,7 +140,7 @@ class ProductImageTest(TestCase):
         self.assertEqual(product_image.url, url)
         self.assertEqual(product_image.original_url, original_url)
 
-    def init_image_sizes_test(self):
+    def init_image_sizes_dict_test(self):
         sizes = {
             "master": {
                 "width": 640,
@@ -168,7 +168,8 @@ class ProductImageTest(TestCase):
         self.assertTrue("master" in pi.image_sizes)
         self.assertTrue("w400" in pi.image_sizes)
         self.assertTrue("h400" in pi.image_sizes)
-        self.assertIsNotNone(pi.image_sizes.find({"height": 400}))
+        self.assertNotEqual(pi.image_sizes.find({"height": 400}), (None, None))
+        self.assertEqual(pi.image_sizes.find({"height": 500}), (None, None))
 
     def save_test(self):
         t = ProductImage.objects.get(pk=4)
@@ -193,12 +194,42 @@ class ProductImageTest(TestCase):
         self.assertEqual(t.height, 480)
         self.assertEqual(t.orientation, "landscape")
 
-    @mock.patch('apps.imageservice.utils.delete_cloudinary_resource', mock.Mock())
-    def delete_test(self):
-        t = ProductImage.objects.get(pk=4)
-        t.delete()
-        with self.assertRaises(ObjectDoesNotExist):
-            t = ProductImage.objects.get(pk=4)
+    @mock.patch('apps.assets.models.delete_resource')
+    def delete_dev_test(self, mock_delete_resource):
+        # No remote resources deleted from dev
+        with mock.patch('django.conf.settings.ENVIRONMENT', 'dev'):
+            pi = ProductImage.objects.get(pk=11)
+            with mock.patch.object(pi.image_sizes, 'delete_resources'):
+                pi.delete()
+                mock_delete_resource.assert_not_called()
+                pi.image_sizes.delete_resources.assert_not_called()
+                with self.assertRaises(ObjectDoesNotExist):
+                    pi = ProductImage.objects.get(pk=11)
+
+    @mock.patch('apps.assets.models.delete_resource')
+    def delete_stage_test(self, mock_delete_resource):
+        # No remote resources deleted from stage
+        with mock.patch('django.conf.settings.ENVIRONMENT', 'stage'):
+            pi = ProductImage.objects.get(pk=11)
+            with mock.patch.object(pi.image_sizes, 'delete_resources'):
+                pi.delete()
+                mock_delete_resource.assert_not_called()
+                pi.image_sizes.delete_resources.assert_not_called()
+                with self.assertRaises(ObjectDoesNotExist):
+                    pi = ProductImage.objects.get(pk=11)
+
+    @mock.patch('apps.assets.models.delete_resource')
+    def delete_production_test(self, mock_delete_resource):
+        # Url & image size remote resources deleted on production
+        with mock.patch('django.conf.settings.ENVIRONMENT', 'production'):
+            pi = ProductImage.objects.get(pk=11)
+            with mock.patch.object(pi.image_sizes, 'delete_resources'):
+                pi.delete()
+                mock_delete_resource.assert_called_once_with(pi.url)
+                pi.image_sizes.delete_resources.assert_called_once_with()
+                with self.assertRaises(ObjectDoesNotExist):
+                    pi = ProductImage.objects.get(pk=11)
+
 
 class TagTest(TestCase):
     # Tag has no methods
