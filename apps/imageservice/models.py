@@ -38,7 +38,7 @@ class ImageSizes(collections.MutableMapping):
     Each size representation is a <dict> { 'width': ..., 'height': ..., 'url': ... }
     It is necessary to have one of width or height, but not both
 
-    Can be treated like a dict, but will automatically delete remote resources on removal / over-writing
+    Will automatically delete remote resources on removal / over-writing
     """
     def __init__(self, internal_json=None):
         """
@@ -56,7 +56,6 @@ class ImageSizes(collections.MutableMapping):
         return json.dumps(self._sizes)
 
     def __eq__(self, other):
-        # pprint sorts keys
         return isinstance(other, self.__class__) and \
                (sorted(self._sizes.items()) == sorted(other._sizes.items()))
 
