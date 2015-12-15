@@ -285,10 +285,11 @@ body {
     }
     &.stuck {
         /* 2px for border */
-        margin-top: (-2px - $ebags-thumbnail-height);
+        margin-top: 0;
+        max-width: none;
         .category-area {
             height: auto;
-            margin-top: (-2px - $ebags-thumbnail-height);
+            margin-top: 0;
         }
     }
 }
