@@ -35,7 +35,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
     };
 
     module.buildAffiliateLink = function (destinationUrl) {
-        var baseUrl = "http://www.anrdoezrs.net/links/7774943/type/dlg/"+ App.option('page:slug') +"/";
+        var baseUrl = "http://www.anrdoezrs.net/links/7774943/type/dlg/sid/"+ App.option('page:slug') +"/";
         return baseUrl + destinationUrl
     };
 };
