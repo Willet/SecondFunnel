@@ -20,41 +20,34 @@ App.init.initialize();
 App.start();
 
 (function () {
-    // Wrap SLT links with CJ link
-    if (App.option("useAffiliateLinks")) {
-        var re = /^https?\:\/\/www\.surlatable\.com/i;
-        $('a').each(function (el) {
-            if (this.href.match(re)) {
-                this.href = 'http://www.qksrv.net/links/7774943/type/am/sid/' +
-                            App.option('page:slug') + '/' + this.href;
-            }
-        });
-    }
+    // Wrap links with CJ link
+    var re = /^https?\:\/\/www\.ebags\.com/i;
+    $('a').each(function (el) {
+        if (this.href.match(re)) {
+            $(this).on('click', function () {
+                App.vent.trigger("tracking:page:externalUrlClick", this.href, "nav");
+                App.utils.openUrl(this.href, "_top");
+                return false;
+            });
+        }
+    });
 
-    // Send search bar inqueries to surlatable.com
-    $('#submit-search').click(function(ev){
-        var searchUrl, baseUrl,
+    // Send search bar inqueries to ebags.com
+    $('#search-bar button').click(function(ev){
+        var searchUrl,
+            baseUrl = "http://www.ebags.com/search?term=",
             $this = $(this),
-            $inputBox = $this.siblings().first(),
-            $topNavSearch = $this.parents('#search-bar');
-        if (App.option("useAffiliateLinks")) {
-            baseUrl = "http://www.anrdoezrs.net/links/7774943/sid/" +
-                      App.option('page:slug') +
-                      "/type/dlg/http://www.surlatable.com/search/search.jsp";
-        } else {
-            baseUrl = "http://www.surlatable.com/search/search.jsp"
-        }
-        if ($topNavSearch.length && $inputBox.length) {
-            searchUrl = baseUrl + "?Ntt=" + $inputBox.val();
-            App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
-            App.utils.openUrl(searchUrl, "_top");
-        }
+            $searchBar = $this.parents('#search-bar'),
+            $inputBox = $searchBar.find('input').first();
+        searchUrl = baseUrl + $inputBox.val();
+        App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
+        App.utils.openUrl(searchUrl, "_top");
         return false;
     });
-    $('#searchQuestionDisplayed').keypress(function(ev) {
+    $('#search-bar').keypress(function(ev) {
         // Enter button
         if(event.keyCode == 13){
-            $('#submit-search').click();
+            $('#search-bar button').click();
         }
     });
 
