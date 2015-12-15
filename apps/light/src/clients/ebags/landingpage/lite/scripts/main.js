@@ -44,12 +44,12 @@ App.start();
     };
 
     // Send search bar inqueries to ebags.com
-    $('#search-bar button').click(function(ev){
+    $('#search-bar button').click(function (ev){
         searchSubmit($(this));
     });
-    $('#search-bar').keypress(function(ev) {
+    $('#search-bar').keypress(function (ev) {
         // Enter button
-        if(event.keyCode == 13){
+        if(ev.keyCode == 13){
             searchSubmit($(this));
             ev.preventDefault();
             return false;
