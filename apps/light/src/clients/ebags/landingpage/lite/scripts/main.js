@@ -37,7 +37,7 @@ App.start();
         var searchUrl,
             baseUrl = "http://www.ebags.com/search?term=",
             $this = $(this),
-            $searchBar = $this.parents('#search-bar'),
+            $searchBar = $this.is('#search-bar') ? $this : $this.parents('#search-bar'),
             $inputBox = $searchBar.find('input').first();
         searchUrl = baseUrl + $inputBox.val();
         App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
