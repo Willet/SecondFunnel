@@ -102,7 +102,7 @@ class ProductAdmin(BaseAdmin):
 
 class ProductImageAdmin(BaseAdmin):
     ordering = BaseAdmin.ordering + ['original_url']
-    list_display = ['id', 'product', 'image_tag'] + BaseAdmin.list_display + ['original_url']
+    list_display = ['id', 'product'] + BaseAdmin.list_display + ['original_url']
     search_fields = ['product__id', 'id']
 
 
@@ -118,10 +118,9 @@ class GifAdmin(ImageAdmin):
 
 
 class ContentAdmin(BaseAdmin):
-    list_display = ['id', 'store', 'image_tag'] + BaseAdmin.list_display
+    list_display = ['id', 'store'] + BaseAdmin.list_display
     search_fields = ['id', 'url']
     filter_horizontal = ('tagged_products',)
-    readonly_fields = ('image_tag',)
 
 
 class ThemeAdmin(BaseAdmin):
