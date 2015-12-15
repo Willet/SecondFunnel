@@ -11,74 +11,7 @@
     <link rel="stylesheet" href="/static/light/ebags/landingpage/lite/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
-    <!-- Begin Optimizer Tests -->
-    <!-- End Optimizer Tests -->
-    <script type="text/javascript">
-        window.TRACKING_PIXELS = {
-            'A': {
-                'view': 'http://9nl.us/up0t',
-                'click': 'http://9nl.us/xpdp'
-            }
-        };
-        window.ACTIVE_TEST = 'A';
-    </script>
-    {% if environment == 'production' %}
-        <script type='text/javascript'>
-            var interval = setInterval(function() {
-                var test, bindFn;
-
-                if (!window.ACTIVE_TEST) {
-                    return;
-                }
-
-                // Because we need to bind some events before anything else, use this fn
-                // http://stackoverflow.com/a/2641047
-                $.fn.bindFirst = function(name, fn) {
-                    // bind as you normally would
-                    // don't want to miss out on any jQuery magic
-                    this.on(name, fn);
-
-                    // Thanks to a comment by @Martin, adding support for
-                    // namespaced events too.
-                    this.each(function() {
-                        var handlers = $._data(this, 'events')[name.split('.')[0]];
-                        // take out the handler we just inserted from the end
-                        var handler = handlers.pop();
-                        // move it at the beginning
-                        handlers.splice(0, 0, handler);
-                    });
-                };
-
-                bindFn = function() {
-                    (new Image).src = window.TRACKING_PIXELS[test].click;
-                }
-
-                clearInterval(interval);
-                test = window.ACTIVE_TEST;
-
-                // Append click pixel
-                if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    $('.tile').bindFirst('click', bindFn);
-                } else {
-                    // Why doesn't bindFirst work on desktop?
-                    $('body').on('click', '.tile', bindFn);
-                }
-
-
-                // Append page view pixel
-                (new Image).src = window.TRACKING_PIXELS[test].view;
-            }, 1000);
-        </script>
-    {% endif %}
     <title>{{ page.name|default:"eBags" }}</title>
-    <!-- Begin CRAZY EGG -->
-    <script type="text/javascript">
-        setTimeout(function(){var a=document.createElement("script");
-        var b=document.getElementsByTagName("script")[0];
-        a.src=document.location.protocol+"//script.crazyegg.com/pages/scripts/0039/3591.js?"+Math.floor(new Date().getTime()/3600000);
-        a.async=true;a.type="text/javascript";b.parentNode.insertBefore(a,b)}, 1);
-    </script>
-    <!-- End CRAZY EGG -->
 </head>
 <body>
     <div class='navbar'>
