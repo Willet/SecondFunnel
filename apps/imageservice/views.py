@@ -6,9 +6,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
-from apps.imageservice.tasks import process_image, process_gif
-from apps.imageservice.utils import create_image_path, get_filetype
 from apps.assets.models import ProductImage, Image, Product, Store, Gif
+from .tasks import process_image, process_gif
+from .utils import create_image_path, get_filetype
+
 
 
 def has_image_key(fn):
@@ -126,7 +127,7 @@ def create_product_image(request, img, store_id, product_id, source):
     image = ProductImage(
         product=product,
         original_url=request.POST['url'],
-        attributes={"sizes": data['sizes']},
+        image_sizes=data['sizes'],
         dominant_color=data['dominant-color'],
         url=data['url'], file_type=data['format'])
 
