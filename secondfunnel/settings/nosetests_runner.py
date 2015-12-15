@@ -1,7 +1,7 @@
 """
 Creates a disposable database for running tests.
 
-(venv) python ./manage.py test --settings=secondfunnel.settings.nosetests_runner -v 2
+(venv) python manage.py test --settings=secondfunnel.settings.nosetests_runner -v 2
 """
 
 
