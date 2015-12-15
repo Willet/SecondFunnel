@@ -32,22 +32,27 @@ App.start();
         }
     });
 
-    // Send search bar inqueries to ebags.com
-    $('#search-bar button').click(function(ev){
+    var searchSubmit = function ($this) {
         var searchUrl,
             baseUrl = "http://www.ebags.com/search?term=",
-            $this = $(this),
             $searchBar = $this.is('#search-bar') ? $this : $this.parents('#search-bar'),
             $inputBox = $searchBar.find('input').first();
         searchUrl = baseUrl + $inputBox.val();
         App.vent.trigger("tracking:page:externalUrlClick", searchUrl, "search-bar");
         App.utils.openUrl(searchUrl, "_top");
         return false;
+    };
+
+    // Send search bar inqueries to ebags.com
+    $('#search-bar button').click(function(ev){
+        searchSubmit($(this));
     });
     $('#search-bar').keypress(function(ev) {
         // Enter button
         if(event.keyCode == 13){
-            $('#search-bar button').click();
+            searchSubmit($(this));
+            ev.preventDefault();
+            return false;
         }
     });
 
