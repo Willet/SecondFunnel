@@ -15,19 +15,27 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             target = module.openInWindow();
         }
         App.vent.trigger("tracking:click", url);
-        // Add CJ page-id tracking parameter
-        url = App.utils.urlAddParams(url, {'sid': App.option('page:slug')});
-        url = App.utils.addUrlTrackingParameters(url)
-        window.open(url, target);
+
+        var destinationUrl = module.addUrlTrackingParameters(url);
+        
+        if (App.option("useAffiliateLinks")) {
+            destinationUrl = module.buildAffiliateLink(destinationUrl);
+        }
+        window.open(destinationUrl, target);
         return;
     };
 
     module.addUrlTrackingParameters = function (url) {
-        var params = { 
+        var params = {
             "utm_source":   "SecondFunnel",
             "utm_medium":   "Pages",
             "utm_campaign": App.option("page:slug")
         };
         return module.urlAddParams(url, _.extend({}, params, App.option("page:urlParams")));
+    };
+
+    module.buildAffiliateLink = function (destinationUrl) {
+        var baseUrl = "http://www.anrdoezrs.net/links/7774943/type/dlg/"+ App.option('page:slug') +"/";
+        return baseUrl + destinationUrl
     };
 };
