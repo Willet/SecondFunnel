@@ -1,6 +1,6 @@
 from django.core.management import call_command
 from django.db.models.base import ModelBase
-from django.db import models, transaction
+from django.db import models, transaction, connection
 from django.core.exceptions import ValidationError, ObjectDoesNotExist, MultipleObjectsReturned
 import mock
 import datetime
@@ -10,7 +10,9 @@ import logging
 import itertools
 from django.test import TestCase
 from django.db.models.signals import post_save, m2m_changed
+from django.conf import settings
 
+import apps.assets
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
@@ -44,10 +46,94 @@ http://www.mattjmorrison.com/2011/09/mocking-django.html
 #         model = Feed
 #     id=1
 
-# class BaseModelTest(TestCase):
+# class ModelMixinTestCase(TestCase):
 #     def setUp(self):
-#         # create a dummy model to inherit abstract class BaseModel
-#         self.model = ModelBase(BaseModel)
+#         self.model = ModelBase('__TestModel__'+self.mixin.__name__, (self.mixin,),
+#             {'__module__': self.mixin.__module__})
+
+#         # not sure if this is used?
+#         # self._style = no_style()
+#         sql, _ = connection.creation.sql_create_model(self.model, self._style)
+
+#         self._cursor = connection.cursor()
+#         for statement in sql:
+#             self._cursor.execute(statement)
+
+#     def tearDown(self):
+#         # Delete the schema for the test model
+#         sql = connection.creation.sql_destroy_model(self.model, (), self._style)
+#         for statement in sql:
+#             self._cursor.execute(statement)
+
+# class ExtraModelsTestCase(TestCase):
+#     # Change to True if using South for DB migrations and migrating during tests
+#     south_migrate = False
+#     def _pre_setup(self):
+#         # Add the models to the db.
+#         self._original_installed_apps = list(settings.INSTALLED_APPS)
+#         loading.cache.loaded = False
+#         call_command('syncdb', interactive=False, migrate=south_migrate, verbosity=0)
+#         # Call the original method that does the fixtures etc.
+#         super(TestCase, self)._pre_setup()
+#         # Prepare Factories for any of the extra models
+#         try:
+#             for extra_model in self.extra_models:
+#                 # create Factory class for extra_model accessible under {{ extra_model }}Factory name
+#                 factory_class = '%sFactory' % extra_model.__name__
+#                 cls = type(factory_class, (factory.django.DjangoModelFactory,), dict(FACTORY_FOR=extra_model))
+#                 setattr(self, factory_class, cls)
+#         except AttributeError:
+#             pass
+ 
+#     def _post_teardown(self):
+#         # Call the original method.
+#         super(TestCase, self)._post_teardown()
+#         # Restore the settings.
+#         settings.INSTALLED_APPS = self._original_installed_apps
+
+# class TestModel(ModelBase):
+#     pass
+
+
+# class TestModelTestCase(ExtraModelsTestCase):
+#     extra_models = (TestModel)
+ 
+#     def test_abstract(self):
+#         self.instance = self.TestModelFactory.create()
+#         self.assertTrue(self.instance.test_method())
+
+class BaseModelTest(TestCase):
+    fixtures = ['assets_models.json']
+
+    def bm_copy_test(self):
+        b = Store.objects.get(pk=1)
+        b.random_field = "random value"
+        result = b._copy(b)
+        self.assertEqual(result["name"], "MyStore")
+        self.assertEqual(result["description"], "")
+        self.assertEqual(result["slug"], "store_slug")
+        self.assertEqual(result["default_theme"], None)
+        self.assertEqual(result["default_page"], None)
+        self.assertEqual(result["public_base_url"], "http://gifts.mystore.com")
+        self.assertEqual(result["random_field"], None) # not changed
+        self.assertNotEqual(result.pk, b.pk)
+
+    def bm_replace_relations_test(self):
+        # for merging products
+        b = Product.objects.get(pk=3)
+        o = Product.objects.get(pk=12)
+        b.similar_products.add(o)
+        b._replace_relations(o) #broken
+        # should undo similar_products.add
+        self.assertEqual(b.similar_products.all(), list(b))
+
+    def update_ir_cache_test(self):
+        b = Store.objects.get(pk=1)
+        old_ir_cache = b.ir_cache
+        with mock.patch('apps.assets.models.Store.to_str', autospec=True) as mocked_handler:
+            b.update_ir_cache()
+            self.assertEquals(mocked_handler.call_count, 1)
+
 
 class StoreTest(TestCase):
     # Store has no methods

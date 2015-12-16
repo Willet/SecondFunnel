@@ -138,9 +138,12 @@ class BaseModel(models.Model, SerializableMixin):
         m2m_kwargs.update(m2m_update)
 
         new_obj = cls(**local_kwargs)
+        # raise Exception("{}, class: {}".format(new_obj, type(new_obj)))
 
         with transaction.atomic():
             with disable_tile_serialization():
+                # logging.debug(new_obj)
+                # logging.debug(type(new_obj))
                 new_obj.get_pk()
 
                 for (k,v) in m2m_kwargs.iteritems():

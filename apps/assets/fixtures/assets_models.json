@@ -8,7 +8,7 @@
       "slug": "store_slug", 
       "default_theme": null,
       "default_page": null,
-      "public_base_url": "gifts.mystore.com",
+      "public_base_url": "http://gifts.mystore.com",
       "updated_at": "2015-11-18 00:43:26"
     }
   },
