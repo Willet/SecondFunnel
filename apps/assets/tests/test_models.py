@@ -476,6 +476,16 @@ class PageTest(TestCase):
         p.remove() # call triggered
         Feed.remove.assert_called_once_with()
 
+    @mock.patch('apps.assets.models.Feed.categories')
+    def categories_test(self, mock_categories):
+        # alias for feed.categories
+        mock_categories.__get__ = mock.Mock(return_value=[])
+        p = Page.objects.get(pk=8)
+        f = Feed.objects.get(pk=9)
+        p.feed = f
+        c = p.categories
+        self.assertEqual(mock_categories.__get__.call_count, 1)
+
 
 class FeedTest(TestCase):
     fixtures = ['assets_models.json']
@@ -490,55 +500,81 @@ class FeedTest(TestCase):
         self.assertEqual(f.store, store)
         self.assertEqual(f.store_id, store.id)
 
+    def find_tiles_test(self):
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
+        self.assertTrue(t.feed == f)
+        self.assertEqual(set(f.find_tiles()), set([t]))
+
     def find_tiles_content_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         c = Content.objects.get(pk=6)
         t.content.add(c)
+        self.assertTrue(t.feed == f)
         self.assertEqual(set(f.find_tiles(content=c)), set([t]))
 
     def find_tiles_product_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         p = Product.objects.get(pk=12)
         t.products.add(p)
+        self.assertTrue(t.feed == f)
         self.assertEqual(set(f.find_tiles(product=p)), set([t]))
 
     def find_tiles_none_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(set(f.find_tiles()), set([t]))
+        f = Feed.objects.get(pk=19)
+        self.assertTrue(f.tiles.count() == 0)
+        self.assertTrue(len(f.find_tiles()) == 0)
 
     def find_tiles_no_product_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         p = Product.objects.get(pk=12)
+        self.assertTrue(t.feed == f)
+        self.assertTrue(f.tiles.count() == 1)
+        self.assertTrue(t.products.count() == 0)
         self.assertEqual(set(f.find_tiles(product=p)), set([]))
 
     def find_tiles_no_content_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         c = Content.objects.get(pk=6)
+        self.assertTrue(t.feed == f)
+        self.assertTrue(f.tiles.count() == 1)
+        self.assertTrue(t.content.count() == 0)
         self.assertEqual(set(f.find_tiles(content=c)), set([]))
 
     def get_in_stock_tiles_test(self):
         f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(set(f.get_in_stock_tiles()), set([t]))
+        t1 = Tile.objects.get(pk=10)
+        t2 = Tile.objects.get(pk=11)
+        p1 = Product.objects.get(pk=12)
+        p2 = Product.objects.get(pk=13)
+        t1.products = [p1]
+        t2.products = [p2]
+        self.assertFalse(p1.in_stock)
+        self.assertTrue(p2.in_stock)
+        self.assertTrue(t1.feed == f)
+        self.assertTrue(t2.feed == f)
+        self.assertEqual(set(f.get_in_stock_tiles()), set([t2]))
 
     def get_in_stock_tiles_empty_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         p = Product.objects.get(pk=12)
-        p.in_stock = False
         t.products.add(p)
+        self.assertFalse(p.in_stock)
+        self.assertTrue(t.feed == f)
+        self.assertTrue(f.tiles.count() == 1)
         self.assertEqual(set(f.get_in_stock_tiles()), set([]))
 
     def get_all_products_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
-        p = Product.objects.get(pk=12)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
+        p = Product.objects.get(pk=13) # in stock
         t.products.add(p)
+        self.assertTrue(t.feed == f)
         self.assertEqual(set(f.get_all_products()), set([p]))
 
     def get_all_products_no_products_test(self):
@@ -567,6 +603,19 @@ class FeedTest(TestCase):
         f = Feed.objects.get(pk=9)
         f._deepdelete_tiles(f.tiles.all())
         self.assertEqual(set(f.get_in_stock_tiles()), set([]))
+
+    def categories_test(self):
+        # property gets all cateogries
+        f = Feed.objects.get(pk=9)
+        c1 = Category.objects.get(pk=7)
+        c2 = Category.objects.get(pk=8)
+        t1 = Tile.objects.get(pk=10)
+        t2 = Tile.objects.get(pk=11)
+        c1.tiles.add(t1)
+        c2.tiles.add(t2)
+        self.assertTrue(t1.feed == f)
+        self.assertTrue(t2.feed == f)
+        self.assertTrue(set([c1, c2]) == set(f.categories))
 
     # These tests make sure the correct subfunction is called when .add() is called
 

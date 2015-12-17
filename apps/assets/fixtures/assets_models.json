@@ -147,6 +147,15 @@
     }
   },
   {
+    "model": "assets.Category",
+    "pk": 8,
+    "fields": {
+      "name": "TestCategory2",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.Page",
     "pk": 8,
     "fields": {
@@ -174,6 +183,14 @@
       "updated_at": "2015-11-18 00:43:26"
     }
   },
+    {
+    "model": "assets.Feed",
+    "pk": 13,
+    "fields": {
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
   {
     "model": "assets.Feed",
     "pk": 18,
@@ -196,6 +213,24 @@
     "fields": {
       "template": "default",
       "feed": 9,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tile",
+    "pk": 11,
+    "fields": {
+      "template": "default",
+      "feed": 9,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+    {
+    "model": "assets.Tile",
+    "pk": 13,
+    "fields": {
+      "template": "default",
+      "feed": 13,
       "updated_at": "2015-11-18 00:43:26"
     }
   }
