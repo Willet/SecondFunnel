@@ -983,6 +983,11 @@ class Page(BaseModel):
         return bool(self.feed.is_finite and
             not self.theme_settings.get('override_finite_feed', False))
 
+    @property
+    def categories(self):
+        """ Alias for feed categories """
+        return self.feed.categories
+
     @classmethod
     def from_json(cls, json_data):
         """@deprecated for replacing the Campaign Model. Use something else.
@@ -1177,6 +1182,11 @@ class Feed(BaseModel):
                    if deepdelete else obj.delete())
         raise ValueError("remove() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
+
+    @property
+    def categories(self):
+        """ Returns QuerySet of all categories tiles in this page belong to """
+        return Category.objects.filter(tiles__in=self.tiles.all()).distinct()
 
     def get_all_products(self, pk_set=False, skip_similar_products=False, skip_tagged_products=False):
         """Gets all tagged, related & similar products to this feed. Useful for bulk updates
