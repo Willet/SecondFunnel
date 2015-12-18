@@ -112,7 +112,10 @@ class TileRatioContainer(object):
     def __init__(self, tiles, num_total_tiles):
         self.tiles = tiles
         self.total = len(tiles)
-        self.ratio = len(tiles) / float(num_total_tiles)
+        if num_total_tiles:
+            self.ratio = len(tiles) / float(num_total_tiles)
+        else:
+            self.ratio = 0
         self.num_total_tiles = num_total_tiles
         self.num_added = 0
 
