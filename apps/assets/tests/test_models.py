@@ -123,16 +123,31 @@ class BaseModelTest(TestCase):
         b = Product.objects.get(pk=3)
         o = Product.objects.get(pk=12)
         b.similar_products.add(o)
-        b._replace_relations(o) #broken
+        b._replace_relations([o])
         # should undo similar_products.add
-        self.assertEqual(b.similar_products.all(), list(b))
+        self.assertEqual(len(b.similar_products.all()), 1)
+        self.assertEqual(b.similar_products.first(), b)
 
     def update_ir_cache_test(self):
         b = Store.objects.get(pk=1)
-        old_ir_cache = b.ir_cache
+        old_ir_cache = b.ir_cache # = None, FYI
         with mock.patch('apps.assets.models.Store.to_str', autospec=True) as mocked_handler:
             b.update_ir_cache()
             self.assertEquals(mocked_handler.call_count, 1)
+        self.assertEqual(type(b.ir_cache), mock.MagicMock)
+
+    def update_or_create_test(self):
+        b = Store.objects.get(pk=1)
+        obj, created, updated = b.update_or_create(pk=1)
+        self.assertEqual(obj, b)
+        self.assertEqual(created, False)
+        self.assertEqual(updated, False)
+
+    def get_test(self):
+        b = Store.objects.get(pk=1)
+        self.assertEqual(b.get("name"), "MyStore")
+        self.assertIsNone(b.get("nothing"))
+        # raise Exception()
 
 
 class StoreTest(TestCase):

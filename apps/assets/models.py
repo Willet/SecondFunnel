@@ -254,6 +254,7 @@ class BaseModel(models.Model, SerializableMixin):
         :raises <AllSortsOfException>s, depending on input
         :returns tuple  (object, updated, created)
         """
+        logging.debug(cls)
         updated = created = False
 
         if not defaults:
