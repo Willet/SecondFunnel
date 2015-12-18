@@ -151,7 +151,7 @@
     },
     {
       "heroTitle":"Hand Care Gifts",
-      "displayName":"Hand Care",
+      "displayName":"Hand Care Gifts",
       "name":"hand-care-gifts"
     },
     {
