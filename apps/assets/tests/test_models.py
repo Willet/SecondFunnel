@@ -476,16 +476,6 @@ class PageTest(TestCase):
         p.remove() # call triggered
         Feed.remove.assert_called_once_with()
 
-    @mock.patch('apps.assets.models.Feed.categories')
-    def categories_test(self, mock_categories):
-        # alias for feed.categories
-        mock_categories.__get__ = mock.Mock(return_value=[])
-        p = Page.objects.get(pk=8)
-        f = Feed.objects.get(pk=9)
-        p.feed = f
-        c = p.categories
-        self.assertEqual(mock_categories.__get__.call_count, 1)
-
 
 class FeedTest(TestCase):
     fixtures = ['assets_models.json']
