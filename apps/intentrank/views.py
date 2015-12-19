@@ -109,7 +109,6 @@ def get_results_view(request, page_id):
 
     # keep track of the last (unique) tiles have been shown, then
     # show everything except these tile ids
-    # DEPRECATED: shown_ids = track_tiles_view(request, tile_ids=shown, finite=page.is_finite, reset=session_reset)
     offset -= len(shown_ids) # correct for tiles we are removing from queryset
 
     # results is a queryset!
