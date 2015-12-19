@@ -983,11 +983,6 @@ class Page(BaseModel):
         return bool(self.feed.is_finite and
             not self.theme_settings.get('override_finite_feed', False))
 
-    @property
-    def categories(self):
-        """ Alias for feed categories """
-        return self.feed.categories
-
     @classmethod
     def from_json(cls, json_data):
         """@deprecated for replacing the Campaign Model. Use something else.
