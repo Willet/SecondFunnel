@@ -58,6 +58,11 @@ class PageMaintainer(object):
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
 
+        WARNING: while a 'refresh_images' job is running, we are purposefully leaving the
+        tile ir_cache's intact even though they have un-serializable products.  If a
+        simultaneous job is running on these tiles you may trigger a mass of hidden
+        tiles in a feed...
+
         raises: django.core.execeptions.ValidationError for invalid url
         """
         logging.debug(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))

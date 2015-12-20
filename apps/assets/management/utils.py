@@ -16,7 +16,6 @@ from django.conf import settings
 from apps.assets.models import Category, Feed, Page, Product, ProductImage, Tile
 from apps.assets.signals import productimage_saved
 from apps.assets.utils import disable_tile_serialization
-from apps.intentrank.serializers import SerializerError
 from apps.imageservice.utils import get_public_id
 
 
@@ -100,9 +99,6 @@ def generate_tiles_from_urls(feed, category, urls):
         else:
             try:
                 tile, created = feed.add(p, category=category)
-                if p.is_placeholder:
-                    t.placeholder = True
-                    t.save()
             except Exception as e:
                 results['error'].append({
                     'exception': repr(e),
@@ -145,42 +141,43 @@ def update_dominant_color(tiles):
     post_save.disconnect(productimage_saved, sender=ProductImage)
     rescrape = [] # list of product urls that must be re-scraped
 
-    with disable_tile_serialization():
-        with requests.Session() as s:
-            s.auth = requests.auth.HTTPBasicAuth(settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET)
-            for i, t in enumerate(tiles):
-                try:
-                    pis = t.product.product_images.all()
-                    print "{} {}: getting dominant_color for {} images".format(i, t, pis.count())
-                except AttributeError:
-                    print "{} {}: no product".format(i, t)
-                    continue
-                if not len(t.product.product_images.all()):
-                    print "{}: no product images".format(t)
-                    continue
-                for j, pi in enumerate(pis):
-                    # Download image information from cloudinary
-                    public_id = get_public_id(pi.url)
-                    url = get_resource_url(public_id)
-                    data = s.get(url)
-                    result = json.loads(data.text)
-                    if "error" in result:
-                        print "\t{} Error: {}".format(j, result['error']['message'])
-                        rescrape.append(t.product.url)
+    try:
+        with disable_tile_serialization():
+            with requests.Session() as s:
+                s.auth = requests.auth.HTTPBasicAuth(settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET)
+                for i, t in enumerate(tiles):
+                    try:
+                        pis = t.product.product_images.all()
+                        print "{} {}: getting dominant_color for {} images".format(i, t, pis.count())
+                    except AttributeError:
+                        print "{} {}: no product".format(i, t)
                         continue
-                    else:
-                        pi.dominant_color = result['colors'][0][0]
-                        pi.save()
-                        print "\t{} {}".format(j, pi.dominant_color)
-                # Now that product images have dominant color, update default image
-                t.product.choose_lifestyle_shot_default_image()
-                if t.product.default_image.is_product_shot:
-                    print "Default image search failed. Chose first"
-                    t.attributes['colspan'] = 1
-                    t.save()
-
-    post_save.connect(productimage_saved, sender=ProductImage)
-    update_tiles_ir_cache(tiles)
+                    if not len(t.product.product_images.all()):
+                        print "{}: no product images".format(t)
+                        continue
+                    for j, pi in enumerate(pis):
+                        # Download image information from cloudinary
+                        public_id = get_public_id(pi.url)
+                        url = get_resource_url(public_id)
+                        data = s.get(url)
+                        result = json.loads(data.text)
+                        if "error" in result:
+                            print "\t{} Error: {}".format(j, result['error']['message'])
+                            rescrape.append(t.product.url)
+                            continue
+                        else:
+                            pi.dominant_color = result['colors'][0][0]
+                            pi.save()
+                            print "\t{} {}".format(j, pi.dominant_color)
+                    # Now that product images have dominant color, update default image
+                    t.product.choose_lifestyle_shot_default_image()
+                    if t.product.default_image.is_product_shot:
+                        print "Default image search failed. Chose first"
+                        t.attributes['colspan'] = 1
+                        t.save()
+    finally:
+        post_save.connect(productimage_saved, sender=ProductImage)
+        update_tiles_ir_cache(tiles)
     if len(rescrape):
         print "Rescrape these product urls with {'refresh-images': True}:"
         pprint(rescrape)
@@ -190,6 +187,9 @@ def update_dominant_color(tiles):
 def update_tiles_ir_cache(tiles):
     """
     Updates the ir_cache of tiles. Does not run full clean!
+
+    Useful if you are updating tiles (or their associated products/content) repeatedly
+    and want to save tile serialization until the operation is complete.
 
     Returns: <list> of <tuple>(Tile, Error) for failed updates
     """
@@ -201,9 +201,6 @@ def update_tiles_ir_cache(tiles):
             if updated:
                 models.Model.save(t, update_fields=['ir_cache']) # skip full_clean
             print "{}: updated".format(t)
-        except SerializerError as e:
-            print "\t{}: {}".format(t, e)
-            dts.append((t, e))
         except ValidationError as e:
             print "\t{}: {}".format(t, e)
             dts.append((t, e))
