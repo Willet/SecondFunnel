@@ -149,10 +149,11 @@ class TileSerializationQueue(object):
                 # TODO: convert to a bulk save operation for MASSIVE speedup
                 models.Model.save(tile, update_fields=['ir_cache']) # skip full_clean
 
+        self.tiles_to_serialize = set() # reset queue
         post_save.connect(tile_saved, sender=Tile)
 
 
-class queue_tile_serialization(ContextDecorator):
+class delay_tile_serialization(ContextDecorator):
     """ Context manager that queues tile serialization until exit
         
         Useful when performing many operations that can trigger repeat serializations
