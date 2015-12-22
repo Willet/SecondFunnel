@@ -12,6 +12,7 @@ import traceback
 from urlparse import urlparse
 
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
+from apps.assets.utils import TileSerializationQueue
 from apps.imageservice.models import ImageSizes
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
@@ -448,10 +449,17 @@ class PageUpdatePipeline(ItemManifold):
 
 
 class TileSerializationPipeline(object):
-    """ Tiles that are updated throughout this scrape job are recorded. When the job is
+    """ Tiles that are updated throughout this scrape job are queued. When the job is
     finished, tiles are serialized in bulk """
 
-    def spider_opened(self, spider):
+    def __init__(self, *args, **kwargs):
+        self.queue = TileSerializationQueue()
+        super(TileSerializationPipeline, self).__init__(*args, **kwargs)
 
+    def spider_opened(self, spider):
+        """ Captures all tile serialization signals, keeps queue of tiles """
+        self.queue.start()
 
     def close_spider(self, spider):
+        self.queue.stop()
+        self.queue.serialize_tiles()
