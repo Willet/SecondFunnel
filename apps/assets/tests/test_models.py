@@ -134,7 +134,7 @@ class BaseModelTest(TestCase):
         with mock.patch('apps.assets.models.Store.to_str', autospec=True) as mocked_handler:
             b.update_ir_cache()
             self.assertEquals(mocked_handler.call_count, 1)
-        self.assertEqual(type(b.ir_cache), mock.MagicMock)
+        self.assertIs(type(b.ir_cache).__class__, mock.MagicMock.__class__)
 
     def update_or_create_test(self):
         b = Store.objects.get(pk=1)

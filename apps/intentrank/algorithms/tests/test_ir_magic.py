@@ -26,7 +26,7 @@ class IRMagicTest(TestCase):
         tile = Tile.objects.get(pk=10)
         feed = Feed.objects.get(pk=9)
         feed.tiles.add(tile)
-        self.assertEqual(algorithms.ir_magic(feed.tiles), [feed.tiles.first()])
+        self.assertEqual(len(algorithms.ir_magic(feed.tiles)), len(feed.tiles.all()))
 
     def ir_magic_none_test(self):
         feed = Feed.objects.get(pk=19)
@@ -53,12 +53,13 @@ class TemplateRatioEqualizerTest(TestCase):
         self.assertEqual(tre.next(), newTile2)
 
     def tre_get_next_highest_priority_tiles_test(self):
+        tile = Tile.objects.get(pk=10)
         feed = Feed.objects.get(pk=19)
         new_tile = Tile.objects.create(feed=feed, template="default")
         tre = TemplateRatioEqualizer(feed.tiles)
         self.assertEqual(tre.candidates, [])
         tre._get_next_highest_priority_tiles()
-        self.assertEqual(tre.candidates, [{'tile': new_tile, 'ratio': 0.0}])
+        self.assertEqual(tre.candidates, [{'tile': tile, 'ratio': 0.0}])
 
     def tre_replace_tile_of_template_test(self):
         feed = Feed.objects.get(pk=19)
@@ -74,7 +75,7 @@ class TileRatioContainerTest(TestCase):
     def init_empty_test(self):
         feed = Feed.objects.get(pk=19)
         trc = TileRatioContainer(feed.tiles.all(), len(feed.tiles.all()))
-        self.assertEqual(trc.tiles, feed.tiles.all())
+        self.assertEqual(len(trc.tiles), len(feed.tiles.all()))
         self.assertEqual(trc.total, len(feed.tiles.all()))
         self.assertEqual(trc.ratio, 0)
         self.assertEqual(trc.num_total_tiles, 0)
@@ -85,10 +86,10 @@ class TileRatioContainerTest(TestCase):
         feed = Feed.objects.get(pk=9)
         feed.tiles.add(tile)
         trc = TileRatioContainer(feed.tiles.all(), len(feed.tiles.all()))
-        self.assertEqual(trc.tiles, feed.tiles.all())
+        self.assertEqual(trc.tiles[0], feed.tiles.first())
         self.assertEqual(trc.total, len(feed.tiles.all()))
-        self.assertEqual(trc.ratio, 0)
-        self.assertEqual(trc.num_total_tiles, 0)
+        self.assertEqual(trc.ratio, 1)
+        self.assertEqual(trc.num_total_tiles, 1)
         self.assertEqual(trc.num_added, 0)
 
     def get_next_tile_test(self):
