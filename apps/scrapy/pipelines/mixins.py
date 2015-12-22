@@ -238,4 +238,3 @@ class TilesMixin(object):
                 spider.logger.info(u"Adding <{}> to <{}>".format(obj, cat))
                 cat.tiles.add(tile)
             return (tile, created)
-

@@ -1555,4 +1555,3 @@ class Tile(BaseModel):
             return next(c for c in contents if isinstance(c, cls))
         except StopIteration:
             raise LookupError
-

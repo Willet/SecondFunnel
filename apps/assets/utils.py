@@ -63,7 +63,7 @@ class TileSerializationQueue(object):
     """
     Queue's tiles for serialization by intercepting signals that would trigger tile seriailzation
 
-    In use, `start`, `stop` then `serialize`
+    To use, `start`, `stop` then `serialize`
     """
     def __init__(self):
         self.tiles_to_serialize = set()
@@ -116,6 +116,9 @@ class TileSerializationQueue(object):
                 self.tiles_to_serialize(tile.pk)
 
     def start(self):
+        """
+        Start queuing of tiles to serialize
+        """
         import apps.assets.models as models
 
         disable_tile_serialization_signals()
@@ -123,6 +126,9 @@ class TileSerializationQueue(object):
         m2m_changed.connect(self._record_m2m_changed)
 
     def stop(self):
+        """
+        Stop queuing of tiles to serialize
+        """
         import apps.assets.models as models
 
         post_save.disconnect(receiver=self._record_tile_saved, sender=models.Tile)
@@ -130,6 +136,9 @@ class TileSerializationQueue(object):
         enable_tile_serialization_signals()
 
     def serialize(self):
+        """
+        Serialize all tiles in queue
+        """
         import apps.assets.models as models
         post_save.disconnect(tile_saved, sender=models.Tile)
 
@@ -137,12 +146,13 @@ class TileSerializationQueue(object):
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
             logging.debug("tile_saved {}".format(ir_cache))
             if updated:
+                # TODO: convert to a bulk save operation for MASSIVE speedup
                 models.Model.save(tile, update_fields=['ir_cache']) # skip full_clean
 
         post_save.connect(tile_saved, sender=Tile)
 
 
-def queue_tile_serialization(ContextDecorator):
+class queue_tile_serialization(ContextDecorator):
     """ Context manager that queues tile serialization until exit
         
         Useful when performing many operations that can trigger repeat serializations
@@ -174,6 +184,6 @@ def queue_tile_serialization(ContextDecorator):
         self.disabled_counter -= 1
         if self.disabled_counter < 1:
             self.queue.stop()
-            self.queue.serialize_tiles()
+            self.queue.serialize()
             # Should never have exit'ed more than enter'ed.
             assert self.disabled_counter == 0
