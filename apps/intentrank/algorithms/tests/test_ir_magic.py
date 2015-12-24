@@ -46,11 +46,12 @@ class TemplateRatioEqualizerTest(TestCase):
         product = Product.objects.get(pk=15)
         pi = ProductImage.objects.get(pk=4)
         product.default_image = pi
-        newTile = feed.add(product) #broken
+        product.product_images.add(pi)
+        newTile, success = feed.add(product)
         newTile2 = Tile.objects.create(feed=feed, template="default")
         tre = TemplateRatioEqualizer(feed.tiles)
-        self.assertEqual(tre.next(), newTile)
         self.assertEqual(tre.next(), newTile2)
+        self.assertEqual(tre.next(), newTile)
 
     def tre_get_next_highest_priority_tiles_test(self):
         tile = Tile.objects.get(pk=10)
@@ -59,7 +60,7 @@ class TemplateRatioEqualizerTest(TestCase):
         tre = TemplateRatioEqualizer(feed.tiles)
         self.assertEqual(tre.candidates, [])
         tre._get_next_highest_priority_tiles()
-        self.assertEqual(tre.candidates, [{'tile': tile, 'ratio': 0.0}])
+        self.assertEqual(tre.candidates, [{'tile': new_tile, 'ratio': 0.0}])
 
     def tre_replace_tile_of_template_test(self):
         feed = Feed.objects.get(pk=19)
@@ -96,10 +97,15 @@ class TileRatioContainerTest(TestCase):
         tile = Tile.objects.get(pk=10)
         feed = Feed.objects.get(pk=9)
         new_tile = Tile.objects.create(feed=feed, template="default")
-        feed.add(new_tile)
+        logging.debug(feed.tiles.all())
         trc = TileRatioContainer(feed.tiles.all(), len(feed.tiles.all()))
         self.assertEqual(trc.num_added, 0)
-        self.assertEqual(trc.get_next_tile(), {'tile': new_tile, 'ratio': 0.0})
+        nt1 = trc.get_next_tile()
+        nt2 = trc.get_next_tile()
+        logging.debug(nt1)
+        logging.debug(nt2)
+        self.assertEqual(nt1, {'tile': feed.tiles.all()[0], 'ratio': 0.0})
+        self.assertEqual(nt2, {'tile': feed.tiles.all()[0], 'ratio': 0.0})
 
     def get_next_tile_empty_test(self):
         feed = Feed.objects.get(pk=19)

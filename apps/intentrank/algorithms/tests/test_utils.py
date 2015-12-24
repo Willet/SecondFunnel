@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ValidationError, ObjectDoesNotExist, MultipleObjectsReturned
+from django.db.models.query import QuerySet
 
 from apps.utils.functional import may_be_json
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
@@ -12,6 +13,7 @@ import apps.intentrank.serializers as ir_serializers
 from apps.intentrank.serializers.utils import SerializerError
 from apps.intentrank.algorithms.ir_magic import TemplateRatioEqualizer, TileRatioContainer
 import apps.intentrank.algorithms as algorithms
+from apps.intentrank.algorithms.utils import qs_for
 
 class IRMagicTest(TestCase):
     fixtures = ['assets_models.json']
@@ -35,7 +37,7 @@ class IRMagicTest(TestCase):
         # only tiles will be used b/c they are specifically specified
         rslt = algorithms.ir_filter(tiles=tiles, feed=feed)
         self.assertEqual(len(rslt), len(tiles))
-        self.assertEqual(rslt[0], tiles.first())
+        self.assertEqual(rslt[0], tiles[0])
 
     def filter_tiles_pi_test(self):
         tiles = [Tile.objects.get(pk=10)]
@@ -50,8 +52,10 @@ class IRMagicTest(TestCase):
         rslt = algorithms.ir_filter(feed=feed)
         self.assertEqual(len(rslt), 2)
         self.assertEqual(len(feed.tiles.all()), 2)
-        self.assertEqual(rslt[0], feed.tiles.first())
-        self.assertEqual(rslt[1], feed.tiles.last())
+        logging.debug("feed: {}".format(feed.tiles.all()))
+        logging.debug("rslt: {}".format(rslt))
+        self.assertEqual(rslt[1], feed.tiles.all()[1])
+        self.assertEqual(rslt[0], feed.tiles.all()[0])
 
     def filter_tiles_pi_oos_test(self):
         tiles = [Tile.objects.get(pk=10)]
@@ -78,10 +82,12 @@ class IRMagicTest(TestCase):
         store.display_out_of_stock = True # includes p in ir_filter
         store.save()
         logging.debug([t.placeholder for t in f.tiles.all()])
-        raise Exception(algorithms.ir_filter(tiles=tiles, feed=feed))
+        rslt = algorithms.ir_filter(tiles=tiles, feed=feed)
+        self.assertEqual(len(rslt), len(tiles))
+        self.assertEqual(rslt[0], tiles[0])
 
     def filter_tiles_no_feed_no_tiles_test(self):
-        with self.assertRaises(ValidationError): 
+        with self.assertRaises(ValueError): 
             algorithms.ir_filter()
 
 class QSForTest(TestCase):
@@ -89,7 +95,17 @@ class QSForTest(TestCase):
 
     def qs_for_test(self):
         tiles = [Tile.objects.get(pk=10)]
-        result = algorithms.qs_for(tiles)
+        result = qs_for(tiles)
         self.assertEqual(len(result), len(tiles))
-        self.assertEqual(result.first(), tiles[0])
+        self.assertEqual(result.first().pk, tiles[0].pk)
+        self.assertTrue(isinstance(result, QuerySet))
+
+    def qs_for_test(self):
+        feed = Feed.objects.get(pk=9)
+        logging.debug(type(feed.tiles))
+        self.assertTrue(isinstance(feed.tiles, QuerySet))
+        result = qs_for(tiles)
+        self.assertEqual(len(result), len(tiles))
+        self.assertEqual(result.first().pk, tiles[0].pk)
+        self.assertTrue(isinstance(result, QuerySet))
 
