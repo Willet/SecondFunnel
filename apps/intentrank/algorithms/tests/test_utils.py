@@ -100,12 +100,18 @@ class QSForTest(TestCase):
         self.assertEqual(result.first().pk, tiles[0].pk)
         self.assertTrue(isinstance(result, QuerySet))
 
-    def qs_for_test(self):
+    def qs_for_all_test(self):
         feed = Feed.objects.get(pk=9)
-        logging.debug(type(feed.tiles))
-        self.assertTrue(isinstance(feed.tiles, QuerySet))
-        result = qs_for(tiles)
-        self.assertEqual(len(result), len(tiles))
-        self.assertEqual(result.first().pk, tiles[0].pk)
+        logging.debug(type(feed.tiles.all()))
+        self.assertTrue(isinstance(feed.tiles.all(), QuerySet))
+        result = qs_for(feed.tiles.all())
+        self.assertEqual(len(result), len(feed.tiles.all()))
+        self.assertEqual(result.first().pk, feed.tiles.all()[0].pk)
         self.assertTrue(isinstance(result, QuerySet))
+
+    def qs_for_na_test(self):
+        store = Store.objects.get(pk=1)
+        # not iterable
+        with self.assertRaises(TypeError):
+            result = qs_for(store)
 
