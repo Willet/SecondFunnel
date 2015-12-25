@@ -17,10 +17,13 @@ class IRMagicTest(TestCase):
     fixtures = ['assets_models.json']
 
     def ir_magic_test(self):
-        tiles = [Tile.objects.get(pk=10)]
         feed = Feed.objects.get(pk=9)
+        product = Product.objects.get(pk=3)
+        pi = ProductImage.objects.get(pk=4)
+        product.default_image = pi
+        product.product_images.add(pi)
+        feed.add(product)
         self.assertEqual(algorithms.ir_magic(feed.tiles).first(), feed.tiles.first())
-        
 
     def ir_magic_duplicate_test(self):
         tile = Tile.objects.get(pk=10)

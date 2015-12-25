@@ -13,6 +13,19 @@ from apps.intentrank.serializers.utils import SerializerError
 class TileSerializerTest(TestCase):
     fixtures = ['assets_models.json']
 
+    def call_test(self):
+        s = TileSerializer()
+        self.assertEqual(s.__call__("default"), DefaultTileSerializer)
+        self.assertEqual(s.__call__("Product"), ProductTileSerializer)
+        self.assertEqual(s.__call__("Image"), ImageTileSerializer)
+        self.assertEqual(s.__call__("Gif"), GifTileSerializer)
+        self.assertEqual(s.__call__("Video"), VideoTileSerializer)
+        self.assertEqual(s.__call__("Banner"), BannerTileSerializer)
+        self.assertEqual(s.__call__("Collection"), CollectionTileSerializer)
+        self.assertEqual(s.__call__("Hero"), HeroTileSerializer)
+        self.assertEqual(s.__call__("Herovideo"), HerovideoTileSerializer)
+        self.assertEqual(s.__call__("randomstring"), DefaultTileSerializer)
+
     def get_core_attributes_test(self):
         t = Tile.objects.get(pk=10)
         s = TileSerializer()

@@ -27,85 +27,11 @@ We are avoiding fixtures because they are so slow:
 http://www.mattjmorrison.com/2011/09/mocking-django.html
 """
 
-# class ProductFactory(factory.Factory):
-#     class Meta:
-#         model = Product
-
-# class ProductImageFactory(factory.Factory):
-#     class Meta:
-#         model = ProductImage
-
-# class StoreFactory(factory.Factory):
-#     class Meta:
-#         model = Store
-#     name = "Test Store"
-#     slug = "test_store"
-
-# class FeedFactory(factory.Factory):
-#     class Meta:
-#         model = Feed
-#     id=1
-
-# class ModelMixinTestCase(TestCase):
-#     def setUp(self):
-#         self.model = ModelBase('__TestModel__'+self.mixin.__name__, (self.mixin,),
-#             {'__module__': self.mixin.__module__})
-
-#         # not sure if this is used?
-#         # self._style = no_style()
-#         sql, _ = connection.creation.sql_create_model(self.model, self._style)
-
-#         self._cursor = connection.cursor()
-#         for statement in sql:
-#             self._cursor.execute(statement)
-
-#     def tearDown(self):
-#         # Delete the schema for the test model
-#         sql = connection.creation.sql_destroy_model(self.model, (), self._style)
-#         for statement in sql:
-#             self._cursor.execute(statement)
-
-# class ExtraModelsTestCase(TestCase):
-#     # Change to True if using South for DB migrations and migrating during tests
-#     south_migrate = False
-#     def _pre_setup(self):
-#         # Add the models to the db.
-#         self._original_installed_apps = list(settings.INSTALLED_APPS)
-#         loading.cache.loaded = False
-#         call_command('syncdb', interactive=False, migrate=south_migrate, verbosity=0)
-#         # Call the original method that does the fixtures etc.
-#         super(TestCase, self)._pre_setup()
-#         # Prepare Factories for any of the extra models
-#         try:
-#             for extra_model in self.extra_models:
-#                 # create Factory class for extra_model accessible under {{ extra_model }}Factory name
-#                 factory_class = '%sFactory' % extra_model.__name__
-#                 cls = type(factory_class, (factory.django.DjangoModelFactory,), dict(FACTORY_FOR=extra_model))
-#                 setattr(self, factory_class, cls)
-#         except AttributeError:
-#             pass
- 
-#     def _post_teardown(self):
-#         # Call the original method.
-#         super(TestCase, self)._post_teardown()
-#         # Restore the settings.
-#         settings.INSTALLED_APPS = self._original_installed_apps
-
-# class TestModel(ModelBase):
-#     pass
-
-
-# class TestModelTestCase(ExtraModelsTestCase):
-#     extra_models = (TestModel)
- 
-#     def test_abstract(self):
-#         self.instance = self.TestModelFactory.create()
-#         self.assertTrue(self.instance.test_method())
-
 class BaseModelTest(TestCase):
     fixtures = ['assets_models.json']
 
     def bm_copy_test(self):
+        # store was chosen because it is the simplest object
         b = Store.objects.get(pk=1)
         b.random_field = "random value"
         result = b._copy(b)

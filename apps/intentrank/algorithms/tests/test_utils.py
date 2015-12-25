@@ -115,3 +115,7 @@ class QSForTest(TestCase):
         with self.assertRaises(TypeError):
             result = qs_for(store)
 
+    def qs_for_none_test(self):
+        result = qs_for(None)
+        self.assertEqual(set(result), set(Tile.objects.none()))
+
