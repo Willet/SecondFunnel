@@ -52,8 +52,10 @@ def content_m2m_changed(sender, **kwargs):
     added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
     
     if (sender in [Content.tagged_products.through, Product.similar_products.through]) \
-            and kwargs.get('action') in ('post_add', 'post_clear', 'post_remove') \
-            and len(added_or_removed_keys) > 0:
+        and ((kwargs.get('action') in ('post_add', 'post_remove') and len(added_or_removed_keys) > 0) \
+        or (kwargs.get('action') == 'post_clear')):
+        logging.debug('content_m2m_changed {} {} {}'.format(kwargs.get('action'), kwargs.get('reverse'), added_or_removed_keys))
+
         # populate set of objects whose tiles need to be refreshed
         instances = []
         if kwargs.get('reverse'):
@@ -70,7 +72,7 @@ def content_m2m_changed(sender, **kwargs):
                 # validation can be skipped because 
                 # only 2nd order product/content relationships are changed
                 ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-                logging.debug("tile_saved {}".format(ir_cache))
+                logging.debug("\ttile updated: {}".format(ir_cache))
                 if updated:
                     post_save.disconnect(tile_saved, sender=Tile)
                     models.Model.save(tile, update_fields=['ir_cache'])
@@ -83,8 +85,10 @@ def tile_m2m_changed(sender, **kwargs):
     added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
     
     if (sender in [Tile.products.through, Tile.content.through]) \
-            and kwargs.get('action') in ('post_add', 'post_clear', 'post_remove') \
-            and len(added_or_removed_keys) > 0:
+        and ((kwargs.get('action') in ('post_add', 'post_remove') and len(added_or_removed_keys) > 0) \
+        or (kwargs.get('action') == 'post_clear')):
+        logging.debug('tile_m2m_changed {} {} {}'.format(kwargs.get('action'), kwargs.get('reverse'), added_or_removed_keys))
+
         # populate set of objects whose tiles need to be refreshed
         tiles = []
         if kwargs.get('reverse'):
@@ -99,7 +103,7 @@ def tile_m2m_changed(sender, **kwargs):
         for tile in tiles:
             # must validate
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-            logging.debug("tile m2m {}".format(ir_cache))
+            logging.debug("\ttile updated: {}".format(ir_cache))
             if updated:
                 post_save.disconnect(tile_saved, sender=Tile)
                 tile.save() # run full clean before saving ir cache
