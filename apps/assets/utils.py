@@ -75,7 +75,7 @@ class TileSerializationQueue(object):
         if isinstance(tile, models.Tile):
             self.tiles_to_serialize.add(tile.pk)
 
-    def _record_m2m_save(self, sender, **kwargs):
+    def _record_m2m_changed(self, sender, **kwargs):
         import apps.assets.models as models
 
         added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
@@ -113,7 +113,7 @@ class TileSerializationQueue(object):
                 tiles.append(tile)
 
             for tile in tiles:
-                self.tiles_to_serialize(tile.pk)
+                self.tiles_to_serialize.add(tile.pk)
 
     def start(self):
         """
@@ -122,7 +122,7 @@ class TileSerializationQueue(object):
         import apps.assets.models as models
 
         disable_tile_serialization_signals()
-        post_save.connect(self._record_tile_saved, sender=models.Tile)
+        post_save.connect(self._record_tile_save, sender=models.Tile)
         m2m_changed.connect(self._record_m2m_changed)
 
     def stop(self):
@@ -131,7 +131,7 @@ class TileSerializationQueue(object):
         """
         import apps.assets.models as models
 
-        post_save.disconnect(receiver=self._record_tile_saved, sender=models.Tile)
+        post_save.disconnect(receiver=self._record_tile_save, sender=models.Tile)
         m2m_changed.disconnect(self._record_m2m_changed)
         enable_tile_serialization_signals()
 
@@ -140,17 +140,14 @@ class TileSerializationQueue(object):
         Serialize all tiles in queue
         """
         import apps.assets.models as models
-        post_save.disconnect(tile_saved, sender=models.Tile)
 
-        for tile in Tile.objects.get(pk__in=self.tiles_to_serialize)
+        for tile in models.Tile.objects.filter(pk__in=self.tiles_to_serialize):
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-            logging.debug("tile_saved {}".format(ir_cache))
             if updated:
                 # TODO: convert to a bulk save operation for MASSIVE speedup
                 models.Model.save(tile, update_fields=['ir_cache']) # skip full_clean
 
         self.tiles_to_serialize = set() # reset queue
-        post_save.connect(tile_saved, sender=Tile)
 
 
 class delay_tile_serialization(ContextDecorator):
