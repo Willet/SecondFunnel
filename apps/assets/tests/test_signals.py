@@ -421,7 +421,7 @@ class SerializationSignalTests(TestCase):
         tile.content.add(content)
         content.tagged_products.add(pro)
         with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=('', False))) as mocked_handler:
-            content.tagged_products.clear(pro) # triggers signal
+            content.tagged_products.clear() # triggers signal
             self.assertEquals(mocked_handler.call_count, 1)
 
     # product.content (reverse of content.tagged_products) add, remove, clear

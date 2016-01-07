@@ -19,7 +19,7 @@ class SignalsTests(TestCase):
         content = Content.objects.get(pk=6)
         with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
             with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
-                with mock.patch('apps.assets.signals.content_m2m_changed') as content_m2m_changed:
+                with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
                     # verify signals work
                     tile.save()
                     self.assertEquals(mock_tile_saved.call_count, 1)
@@ -44,7 +44,7 @@ class SignalsTests(TestCase):
         content = Content.objects.get(pk=6)
         with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
             with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
-                with mock.patch('apps.assets.signals.content_m2m_changed') as content_m2m_changed:
+                with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
                     # verify signals disabled
                     disable_tile_serialization_signals()
                     tile.save()
@@ -185,7 +185,7 @@ class TileSerializationQueueTests(TestCase):
         queue = TileSerializationQueue()
         with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
             with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
-                with mock.patch('apps.assets.signals.content_m2m_changed') as content_m2m_changed:
+                with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
                     # verify signals work
                     tile1.save()
                     self.assertEquals(mock_tile_saved.call_count, 1)
@@ -213,7 +213,7 @@ class TileSerializationQueueTests(TestCase):
         queue = TileSerializationQueue()
         with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
             with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
-                with mock.patch('apps.assets.signals.content_m2m_changed') as content_m2m_changed:
+                with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
                     # verify signals disabled
                     queue.start()
                     tile1.save()
