@@ -1,3 +1,4 @@
+from django.db.models.signals import post_save, m2m_changed
 from django.test import TestCase
 import mock
 import logging
@@ -13,55 +14,57 @@ from apps.assets.utils import disable_tile_serialization_signals, enable_tile_se
 class SignalsTests(TestCase):
     fixtures = ['assets_models.json']
 
-    def disable_tile_serialization_signals_test(self):
+    def enable_tile_serialization_signals_test(self):
         tile = Tile.objects.get(pk=10)
         pro = Product.objects.get(pk=13)
         content = Content.objects.get(pk=6)
         with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
             with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
                 with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
-                    # verify signals work
-                    tile.save()
-                    self.assertEquals(mock_tile_saved.call_count, 1)
-                    tile.products.add(pro)
-                    self.assertEquals(mock_tile_m2m_changed.call_count, 1)
-                    content.tagged_products.add(pro)
-                    self.assertEquals(mock_content_m2m_changed.call_count, 1)
-                    
-                    disable_tile_serialization_signals()
-                    # None of call counts should have incremented
-                    tile.save()
-                    self.assertEquals(mock_tile_saved.call_count, 1)
-                    tile.products.add(pro)
-                    self.assertEquals(mock_tile_m2m_changed.call_count, 1)
-                    content.tagged_products.add(pro)
-                    self.assertEquals(mock_content_m2m_changed.call_count, 1)
-
-
-    def disable_tile_serialization_signals_test(self):
-        tile = Tile.objects.get(pk=10)
-        pro = Product.objects.get(pk=13)
-        content = Content.objects.get(pk=6)
-        with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
-            with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
-                with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
-                    # verify signals disabled
-                    disable_tile_serialization_signals()
+                    # verify signals are not enabled
                     tile.save()
                     self.assertEquals(mock_tile_saved.call_count, 0)
                     tile.products.add(pro)
                     self.assertEquals(mock_tile_m2m_changed.call_count, 0)
                     content.tagged_products.add(pro)
                     self.assertEquals(mock_content_m2m_changed.call_count, 0)
-                    
+
                     enable_tile_serialization_signals()
-                    # Call counts should have incremented
+                    
+                    # Call counts should now increment
+                    tile.save()
+                    self.assertEquals(mock_tile_saved.call_count, 1)
+                    # tile_m2m_changed & content_m2m_changed are both m2m_changed signal recievers
+                    tile.products.add(pro)
+                    self.assertEquals(mock_tile_m2m_changed.call_count, 2) # m2m_changed pre_add, post_add
+                    content.tagged_products.add(pro)
+                    self.assertEquals(mock_content_m2m_changed.call_count, 4) # 2x m2m_changed pre_add, post_add
+
+    def disable_tile_serialization_signals_test(self):
+        tile = Tile.objects.get(pk=10)
+        pro = Product.objects.get(pk=13)
+        content = Content.objects.get(pk=6)
+        with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
+            with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
+                with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
+                    enable_tile_serialization_signals()
+                    # verify signals work
+                    tile.save()
+                    self.assertEquals(mock_tile_saved.call_count, 1)
+                    # tile_m2m_changed & content_m2m_changed are both m2m_changed signal recievers
+                    tile.products.add(pro)
+                    self.assertEquals(mock_tile_m2m_changed.call_count, 2) # m2m_changed pre_add, post_add
+                    content.tagged_products.add(pro)
+                    self.assertEquals(mock_content_m2m_changed.call_count, 4) # 2x m2m_changed pre_add, post_add
+                    
+                    disable_tile_serialization_signals()
+                    # None of call counts should have incremented
                     tile.save()
                     self.assertEquals(mock_tile_saved.call_count, 1)
                     tile.products.add(pro)
-                    self.assertEquals(mock_tile_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_tile_m2m_changed.call_count, 4) # 2x m2m_changed pre_add, post_add
                     content.tagged_products.add(pro)
-                    self.assertEquals(mock_content_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_content_m2m_changed.call_count, 4) # 2x m2m_changed pre_add, post_add
 
 
 class SerializationDisabledTests(TestCase):
@@ -112,7 +115,9 @@ class SerializationDisabledTests(TestCase):
             self.assertEquals(mocked_handler.call_count, 1)
 
     def content_saved_disable_tile_serialization_test(self):
+        tile = Tile.objects.get(pk=10)
         content = Content.objects.get(pk=6)
+        tile.content.add(content)
         with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=('', False))) as mocked_handler:
             with disable_tile_serialization():
                 content.save() # triggers signal disabled
@@ -131,6 +136,7 @@ class SerializationDisabledTests(TestCase):
             with disable_tile_serialization():
                 pro.similar_products.add(pro2) # triggers signal disabled
                 self.assertEquals(mocked_handler.call_count, 0)
+                pro.similar_products.remove(pro2)
             pro.similar_products.add(pro2) # triggers signal re-enabled
             self.assertEquals(mocked_handler.call_count, 1)
 
@@ -145,6 +151,7 @@ class SerializationDisabledTests(TestCase):
             with disable_tile_serialization():
                 content.tagged_products.add(pro) # triggers signal disabled
                 self.assertEquals(mocked_handler.call_count, 0)
+                content.tagged_products.remove(pro)
             content.tagged_products.add(pro) # triggers signal re-enabled
             self.assertEquals(mocked_handler.call_count, 1)
 
@@ -170,6 +177,7 @@ class SerializationDisabledTests(TestCase):
             with disable_tile_serialization():
                 tile.content.add(content) # trigger signal disabled
                 self.assertEquals(mocked_handler.call_count, 0)
+                tile.content.remove(content)
             tile.content.add(content) # trigger signal re-enabled
             self.assertEquals(mocked_handler.call_count, 1)
 
@@ -186,24 +194,26 @@ class TileSerializationQueueTests(TestCase):
         with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
             with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
                 with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
+                    enable_tile_serialization_signals()
                     # verify signals work
                     tile1.save()
                     self.assertEquals(mock_tile_saved.call_count, 1)
+                    # tile_m2m_changed & content_m2m_changed are both m2m_changed signal recievers
                     tile2.content.add(content)
-                    self.assertEquals(mock_tile_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_tile_m2m_changed.call_count, 2) # m2m_changed pre_add, post_add
                     content.tagged_products.add(pro)
-                    self.assertEquals(mock_content_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_content_m2m_changed.call_count, 4) # 2x m2m_changed pre_add, post_add
                     
                     queue.start()
                     # None of call counts should have incremented
                     tile1.save() # queue's tile1
                     self.assertEquals(mock_tile_saved.call_count, 1)
                     tile2.products.add(pro) # queue's tile2
-                    self.assertEquals(mock_tile_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_tile_m2m_changed.call_count, 4)
                     content.tagged_products.add(pro) # queue's tile2 again
-                    self.assertEquals(mock_content_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_content_m2m_changed.call_count, 4)
                     # queue is tile1 & tile2
-                    self.assertEquals(queue.tiles_to_serialize, 2)
+                    self.assertEquals(len(queue.tiles_to_serialize), 2)
 
     def stop_test(self):
         tile1 = Tile.objects.get(pk=10)
@@ -214,15 +224,17 @@ class TileSerializationQueueTests(TestCase):
         with mock.patch('apps.assets.signals.tile_saved') as mock_tile_saved:
             with mock.patch('apps.assets.signals.tile_m2m_changed') as mock_tile_m2m_changed:
                 with mock.patch('apps.assets.signals.content_m2m_changed') as mock_content_m2m_changed:
-                    # verify signals disabled
+                    enable_tile_serialization_signals()
                     queue.start()
+
+                    # verify signals disabled
                     tile1.save()
                     self.assertEquals(mock_tile_saved.call_count, 0)
                     tile2.content.add(content)
                     self.assertEquals(mock_tile_m2m_changed.call_count, 0)
                     content.tagged_products.add(pro)
                     self.assertEquals(mock_content_m2m_changed.call_count, 0)
-                    self.assertEquals(queue.tiles_to_serialize, 2) # queue is tile1 & tile2
+                    self.assertEquals(len(queue.tiles_to_serialize), 2) # queue is tile1 & tile2
 
                     # reset queue
                     queue.tiles_to_serialize = set()
@@ -231,12 +243,13 @@ class TileSerializationQueueTests(TestCase):
                     # Signals reconnected
                     tile1.save()
                     self.assertEquals(mock_tile_saved.call_count, 1)
+                    # tile_m2m_changed & content_m2m_changed are both m2m_changed signal recievers
                     tile2.products.add(pro)
-                    self.assertEquals(mock_tile_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_tile_m2m_changed.call_count, 2) # m2m_changed pre_add, post_add
                     content.tagged_products.add(pro)
-                    self.assertEquals(mock_content_m2m_changed.call_count, 1)
+                    self.assertEquals(mock_content_m2m_changed.call_count, 4) # 2x m2m_changed pre_add, post_add
                     # No tiles queued
-                    self.assertEquals(queue.tiles_to_serialize, 0)
+                    self.assertEquals(len(queue.tiles_to_serialize), 0)
 
     def serialize_test(self):
         tile1 = Tile.objects.get(pk=10)
@@ -297,7 +310,9 @@ class SerializationDelayedTests(TestCase):
             self.assertEquals(mocked_handler.call_count, 1)
 
     def content_saved_delay_tile_serialization_test(self):
+        tile = Tile.objects.get(pk=10)
         content = Content.objects.get(pk=6)
+        tile.content.add(content)
         with mock.patch('apps.assets.models.Tile.update_ir_cache', mock.Mock(return_value=('', False))) as mocked_handler:
             with delay_tile_serialization():
                 content.save() # triggers signal disabled
@@ -352,5 +367,3 @@ class SerializationDelayedTests(TestCase):
                 tile.content.add(content) # trigger signal disabled
                 self.assertEquals(mocked_handler.call_count, 0)
             self.assertEquals(mocked_handler.call_count, 1)
-
-    
