@@ -49,23 +49,33 @@ def content_m2m_changed(sender, **kwargs):
        ex: Tile -> Content -> tagged products updated
            Tile -> Product -> similar products updated
     """
-    added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
-    
-    if (sender in [Content.tagged_products.through, Product.similar_products.through]) \
-        and ((kwargs.get('action') in ('post_add', 'post_remove') and len(added_or_removed_keys) > 0) \
-        or (kwargs.get('action') == 'post_clear')):
-        logging.debug('content_m2m_changed {} {} {}'.format(kwargs.get('action'), kwargs.get('reverse'), added_or_removed_keys))
-
-        # populate set of objects whose tiles need to be refreshed
+    if sender in [Content.tagged_products.through, Product.similar_products.through]:
+        logging.debug('content_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
+        
         instances = []
-        if kwargs.get('reverse'):
-            # update tiles of other side of m2m relationship
-            for pk in added_or_removed_keys:
-                inst = kwargs.get('model').objects.get(pk=pk)
-                instances.append(inst)
-        else:
+        added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
+
+        if (kwargs.get('action') in ('post_add', 'post_remove')) and (len(added_or_removed_keys) > 0):
+            # populate set of objects whose tiles need to be refreshed
+            if kwargs.get('reverse'):
+                # update tiles of other side of m2m relationship
+                for pk in added_or_removed_keys:
+                    inst = kwargs.get('model').objects.get(pk=pk)
+                    instances.append(inst)
+            else:
+                instance = kwargs.pop('instance', None)
+                instances.append(instance)
+
+        # clear does not provide a pk_set, so must use relation pre_clear
+        elif kwargs.get('action') == 'pre_clear':
             instance = kwargs.pop('instance', None)
-            instances.append(instance)
+            if kwargs.get('reverse'):
+                if sender == Content.tagged_products.through:
+                    instances = instance.content.all()
+                elif sender == Product.similar_products.through:
+                    instances = instance.reverse_similar_products.all()
+            else:
+                instances.append(instance)
 
         for inst in instances:
             for tile in inst.tiles.all():
@@ -82,23 +92,30 @@ def content_m2m_changed(sender, **kwargs):
 @receiver(m2m_changed)
 def tile_m2m_changed(sender, **kwargs):
     """Re-generate cache for IR tiles if products or content changed on tile."""
-    added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
-    
-    if (sender in [Tile.products.through, Tile.content.through]) \
-        and ((kwargs.get('action') in ('post_add', 'post_remove') and len(added_or_removed_keys) > 0) \
-        or (kwargs.get('action') == 'post_clear')):
-        logging.debug('tile_m2m_changed {} {} {}'.format(kwargs.get('action'), kwargs.get('reverse'), added_or_removed_keys))
+    if sender in [Tile.products.through, Tile.content.through]:
+        logging.debug('tile_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
 
-        # populate set of objects whose tiles need to be refreshed
         tiles = []
-        if kwargs.get('reverse'):
-            # update tiles of other side of m2m relationship
-            for pk in added_or_removed_keys:
-                tile = kwargs.get('model').objects.get(pk=pk)
+        added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
+
+        if (kwargs.get('action') in ('post_add', 'post_remove')) and (len(added_or_removed_keys) > 0):
+            # populate set of objects whose tiles need to be refreshed
+            if kwargs.get('reverse'):
+                # update tiles of other side of m2m relationship
+                for pk in added_or_removed_keys:
+                    tile = kwargs.get('model').objects.get(pk=pk)
+                    tiles.append(tile)
+            else:
+                tile = kwargs.pop('instance', None)
                 tiles.append(tile)
-        else:
-            tile = kwargs.pop('instance', None)
-            tiles.append(tile)
+
+        # clear does not provide a pk_set, so must use relation pre_clear
+        elif kwargs.get('action') == 'pre_clear':
+            instance = kwargs.pop('instance', None)
+            if kwargs.get('reverse'):
+                tiles = instance.tiles.all() # reverse relation for both product and content is tiles
+            else:
+                tiles.append(instance)
 
         for tile in tiles:
             # must validate
