@@ -23,6 +23,7 @@ class PlaceholderProduct(Product):
     def save(self, *args, **kwargs):
         self.name = "placeholder"
         self.price = 0
+        self.sale_price = None
         self.in_stock = False
         if not self.sku:
             # Make-up a temporary, unique SKU
