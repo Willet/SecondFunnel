@@ -1,7 +1,7 @@
-import sys
-
 from contextlib2 import ContextDecorator
 from django.db.models.signals import post_save, m2m_changed
+import logging
+import sys
 
 
 def disable_tile_serialization_signals():
@@ -37,26 +37,28 @@ class disable_tile_serialization(ContextDecorator):
     # Keep track of how many times this has been entered
     disabled_counter = 0
 
-    def __enter__(self):
-        self.disabled_counter += 1
+    @classmethod
+    def __enter__(cls):
+        cls.disabled_counter += 1
         try:
             disable_tile_serialization_signals()
         except:
             # If disconnecting signals failed for any reason
             # re-connect signals if no wrapping context managers and re-raise
             try:
-                self.__exit__(*sys.exc_info())
+                cls.__exit__(*sys.exc_info())
             except:
                 # Suppress any additional exception from __exit__
                 pass
             raise
 
-    def __exit__(self, type, value, traceback):
-        self.disabled_counter -= 1
-        if self.disabled_counter < 1:
+    @classmethod
+    def __exit__(cls, type, value, traceback):
+        cls.disabled_counter -= 1
+        if cls.disabled_counter < 1:
             enable_tile_serialization_signals()
             # Should never have exit'ed more than enter'ed.
-            assert self.disabled_counter == 0
+            assert cls.disabled_counter == 0
 
 
 class TileSerializationQueue(object):
@@ -77,40 +79,63 @@ class TileSerializationQueue(object):
 
     def _record_m2m_changed(self, sender, **kwargs):
         import apps.assets.models as models
-
-        added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
     
-        if (sender in [models.Content.tagged_products.through, models.Product.similar_products.through]) \
-                and kwargs.get('action') in ('post_add', 'post_clear', 'post_remove') \
-                and len(added_or_removed_keys) > 0:
-            # populate set of objects whose tiles need to be refreshed
+        if sender in [models.Content.tagged_products.through, models.Product.similar_products.through]:
+            logging.debug('content_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
+            
             instances = []
-            if kwargs.get('reverse'):
-                # update tiles of other side of m2m relationship
-                for pk in added_or_removed_keys:
-                    inst = kwargs.get('model').objects.get(pk=pk)
-                    instances.append(inst)
-            else:
+            added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
+
+            if (kwargs.get('action') in ('post_add', 'post_remove')) and (len(added_or_removed_keys) > 0):
+                # populate set of objects whose tiles need to be refreshed
+                if kwargs.get('reverse'):
+                    # update tiles of other side of m2m relationship
+                    for pk in added_or_removed_keys:
+                        inst = kwargs.get('model').objects.get(pk=pk)
+                        instances.append(inst)
+                else:
+                    instance = kwargs.pop('instance', None)
+                    instances.append(instance)
+
+            # clear does not provide a pk_set, so must use relation pre_clear
+            elif kwargs.get('action') == 'pre_clear':
                 instance = kwargs.pop('instance', None)
-                instances.append(instance)
+                if kwargs.get('reverse'):
+                    if sender == models.Content.tagged_products.through:
+                        instances = instance.content.all()
+                    elif sender == models.Product.similar_products.through:
+                        instances = instance.reverse_similar_products.all()
+                else:
+                    instances.append(instance)
 
             for inst in instances:
                 for tile in inst.tiles.all():
                     self.tiles_to_serialize.add(tile.pk)
 
-        elif (sender in [models.Tile.products.through, models.Tile.content.through]) \
-                and kwargs.get('action') in ('post_add', 'post_clear', 'post_remove') \
-                and len(added_or_removed_keys) > 0:
-            # populate set of objects whose tiles need to be refreshed
+        elif sender in [models.Tile.products.through, models.Tile.content.through]:
+            logging.debug('tile_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
+
             tiles = []
-            if kwargs.get('reverse'):
-                # update tiles of other side of m2m relationship
-                for pk in added_or_removed_keys:
-                    tile = kwargs.get('model').objects.get(pk=pk)
+            added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
+
+            if (kwargs.get('action') in ('post_add', 'post_remove')) and (len(added_or_removed_keys) > 0):
+                # populate set of objects whose tiles need to be refreshed
+                if kwargs.get('reverse'):
+                    # update tiles of other side of m2m relationship
+                    for pk in added_or_removed_keys:
+                        tile = kwargs.get('model').objects.get(pk=pk)
+                        tiles.append(tile)
+                else:
+                    tile = kwargs.pop('instance', None)
                     tiles.append(tile)
-            else:
-                tile = kwargs.pop('instance', None)
-                tiles.append(tile)
+
+            # clear does not provide a pk_set, so must use relation pre_clear
+            elif kwargs.get('action') == 'pre_clear':
+                instance = kwargs.pop('instance', None)
+                if kwargs.get('reverse'):
+                    tiles = instance.tiles.all() # reverse relation for both product and content is tiles
+                else:
+                    tiles.append(instance)
 
             for tile in tiles:
                 self.tiles_to_serialize.add(tile.pk)
@@ -164,24 +189,26 @@ class delay_tile_serialization(ContextDecorator):
     disabled_counter = 0
     queue = TileSerializationQueue()
 
-    def __enter__(self):
-        self.disabled_counter += 1
+    @classmethod
+    def __enter__(cls):
+        cls.disabled_counter += 1
         try:
-            self.queue.start()
+            cls.queue.start()
         except:
             # If disconnecting signals failed for any reason
             # re-connect signals if no wrapping context managers and re-raise
             try:
-                self.__exit__(*sys.exc_info())
+                cls.__exit__(*sys.exc_info())
             except:
                 # Suppress any additional exception from __exit__
                 pass
             raise
 
-    def __exit__(self, type, value, traceback):
-        self.disabled_counter -= 1
-        if self.disabled_counter < 1:
-            self.queue.stop()
-            self.queue.serialize()
+    @classmethod
+    def __exit__(cls, type, value, traceback):
+        cls.disabled_counter -= 1
+        if cls.disabled_counter < 1:
+            cls.queue.stop()
+            cls.queue.serialize()
             # Should never have exit'ed more than enter'ed.
-            assert self.disabled_counter == 0
+            assert cls.disabled_counter == 0
