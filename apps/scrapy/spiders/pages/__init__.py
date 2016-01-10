@@ -31,6 +31,7 @@ ITEM_PIPELINES = {
     'apps.scrapy.pipelines.ItemFinishedPipeline': 49,
     # 50 - 
     'apps.scrapy.pipelines.TileCreationPipeline': 50,
+    'apps.scrapy.pipelines.TileSerializationPipeline': 55,
     # 90 - Scrape job control
     'apps.scrapy.pipelines.PageUpdatePipeline': 99,
 }
