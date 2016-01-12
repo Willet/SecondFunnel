@@ -76,8 +76,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
      * @returns {String}
      */
     module.url = function () {
-        compiledTemplate = _.template(module.options.urlTemplate);
-        data = _.extend({}, module.options,
+        var compiledTemplate = _.template(module.options.urlTemplate);
+        var data = _.extend({}, module.options,
                         { 'category': encodeURIComponent(module._category || module.options.category) });
         return compiledTemplate(data);
     };
