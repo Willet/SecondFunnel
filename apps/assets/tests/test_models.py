@@ -746,6 +746,13 @@ class FeedTest(TestCase):
         self.assertEqual(len(f.tiles.all()), 1)
         # most functionality is in Tile._copy
 
+    # Tests for healthcheck
+    def health_check_empty(self):
+        #with mock.patch('apps.assets.models.Tile.count', mock.Mock(return_value=100)):
+        #    results = page.healthcheck()
+        #    self.assertTrue(results['results']['in_stock']==100)
+        self.assertTrue(True)
+
 
 class TileTest(TestCase):
     # Tile has no methods

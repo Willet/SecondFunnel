@@ -1354,6 +1354,41 @@ class Feed(BaseModel):
         tiles = self.tiles.filter(content__id=content.id)
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
+    def healthcheck(self):
+        tiles_not_placeholders = self.tiles.filter(placeholder=False)
+        num_tiles_total = tiles_not_placeholders.count()
+        num_tiles_in_stock = tiles_not_placeholders.filter(in_stock=True).count()
+        num_tiles_out_stock = tiles_not_placeholders.filter(in_stock=False).count()
+        
+        status = ""
+
+        percent = num_tiles_in_stock/float(num_tiles_total)
+        if percent < 0.1:
+            status = "ERROR"
+        elif percent <= 0.3: 
+            status = "WARNING"
+        else:
+            status = "OK"
+
+        status_message = [status]
+
+        for cat in self.categories:
+            num_tiles_total = cat.tiles.count()
+            if (num_tiles_total < 10):
+                status_message.append(u"Category '{}' only has {} tiles".format(cat.name, num_tiles_total))
+        
+        # Results output
+        results_message = {
+            "in_stock": num_tiles_in_stock,
+            "out_of_stock": num_tiles_out_stock,
+            "placeholder": self.tiles.filter(placeholder=True).count()
+        }
+
+        return {
+            "status": status_message,
+            "results": results_message
+        }
+
 
 class Category(BaseModel):
     """ Feed category, shared name across all feeds for a store
