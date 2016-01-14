@@ -748,11 +748,23 @@ class FeedTest(TestCase):
 
     # Tests for healthcheck
     def health_check_empty_test(self):
-        with mock.patch('apps.assets.models.Tile') as count_patch:
-            count_patch.Tile.count = 100
-            page = Page.objects.get(url_slug="test_page")
-            results = page.healthcheck()
-            self.assertTrue(results['results']['in_stock']==100)
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            qs_mock = mock.Mock()
+            qs_mock.count.return_value = 100
+            tile_patch.filter.return_value = qs_mock
+            tile_patch.count.return_value = 100
+            f = Feed.objects.get(pk=9)
+            results = f.healthcheck()
+            self.assertEqual(results['results']['in_stock'],100)
+
+        # with mock.patch('apps.assets.models.Feed.tiles.filter') as filter_patch:
+        #     qs_mock = mock.Mock()
+        #     qs_mock.count.return_value = 100
+        #     filter_patch.return_value = qs_mock
+        #     f = Feed.objects.get(pk=9)
+        #     results = f.healthcheck()
+        #     self.assertEqual(results['results']['in_stock'],100)
+            #self.assertEqual(results['results']['in_stock'],100,msg='instock = {}'.format())
 
 
 class TileTest(TestCase):
