@@ -1355,10 +1355,9 @@ class Feed(BaseModel):
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
     def healthcheck(self):
-        tiles_not_placeholders = self.tiles.filter(placeholder=False)
-        num_tiles_total = tiles_not_placeholders.count()
-        num_tiles_in_stock = tiles_not_placeholders.filter(in_stock=True).count()
-        num_tiles_out_stock = num_tiles_total - num_tiles_in_stock
+        num_tiles_total = self.tiles.count()
+        num_tiles_in_stock = self.tiles.filter(in_stock=True, placeholder=False).count()
+        num_tiles_out_stock = self.tiles.filter(in_stock=False, placeholder=False).count()
         
         status = ""
 

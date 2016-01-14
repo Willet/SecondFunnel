@@ -746,16 +746,39 @@ class FeedTest(TestCase):
         self.assertEqual(len(f.tiles.all()), 1)
         # most functionality is in Tile._copy
 
+
     # Tests for healthcheck
     def health_check_empty_test(self):
+        mock_placeholder = mock.Mock()
+        mock_placeholder.count.return_value = 101
+
+        mock_instock = mock.Mock()
+        mock_instock.count.return_value = 203
+        
+        mock_outstock = mock.Mock()
+        mock_outstock.count.return_value = 305
+
+        def filter_side_effect(*args, **kwargs):
+            if kwargs['placeholder'] == True:
+                return mock_placeholder
+            elif kwargs['in_stock'] == True:
+                return mock_instock
+            else:
+                return mock_outstock
+
         with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
-            qs_mock = mock.Mock()
-            qs_mock.count.return_value = 100
-            tile_patch.filter.return_value = qs_mock
-            tile_patch.count.return_value = 100
-            f = Feed.objects.get(pk=9)
-            results = f.healthcheck()
-            self.assertEqual(results['results']['in_stock'],100)
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results['results']['in_stock'],203,msg='instock = {}'.format(results))
 
         # with mock.patch('apps.assets.models.Feed.tiles.filter') as filter_patch:
         #     qs_mock = mock.Mock()
