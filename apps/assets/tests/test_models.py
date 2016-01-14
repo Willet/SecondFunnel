@@ -747,11 +747,12 @@ class FeedTest(TestCase):
         # most functionality is in Tile._copy
 
     # Tests for healthcheck
-    def health_check_empty(self):
-        #with mock.patch('apps.assets.models.Tile.count', mock.Mock(return_value=100)):
-        #    results = page.healthcheck()
-        #    self.assertTrue(results['results']['in_stock']==100)
-        self.assertTrue(True)
+    def health_check_empty_test(self):
+        with mock.patch('apps.assets.models.Tile') as count_patch:
+            count_patch.Tile.count = 100
+            page = Page.objects.get(url_slug="test_page")
+            results = page.healthcheck()
+            self.assertTrue(results['results']['in_stock']==100)
 
 
 class TileTest(TestCase):

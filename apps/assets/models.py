@@ -1358,7 +1358,7 @@ class Feed(BaseModel):
         tiles_not_placeholders = self.tiles.filter(placeholder=False)
         num_tiles_total = tiles_not_placeholders.count()
         num_tiles_in_stock = tiles_not_placeholders.filter(in_stock=True).count()
-        num_tiles_out_stock = tiles_not_placeholders.filter(in_stock=False).count()
+        num_tiles_out_stock = num_tiles_total - num_tiles_in_stock
         
         status = ""
 
