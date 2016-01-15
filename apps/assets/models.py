@@ -1379,7 +1379,8 @@ class Feed(BaseModel):
                     status_message = ["ERROR"]
                 error_message += u"Category '{}' only has {} tiles\n".format(cat.name, num_tiles_total)
         
-        status_message.append(error_message)
+        if error_message != "":
+            status_message.append(error_message)
         # Results output
         results_message = {
             "in_stock": num_tiles_in_stock,
