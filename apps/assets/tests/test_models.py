@@ -746,31 +746,29 @@ class FeedTest(TestCase):
         self.assertEqual(len(f.tiles.all()), 1)
         # most functionality is in Tile._copy
 
-
     # Tests for healthcheck
-    def health_check_empty_test(self):
-        mock_placeholder = mock.Mock()
-        mock_placeholder.count.return_value = 101
-
-        mock_instock = mock.Mock()
-        mock_instock.count.return_value = 203
-        
-        mock_outstock = mock.Mock()
-        mock_outstock.count.return_value = 305
+    def health_check_error_test(self):
+        placeholder_count = 101
+        instock_count = 10
+        outstock_count = 305
+        total_count = placeholder_count + instock_count + outstock_count
 
         def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
             if kwargs['placeholder'] == True:
-                return mock_placeholder
+                mocked.count.return_value = placeholder_count
             elif kwargs['in_stock'] == True:
-                return mock_instock
+                mocked.count.return_value = instock_count
             else:
-                return mock_outstock
+                mocked.count.return_value = outstock_count
+            return mocked
 
         with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
             with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
                 qs_mock = mock.Mock()
                 qs_mock.count.return_value = 1000
                 
+                tile_patch.count.return_value = total_count
                 tile_patch.filter.side_effect = filter_side_effect
                 
                 categories_patch.return_value = categories_patch
@@ -778,17 +776,102 @@ class FeedTest(TestCase):
 
                 f = Feed.objects.get(pk=9)
                 results = f.healthcheck()
-                self.assertEqual(results['results']['in_stock'],203,msg='instock = {}'.format(results))
+                self.assertEqual(results['status'][0],"ERROR",msg='instock = {}'.format(results))
 
-        # with mock.patch('apps.assets.models.Feed.tiles.filter') as filter_patch:
-        #     qs_mock = mock.Mock()
-        #     qs_mock.count.return_value = 100
-        #     filter_patch.return_value = qs_mock
-        #     f = Feed.objects.get(pk=9)
-        #     results = f.healthcheck()
-        #     self.assertEqual(results['results']['in_stock'],100)
-            #self.assertEqual(results['results']['in_stock'],100,msg='instock = {}'.format())
+    def health_check_warning_test(self):
+        placeholder_count = 100
+        instock_count = 200
+        outstock_count = 700
+        total_count = placeholder_count + instock_count + outstock_count
 
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results['status'][0],"WARNING",msg='instock = {}'.format(results))
+
+    def health_check_ok_test(self):
+        placeholder_count = 100
+        instock_count = 500
+        outstock_count = 400
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results['status'][0],"OK",msg='instock = {}'.format(results))
+
+    def health_check_ok_error1_test(self):
+        placeholder_count = 100
+        instock_count = 600
+        outstock_count = 300
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Category') as categories_patch:
+                with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                    cat_fail = mock.Mock()
+                    cat_fail.tiles.count.return_value = 5
+                    
+                    tile_patch.count.return_value = total_count
+                    tile_patch.filter.side_effect = filter_side_effect
+                    
+                    feed_cat_patch.return_value = [cat_fail]
+                    categories_patch.count.return_value = 5
+                    categories_patch.return_value = cat_fail
+
+                    f = Feed.objects.get(pk=9)
+                    results = f.healthcheck()
+                    self.assertEqual(results['status'][1],"OK",msg='instock = {}'.format(results))
 
 class TileTest(TestCase):
     # Tile has no methods

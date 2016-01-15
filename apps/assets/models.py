@@ -1359,23 +1359,27 @@ class Feed(BaseModel):
         num_tiles_in_stock = self.tiles.filter(in_stock=True, placeholder=False).count()
         num_tiles_out_stock = self.tiles.filter(in_stock=False, placeholder=False).count()
         
-        status = ""
-
         percent = num_tiles_in_stock/float(num_tiles_total)
-        if percent < 0.1:
-            status = "ERROR"
-        elif percent <= 0.3: 
-            status = "WARNING"
-        else:
-            status = "OK"
 
-        status_message = [status]
+        status_message = []
+        error_message = ""
+
+        if percent < 0.1:
+            status_message.append("ERROR")
+            error_message += "In-stock count < 10%%\n"
+        elif percent <= 0.3: 
+            status_message.extend(("WARNING", u"In-stock count is between 10%% and 30%%"))
+        else:
+            status_message.extend(("OK", u"In-stock count is greater than 30%%"))
 
         for cat in self.categories:
             num_tiles_total = cat.tiles.count()
             if (num_tiles_total < 10):
-                status_message.append(u"Category '{}' only has {} tiles".format(cat.name, num_tiles_total))
+                if (status_message[0] != "ERROR"):
+                    status_message = ["ERROR"]
+                error_message += u"Category '{}' only has {} tiles\n".format(cat.name, num_tiles_total)
         
+        status_message.append(error_message)
         # Results output
         results_message = {
             "in_stock": num_tiles_in_stock,
