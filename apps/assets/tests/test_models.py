@@ -779,7 +779,7 @@ class FeedTest(TestCase):
                 f = Feed.objects.get(pk=9)
                 results = f.healthcheck()
                 self.assertEqual(results,{
-                        'status': ['ERROR', u"In-stock count < 10%%\n"], 
+                        'status': ('ERROR', u"In-stock count < 10%"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
                 })
 
@@ -814,7 +814,7 @@ class FeedTest(TestCase):
                 f = Feed.objects.get(pk=9)
                 results = f.healthcheck()
                 self.assertEqual(results,{
-                        'status': ['WARNING', u"In-stock count is between 10%% and 30%%"], 
+                        'status': ('WARNING', u"In-stock count is between 10% and 30%"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
                 })
 
@@ -849,7 +849,7 @@ class FeedTest(TestCase):
                 f = Feed.objects.get(pk=9)
                 results = f.healthcheck()
                 self.assertEqual(results,{
-                        'status': ['OK', u"In-stock count is greater than 30%%"], 
+                        'status': ('OK', u"In-stock count is greater than 30%"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
                 })
 
@@ -895,7 +895,7 @@ class FeedTest(TestCase):
                 f = Feed.objects.get(pk=9)
                 results = f.healthcheck()
                 self.assertEqual(results,{
-                        'status': ['ERROR', u"Category 'cat1' only has 5 tiles\nCategory 'cat3' only has 8 tiles\n"], 
+                        'status': ('ERROR', u"Category 'cat1' only has 5 tiles\nCategory 'cat3' only has 8 tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
                     })
 
@@ -941,7 +941,7 @@ class FeedTest(TestCase):
                 f = Feed.objects.get(pk=9)
                 results = f.healthcheck()
                 self.assertEqual(results,{
-                        'status': ['ERROR', u"Category 'cat1' only has 5 tiles\nCategory 'cat3' only has 8 tiles\n"], 
+                        'status': ('ERROR', u"Category 'cat1' only has 5 tiles\nCategory 'cat3' only has 8 tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
                     })
 
@@ -986,7 +986,7 @@ class FeedTest(TestCase):
                 f = Feed.objects.get(pk=9)
                 results = f.healthcheck()
                 self.assertEqual(results,{
-                        'status': ['ERROR', u"In-stock count < 10%%\nCategory 'cat1' only has 5 tiles\nCategory 'cat2' only has 8 tiles\nCategory 'cat3' only has 8 tiles\n"], 
+                        'status': ('ERROR', u"In-stock count < 10%\nCategory 'cat1' only has 5 tiles\nCategory 'cat2' only has 8 tiles\nCategory 'cat3' only has 8 tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
                     })
 
