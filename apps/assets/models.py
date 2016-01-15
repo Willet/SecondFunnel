@@ -208,7 +208,7 @@ class BaseModel(models.Model, SerializableMixin):
 
         try:
             new_ir_cache = self.to_str(skip_cache=True)
-        except SerializerError:
+        except ir_serializers.SerializerError:
             new_ir_cache = ''
         
         if hasattr(self, 'placeholder'):
