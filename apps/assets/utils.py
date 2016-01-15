@@ -1,4 +1,5 @@
 from contextlib2 import ContextDecorator
+from django.db import models as django_models
 from django.db.models.signals import post_save, m2m_changed
 import logging
 import sys
@@ -166,11 +167,14 @@ class TileSerializationQueue(object):
         """
         import apps.assets.models as models
 
-        for tile in models.Tile.objects.filter(pk__in=self.tiles_to_serialize):
+        tiles = models.Tile.objects.filter(pk__in=self.tiles_to_serialize)
+        logging.debug("Serializing {} delayed tiles".format(tiles.count()))
+
+        for tile in tiles.iterator():
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
             if updated:
                 # TODO: convert to a bulk save operation for MASSIVE speedup
-                models.Model.save(tile, update_fields=['ir_cache']) # skip full_clean
+                django_models.Model.save(tile, update_fields=['ir_cache', 'placeholder']) # skip full_clean
 
         self.tiles_to_serialize = set() # reset queue
 

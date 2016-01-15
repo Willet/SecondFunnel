@@ -85,7 +85,7 @@ def content_m2m_changed(sender, **kwargs):
                 logging.debug("\ttile updated: {}".format(ir_cache))
                 if updated:
                     post_save.disconnect(tile_saved, sender=Tile)
-                    models.Model.save(tile, update_fields=['ir_cache'])
+                    models.Model.save(tile, update_fields=['ir_cache', 'placeholder'])
                     post_save.connect(tile_saved, sender=Tile)
 
 
@@ -138,5 +138,5 @@ def tile_saved(sender, **kwargs):
     logging.debug("tile_saved {}".format(ir_cache))
     if updated:
         post_save.disconnect(tile_saved, sender=Tile)
-        models.Model.save(tile, update_fields=['ir_cache']) # skip full_clean
+        models.Model.save(tile, update_fields=['ir_cache', 'placeholder']) # skip full_clean
         post_save.connect(tile_saved, sender=Tile)
