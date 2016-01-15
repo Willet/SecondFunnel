@@ -781,7 +781,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"In-stock count < 10%"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                },msg=results)
+                })
 
     def health_check_error1_test(self):
         placeholder_count = 1
@@ -965,7 +965,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"Category 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
    # Normally returns an OK but changed to error + error messages due to instock_count < 10
     def health_check_ok_error1_test(self):
@@ -1011,7 +1011,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"In-stock count < 10"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
    # Normally returns an OK but changed to error + error messages due to instock_count < 10 and categories in_stock < 10
     def health_check_ok_error2_test(self):
@@ -1057,7 +1057,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"In-stock count < 10\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
     # Normally returns an warning but changed to error + error messages due to categories.tiles < 10
     def health_check_warning_error_test(self):
@@ -1103,7 +1103,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"Category 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
     # Normally returns an warning but changed to error + error messages due to in-stock < 10
     def health_check_warning_error1_test(self):
@@ -1149,7 +1149,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"In-stock count < 10\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
     # Normally returns an error, + error messages due to categories.tiles < 10
     def health_check_error_error_test(self):
@@ -1194,7 +1194,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"In-stock count < 10%\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat2' only has 8 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
     # Normally returns an error, + error messages due to in-stock count < 10
     def health_check_error_error1_test(self):
@@ -1239,7 +1239,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"In-stock count < 10\nIn-stock count < 10%"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
     # Normally returns an error, + error messages due to in-stock count < 10 and categories.tile < 10
     def health_check_error_error2_test(self):
@@ -1284,7 +1284,7 @@ class FeedTest(TestCase):
                 self.assertEqual(results,{
                         'status': ('ERROR', u"In-stock count < 10\nIn-stock count < 10%\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat2' only has 8 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
-                    },msg=results)
+                    })
 
 class TileTest(TestCase):
     # Tile has no methods

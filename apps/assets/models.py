@@ -1363,7 +1363,7 @@ class Feed(BaseModel):
 
         status = ""
         status_message = ""
-        print "total: {}, in: {}, out: {}".format(num_tiles_total,num_tiles_in_stock,num_tiles_out_stock)
+
         if num_tiles_in_stock < 10:
             status = "ERROR"
             status_message += "In-stock count < 10"
