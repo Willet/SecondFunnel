@@ -62,11 +62,11 @@ class Command(BaseCommand):
         datafeed = find_datafeed(store.slug)()
         datafeed.load(opts)
 
-        products = page.feed.get_all_products()
-        print u"Found {} products for {}".format(len(products), url_slug)
+        products = page.feed.get_all_products() # returns QuerySet
+        print u"Found {} products for {}".format(products.count(), url_slug)
 
         # Find product in product data feed & update
-        for product in products:
+        for product in products.iterator():
             match = field = val = None
             try:
                 match = datafeed.lookup_product(product)
