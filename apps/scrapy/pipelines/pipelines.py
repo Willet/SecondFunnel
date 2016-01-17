@@ -444,7 +444,10 @@ class PageUpdatePipeline(ItemManifold):
                 pass
             else:
                 # Mark all items in not_updated_cache as out of stock
-                Product.objects.filter(pk__in=pk_set).update(in_stock=False)
+                products = Product.objects.filter(pk__in=pk_set, in_stock=True)
+                for p in products.iterator():
+                    p.in_stock = False
+                    p.save() # save to trigger tile signals
                 spider.logger.info(u'Marked {} products as sold out'.format(len(pk_set)))
 
 
