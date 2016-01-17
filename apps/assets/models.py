@@ -1357,6 +1357,52 @@ class Feed(BaseModel):
         tiles = self.tiles.filter(content__id=content.id)
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
+    def healthcheck(self):
+        num_tiles_total = self.tiles.count()
+        num_tiles_in_stock = self.tiles.filter(in_stock=True, placeholder=False).count()
+        num_tiles_out_stock = self.tiles.filter(in_stock=False, placeholder=False).count()
+        
+        percent = num_tiles_in_stock/float(num_tiles_total)
+
+        status = ""
+        status_message = []
+
+        if num_tiles_in_stock < 10:
+            status = "ERROR"
+            status_message.append("In-stock count < 10")
+        if percent < 0.1:
+            if status != "ERROR":
+                status = "ERROR"
+            status_message.append("In-stock count < 10%")
+        elif status != "ERROR":
+            if percent <= 0.3: 
+                status = "WARNING"
+                status_message.append("In-stock count is between 10% and 30%")
+            else:
+                status = "OK"
+                status_message.append("In-stock count is greater than 30%")
+
+        for cat in self.categories:
+            num_tiles_total = cat.tiles.filter(in_stock=True, placeholder=False).count()
+            if (num_tiles_total < 10):
+                if status != "ERROR":
+                    status = "ERROR"
+                    status_message = []
+                status_message.append(u"Category '{}' only has {} in-stock tiles".format(cat.name, num_tiles_total))
+        
+        status_message = "\n".join(status_message)
+        # Results output
+        results_message = {
+            "in_stock": num_tiles_in_stock,
+            "out_of_stock": num_tiles_out_stock,
+            "placeholder": self.tiles.filter(placeholder=True).count()
+        }
+
+        return {
+            "status": (status, status_message),
+            "results": results_message
+        }
+
 
 class Category(BaseModel):
     """ Feed category, shared name across all feeds for a store
