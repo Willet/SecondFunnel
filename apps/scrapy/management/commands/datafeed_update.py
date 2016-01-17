@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from optparse import make_option
 
 from apps.assets.models import Page, Product, ProductImage
+from apps.assets.utils import delay_tile_serialization
 from apps.imageservice.utils import get_filetype
 from apps.scrapy.spiders.datafeeds.legacy import find_datafeed
 from apps.scrapy.log import notify_slack, upload_to_s3
@@ -66,42 +67,43 @@ class Command(BaseCommand):
         print u"Found {} products for {}".format(len(products), url_slug)
 
         # Find product in product data feed & update
-        for product in products:
-            match = field = val = None
-            try:
-                match = datafeed.lookup_product(product)
-            except Exception as e:
-                errors = results['logging/errors']
-                msg = '{}: {}'.format(e.__class__.__name__, e)
-                items = errors.get(msg, [])
-                items.append(product.url)
-                errors[msg] = items
-                results['logging/errors'] = errors
-                print 'logging/errors: {}'.format(msg)
-            else:
-                data, field = match
-                if data:
-                    # Found matching product
-                    print u"{} match: {}".format(field, product.url)
-
-                    datafeed.update_product(product, data)
-                    product.save()
-
-                    if product.in_stock:
-                        results['logging/items updated'].append(product.url)
-                    else:
-                        results['logging/items out of stock'].append(product.url)
+        with delay_tile_serialization():
+            for product in products:
+                match = field = val = None
+                try:
+                    match = datafeed.lookup_product(product)
+                except Exception as e:
+                    errors = results['logging/errors']
+                    msg = '{}: {}'.format(e.__class__.__name__, e)
+                    items = errors.get(msg, [])
+                    items.append(product.url)
+                    errors[msg] = items
+                    results['logging/errors'] = errors
+                    print 'logging/errors: {}'.format(msg)
                 else:
-                    print u"\tMatch FAILED: {} {}".format(product.name.encode('ascii', errors='ignore'), product.url)
-                    # Out of stock items often just disappear from the feeds
-                    if product.in_stock:
-                        product.in_stock = False
+                    data, field = match
+                    if data:
+                        # Found matching product
+                        print u"{} match: {}".format(field, product.url)
+
+                        datafeed.update_product(product, data)
                         product.save()
-                        # If an item just switched, record it that way
-                        results['logging/items out of stock'].append(product.url)
+
+                        if product.in_stock:
+                            results['logging/items updated'].append(product.url)
+                        else:
+                            results['logging/items out of stock'].append(product.url)
                     else:
-                        # If the item previously was out of stock, call it dropped
-                        results['logging/items dropped']['match failed'].append(product.url)
+                        print u"\tMatch FAILED: {} {}".format(product.name.encode('ascii', errors='ignore'), product.url)
+                        # Out of stock items often just disappear from the feeds
+                        if product.in_stock:
+                            product.in_stock = False
+                            product.save()
+                            # If an item just switched, record it that way
+                            results['logging/items out of stock'].append(product.url)
+                        else:
+                            # If the item previously was out of stock, call it dropped
+                            results['logging/items dropped']['match failed'].append(product.url)
 
         print "Updates saved"
 
