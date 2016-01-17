@@ -208,6 +208,7 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         remove_background = getattr(spider, 'remove_background', False)
         forced_image_ratio = getattr(spider, 'forced_image_ratio', False)
         skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
+        refresh_images = getattr(spider, 'refresh_images', False)
         store = item['store']
         sku = item['sku']
         product = item['instance']
@@ -219,6 +220,10 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
             spider.logger.info(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
                          item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
         else:
+            if refresh_images:
+                # clear existing images
+                product.product_images.all().delete()
+
             old_images = list(product.product_images.all())
             images = []
             processed = 0

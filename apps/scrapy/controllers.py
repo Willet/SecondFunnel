@@ -55,13 +55,9 @@ class PageMaintainer(object):
             'recreate_tiles': <bool> Recreate tiles if they already exist. Wipes old data, categories, etc.
             'refresh_images': <bool> Delete existing images & scrape new ones. Wipes old data
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
+                           Over-rules refresh_images
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
-
-        WARNING: while a 'refresh_images' job is running, we are purposefully leaving the
-        tile ir_cache's intact even though they have un-serializable products.  If a
-        simultaneous job is running on these tiles you may trigger a mass of hidden
-        tiles in a feed...
 
         raises: django.core.execeptions.ValidationError for invalid url
         """
@@ -84,14 +80,11 @@ class PageMaintainer(object):
 
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
-            'skip_images': options.get('skip_images', False),
+            'refresh_images': options.get('refresh_images', False),
+            'skip_images': options.get('skip_images', False), # skip_images over-rules refresh_images
             'skip_tiles': options.get('skip_tiles', False),
             'reporting_name': 'page {}'.format(self.page.url_slug.upper()),
         }
-        
-        if options.get('refresh_images', False):
-            logging.debug(u"Deleting product images prior to scrape")
-            self._delete_product_images(source_urls)
 
         self._run_scraper(spider_name=spider_name,
                           start_urls=source_urls,
@@ -181,21 +174,3 @@ class PageMaintainer(object):
             'NEWSPIDER_MODULE': project.__name__,
         })
         return settings
-
-    @disable_tile_serialization()
-    def _delete_product_images(self, urls):
-        """
-        This function triggers tile serialization because it saves
-        the products after removing the images
-        """
-        for url in urls:
-            # This should be unique, but quietly handle multiples
-            try:
-                ps = Product.objects.filter(url=url, store=self.store)
-            except Product.DoesNotExist:
-                pass
-            else:
-                for p in ps:
-                    p.in_stock = False # hide product tiles while they have no images
-                    p.save()
-                    p.product_images.all().delete()
