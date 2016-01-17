@@ -71,6 +71,9 @@ class TileSerializationQueue(object):
     def __init__(self):
         self.tiles_to_serialize = set()
 
+    def __len__(self):
+        return len(self.tiles_to_serialize)
+
     def _record_tile_save(self, sender, **kwargs):
         import apps.assets.models as models
 
@@ -82,8 +85,6 @@ class TileSerializationQueue(object):
         import apps.assets.models as models
     
         if sender in [models.Content.tagged_products.through, models.Product.similar_products.through]:
-            logging.debug('content_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
-            
             instances = []
             added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
 
@@ -114,8 +115,6 @@ class TileSerializationQueue(object):
                     self.tiles_to_serialize.add(tile.pk)
 
         elif sender in [models.Tile.products.through, models.Tile.content.through]:
-            logging.debug('tile_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
-
             tiles = []
             added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
 
@@ -140,6 +139,21 @@ class TileSerializationQueue(object):
 
             for tile in tiles:
                 self.tiles_to_serialize.add(tile.pk)
+
+    def add(self, tile_or_tiles):
+        """
+        Add tile or tiles to queue.
+        """
+        import apps.assets.models as models
+
+        if isinstance(tile_or_tiles, models.Tile):
+            self.tiles_to_serialize.add(tile_or_tiles.pk)
+        else:
+            for t in tile_or_tiles:
+                if isinstance(t, models.Tile):
+                    self.tiles_to_serialize.add(t.pk)
+                else:
+                    raise TypeError(u"{} is not a Tile instance".format(t))
 
     def start(self):
         """

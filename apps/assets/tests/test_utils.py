@@ -185,6 +185,27 @@ class SerializationDisabledTests(TestCase):
 class TileSerializationQueueTests(TestCase):
     fixtures = ['assets_models.json']
 
+    def add_tile_test(self):
+        tile = Tile.objects.get(pk=10)
+        queue = TileSerializationQueue()
+        queue.add(tile)
+        self.assertEquals(len(queue), 1)
+
+    def add_tiles_test(self):
+        tile1 = Tile.objects.get(pk=10)
+        tile2 = Tile.objects.get(pk=11)
+        tiles = [tile1, tile2]
+        queue = TileSerializationQueue()
+        queue.add(tiles)
+        self.assertEquals(len(queue), 2)
+
+    def add_keyerror_test(self):
+        tile1 = Tile.objects.get(pk=10)
+        tiles = [tile1, 2]
+        queue = TileSerializationQueue()
+        with self.assertRaises(TypeError):
+            queue.add(tiles)
+
     def start_test(self):
         tile1 = Tile.objects.get(pk=10)
         tile2 = Tile.objects.get(pk=11)
@@ -213,7 +234,7 @@ class TileSerializationQueueTests(TestCase):
                     content.tagged_products.add(pro) # queue's tile2 again
                     self.assertEquals(mock_content_m2m_changed.call_count, 4)
                     # queue is tile1 & tile2
-                    self.assertEquals(len(queue.tiles_to_serialize), 2)
+                    self.assertEquals(len(queue), 2)
 
     def stop_test(self):
         tile1 = Tile.objects.get(pk=10)
@@ -234,7 +255,7 @@ class TileSerializationQueueTests(TestCase):
                     self.assertEquals(mock_tile_m2m_changed.call_count, 0)
                     content.tagged_products.add(pro)
                     self.assertEquals(mock_content_m2m_changed.call_count, 0)
-                    self.assertEquals(len(queue.tiles_to_serialize), 2) # queue is tile1 & tile2
+                    self.assertEquals(len(queue), 2) # queue is tile1 & tile2
 
                     # reset queue
                     queue.tiles_to_serialize = set()
@@ -249,7 +270,7 @@ class TileSerializationQueueTests(TestCase):
                     content.tagged_products.add(pro)
                     self.assertEquals(mock_content_m2m_changed.call_count, 4) # 2x m2m_changed pre_add, post_add
                     # No tiles queued
-                    self.assertEquals(len(queue.tiles_to_serialize), 0)
+                    self.assertEquals(len(queue), 0)
 
     def serialize_test(self):
         tile1 = Tile.objects.get(pk=10)
@@ -265,7 +286,7 @@ class TileSerializationQueueTests(TestCase):
             queue.stop()
             queue.serialize()
             self.assertEquals(mocked_handler.call_count, 2)
-            self.assertEquals(len(queue.tiles_to_serialize), 0)
+            self.assertEquals(len(queue), 0)
 
 class SerializationDelayedTests(TestCase):
     fixtures = ['assets_models.json']
