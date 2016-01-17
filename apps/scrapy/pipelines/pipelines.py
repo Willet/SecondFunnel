@@ -51,7 +51,7 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
     If item fails validation:
      - if product exists in database, set it to out of stock
      - if product doesn't exist in database, create a placeholder product
-    Then, create placeholder tiles
+    Then, create tiles
     """
     def process_product(self, item, spider):
         # Drop items missing required fields
@@ -100,8 +100,8 @@ class DuplicatesPipeline(ItemManifold, TilesMixin, AssociateMixin):
                 self.tag_to_content(item, spider)
             if item.get('product_id_to_tag'):
                 self.tag_to_product(item, spider)
-            if not self.skip_tiles(item, spider):
-                self.add_to_feed(item, spider, placeholder=product.is_placeholder)
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
             raise DropItem(u"Duplicate item found here: {}".format(item))
 
         self.products_seen[spider.name].add(sku)
@@ -111,7 +111,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin, AssociateMixin):
         source_url = item['source_url']
 
         if source_url in self.content_seen[spider.name]:
-            if not self.skip_tiles(item, spider):
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 content = Content.objects.filter(store=store, source_url=source_url).select_subclasses()[0]
                 item['instance'] = content
                 self.add_to_feed(item, spider)
@@ -462,4 +462,5 @@ class TileSerializationPipeline(object):
 
     def close_spider(self, spider):
         self.queue.stop()
-        self.queue.serialize_tiles()
+        spider.logger.info(u"Serializing {} delayed tiles".format(len(self.queue)))
+        self.queue.serialize()
