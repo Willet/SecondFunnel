@@ -6,7 +6,6 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 from apps.assets.models import Tile
-from apps.assets.management.utils import update_tiles_ir_cache
 from apps.intentrank.serializers import SerializerError
 
 
