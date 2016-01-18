@@ -12,7 +12,7 @@ import traceback
 from urlparse import urlparse
 
 from apps.assets.models import Category, Feed, Image, Page, Product, ProductImage, Store, Tag
-from apps.assets.utils import disable_tile_serialization
+from apps.assets.utils import TileSerializationQueue
 from apps.imageservice.models import ImageSizes
 from apps.imageservice.tasks import process_image
 from apps.imageservice.utils import create_image_path
@@ -51,7 +51,7 @@ class ValidationPipeline(ItemManifold, PlaceholderMixin, TilesMixin):
     If item fails validation:
      - if product exists in database, set it to out of stock
      - if product doesn't exist in database, create a placeholder product
-    Then, create placeholder tiles
+    Then, create tiles
     """
     def process_product(self, item, spider):
         # Drop items missing required fields
@@ -92,17 +92,16 @@ class DuplicatesPipeline(ItemManifold, TilesMixin, AssociateMixin):
                 product = Product.objects.get(store=store, sku=sku)
             except Product.MultipleObjectsReturned:
                 # Merge multiple products
-                with disable_tile_serialization():
-                    qs = Product.objects.filter(store=store, sku=sku)
-                    product = Product.merge_products(qs)
+                qs = Product.objects.filter(store=store, sku=sku)
+                product = Product.merge_products(qs)
             item['instance'] = product
 
             if item.get('content_id_to_tag'):
                 self.tag_to_content(item, spider)
             if item.get('product_id_to_tag'):
                 self.tag_to_product(item, spider)
-            if not self.skip_tiles(item, spider):
-                self.add_to_feed(item, spider, placeholder=product.is_placeholder)
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
+                self.add_to_feed(item, spider)
             raise DropItem(u"Duplicate item found here: {}".format(item))
 
         self.products_seen[spider.name].add(sku)
@@ -112,7 +111,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin, AssociateMixin):
         source_url = item['source_url']
 
         if source_url in self.content_seen[spider.name]:
-            if not self.skip_tiles(item, spider):
+            if not self.skip_tiles(item, spider) and getattr(spider, 'feed_id', False):
                 content = Content.objects.filter(store=store, source_url=source_url).select_subclasses()[0]
                 item['instance'] = content
                 self.add_to_feed(item, spider)
@@ -185,12 +184,7 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         spider.logger.info(u"item: {}, created: {}".format(item, was_it_created))
 
         try:
-            with disable_tile_serialization():
-                # Disable tile serialization because if running "refresh_images"
-                # an existing valid product will have no product images at this step 
-                # and could trigger a tile serialization error.
-                # Products without product images will get caught by ProductImagePipeline
-                update_model(model, item)
+            update_model(model, item)
         except ValidationError as e:
             # Attempt to find the product & mark it as out of stock
             item['instance'], item['created'] = self.update_or_save_placeholder(item, spider)
@@ -214,14 +208,22 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         remove_background = getattr(spider, 'remove_background', False)
         forced_image_ratio = getattr(spider, 'forced_image_ratio', False)
         skip_images = [getattr(spider, 'skip_images', False), item.get('force_skip_images', False)]
+        refresh_images = getattr(spider, 'refresh_images', False)
         store = item['store']
         sku = item['sku']
         product = item['instance']
 
         if True in skip_images:
+            # Ensure products with no images are set as placeholders
+            if product.product_images.count() == 0:
+                self.convert_to_placeholder(product)
             spider.logger.info(u"Skipping product images. item: <{0}>, spider.skip_images: {1}, \
                          item.force_skip_images: {2}".format(item.__class__.__name__, skip_images[0], skip_images[1]))
         else:
+            if refresh_images:
+                # clear existing images
+                product.product_images.all().delete()
+
             old_images = list(product.product_images.all())
             images = []
             processed = 0
@@ -447,6 +449,26 @@ class PageUpdatePipeline(ItemManifold):
                 pass
             else:
                 # Mark all items in not_updated_cache as out of stock
-                Product.objects.filter(pk__in=pk_set).update(in_stock=False)
+                products = Product.objects.filter(pk__in=pk_set, in_stock=True)
+                for p in products.iterator():
+                    p.in_stock = False
+                    p.save() # save to trigger tile signals
                 spider.logger.info(u'Marked {} products as sold out'.format(len(pk_set)))
 
+
+class TileSerializationPipeline(object):
+    """ Tiles that are updated throughout this scrape job are queued. When the job is
+    finished, tiles are serialized in bulk """
+
+    def __init__(self, *args, **kwargs):
+        self.queue = TileSerializationQueue()
+        super(TileSerializationPipeline, self).__init__(*args, **kwargs)
+
+    def spider_opened(self, spider):
+        """ Captures all tile serialization signals, keeps queue of tiles """
+        self.queue.start()
+
+    def close_spider(self, spider):
+        self.queue.stop()
+        spider.logger.info(u"Serializing {} delayed tiles".format(len(self.queue)))
+        self.queue.serialize()
