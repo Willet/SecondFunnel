@@ -121,6 +121,10 @@ class SurLaTableDatafeed(CJDatafeed):
                               url= data['THIRDPARTYCATEGORY'],
                               name= data['NAME'],
                               store= store)
+        except Product.MultipleObjectsReturned:
+            products = Product.objects.filter(sku=data['SKU'],
+                                              store= store)
+            product = Product.merge_products(products)
 
         # Update
         self._update_product_cj_fields(product, data)
