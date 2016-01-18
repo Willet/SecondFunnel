@@ -1,6 +1,7 @@
 import random
 
 from apps.assets.models import Store, Product, ProductImage
+from apps.assets.utils import delay_tile_serialization
 from apps.imageservice.utils import get_filetype
 
 from .cj import CJDatafeed
@@ -116,6 +117,10 @@ class SurLaTableDatafeed(CJDatafeed):
         try:
             product = Product.objects.get(sku=data['SKU'],
                                           store= store)
+        except Product.MultipleObjectsReturned:
+            products = Product.objects.filter(sku=data['SKU'],
+                                              store= store)
+            product = Product.merge_products(products)
         except Product.DoesNotExist:
             product = Product(sku= data['SKU'],
                               url= data['THIRDPARTYCATEGORY'],
@@ -124,27 +129,29 @@ class SurLaTableDatafeed(CJDatafeed):
 
         # Update
         self._update_product_cj_fields(product, data)
-        product.save()
 
-        if not product.product_images.count():
-            # Add one product image
-            # TODO: utilize cloudinary
-            product_image_url = data['ARTIST']
-            product_image = ProductImage(product= product,
-                                         url= product_image_url,
-                                         original_url= product_image_url,
-                                         file_type= get_filetype(product_image_url),
-                                         attributes= {
-                                            'sizes': {
-                                                'master': {
-                                                    'width': 430,
-                                                    'height': 430,
-                                                },
-                                            },
-                                         })
-            product_image.save()
-            product.default_image = product_image
+        with delay_tile_serialization():
             product.save()
+
+            if not product.product_images.count():
+                # Add one product image
+                # TODO: utilize cloudinary
+                product_image_url = data['ARTIST']
+                product_image = ProductImage(product= product,
+                                             url= product_image_url,
+                                             original_url= product_image_url,
+                                             file_type= get_filetype(product_image_url),
+                                             attributes= {
+                                                'sizes': {
+                                                    'master': {
+                                                        'width': 430,
+                                                        'height': 430,
+                                                    },
+                                                },
+                                             })
+                product_image.save()
+                product.default_image = product_image
+                product.save()
 
         return product
 
