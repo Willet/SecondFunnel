@@ -13,7 +13,7 @@ from django.db.models.signals import post_save, m2m_changed
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
-from apps.assets.utils import disable_tile_serialization
+from apps.assets.utils import delay_tile_serialization
 import apps.intentrank.serializers as ir_serializers
 
 from apps.assets.signals import content_m2m_changed, content_saved, product_saved, \
@@ -653,13 +653,13 @@ class FeedTest(TestCase):
         p.product_images.add(i)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='product', priority=2)
                 new_tile.placeholder = p.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(p)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_product(p, priority=35, category=cat, force_create_tile=False)
         self.assertEqual(len(f.tiles.all()), 1)
         self.assertEqual(f.tiles.first(), new_tile)
@@ -676,13 +676,13 @@ class FeedTest(TestCase):
         p.product_images.add(i)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='product', priority=2)
                 new_tile.placeholder = p.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(p)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_product(p, priority=35, category=cat, force_create_tile=True)
         self.assertEqual(len(f.tiles.all()), 2)
         self.assertEqual(f.tiles.first().product, p)
@@ -705,13 +705,13 @@ class FeedTest(TestCase):
         c = Content.objects.get(pk=6)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='content', priority=2)
                 new_tile.placeholder = False
                 new_tile.get_pk()
                 new_tile.content.add(c)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_content(c, priority=35, category=cat, force_create_tile=False)
         self.assertEqual(len(f.tiles.all()), 1)
         self.assertEqual(f.tiles.first(), new_tile)
@@ -726,13 +726,13 @@ class FeedTest(TestCase):
         p = Content.objects.get(pk=6)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='content', priority=2)
                 new_tile.placeholder = False
                 new_tile.get_pk()
                 new_tile.content.add(p)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_content(p, priority=35, category=cat, force_create_tile=True)
         self.assertEqual(len(f.tiles.all()), 2)
         self.assertEqual(f.tiles.first().content.first(), p)

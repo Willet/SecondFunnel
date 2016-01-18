@@ -23,7 +23,7 @@ from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
 from apps.utils.classes import MemcacheSetting
 
-from .utils import disable_tile_serialization
+from .utils import delay_tile_serialization
 
 
 default_master_size = {
@@ -146,7 +146,7 @@ class BaseModel(models.Model, SerializableMixin):
         new_obj = cls(**local_kwargs)
 
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_obj.get_pk()
 
                 for (k,v) in m2m_kwargs.iteritems():
@@ -159,7 +159,7 @@ class BaseModel(models.Model, SerializableMixin):
                         raise TypeError("Value '{}' can't be assigned to \
                                          ManyToManyField '{}'".format(v, k))
 
-            new_obj.save() # run full_clean to validate
+                new_obj.save() # run full_clean to validate
         return new_obj
 
     def _replace_relations(self, others, exclude_fields=None):
@@ -1272,12 +1272,12 @@ class Feed(BaseModel):
         
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=self, template='product', priority=priority)
                 new_tile.placeholder = product.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(product)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
 
         if category:
             category.tiles.add(new_tile)
@@ -1322,13 +1322,13 @@ class Feed(BaseModel):
         else:
             template = 'image'
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=self, template=template, priority=priority)
                 new_tile.get_pk()
                 new_tile.content.add(content)
                 product_qs = content.tagged_products.all()
                 new_tile.products.add(*product_qs)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         if category:
             category.tiles.add(new_tile)
         logging.info(u"<Content {0}> added to the feed. Created \
