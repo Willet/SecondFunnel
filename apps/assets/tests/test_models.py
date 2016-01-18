@@ -655,7 +655,6 @@ class FeedTest(TestCase):
         with transaction.atomic():
             with disable_tile_serialization():
                 new_tile = Tile(feed=f, template='product', priority=2)
-                new_tile.placeholder = p.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(p)
                 new_tile.categories.add(cat)
@@ -678,7 +677,6 @@ class FeedTest(TestCase):
         with transaction.atomic():
             with disable_tile_serialization():
                 new_tile = Tile(feed=f, template='product', priority=2)
-                new_tile.placeholder = p.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(p)
                 new_tile.categories.add(cat)

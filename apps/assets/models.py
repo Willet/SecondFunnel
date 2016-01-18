@@ -62,7 +62,8 @@ class BaseModel(models.Model, SerializableMixin):
 
     # To change this value, use model.save(skip_updated_at=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    # Denotes the item is meant to exist but is currently incomplete (unserializable)
+    placeholder = models.BooleanField(default=False)
     # used by IR to bypass frequent re/deserialization to shave off CPU time
     ir_cache = models.TextField(blank=True, null=True)
 
@@ -496,12 +497,6 @@ class Product(BaseModel):
         self.default_image = self.product_images.first()
         self.save()
 
-    @property
-    def is_placeholder(self):
-        # A placeholder product is created by the scraper, starts with name 'placeholder'
-        # and sku 'placeholder-{ semi-random hash }'
-        return bool(self.name == 'placeholder' or 'placeholder' in self.sku)
-
     def merge(self, other_products):
         """
         Handles trickiness of replacing references to old products to the new one
@@ -533,7 +528,7 @@ class Product(BaseModel):
         if len(products) < 2:
             return products[0] if len(products) else None
 
-        not_placeholders = [p for p in products if not p.is_placeholder]
+        not_placeholders = [p for p in products if not p.placeholder]
         # merge into the most recent not placehoder, or the first placeholder
         if not_placeholders:
             not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
@@ -694,24 +689,6 @@ class Content(BaseModel):
 
     class Meta(object):
         verbose_name_plural = 'Content'
-
-    def update(self, other=None, **kwargs):
-        """Additional operations for converting tagged-products: [123] into
-        actual tagged_products: [<Product>]s
-        """
-        if not other:
-            other = kwargs
-
-        if not other:
-            return self
-
-        if 'tagged-products' in other:
-            other['tagged-products'] = [Product.objects.get(id=x) for x in
-                                        other['tagged-products']]
-
-        # WARNING THIS METHOD DOESN'T EXIST IN THE SUPERCLASS
-        # Error: AttributeError: 'super' object has no attribute 'update'
-        return super(Content, self).update(other=other)
 
 
 class Image(Content):
@@ -1274,7 +1251,6 @@ class Feed(BaseModel):
         with transaction.atomic():
             with disable_tile_serialization():
                 new_tile = Tile(feed=self, template='product', priority=priority)
-                new_tile.placeholder = product.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(product)
             new_tile.save() # full clean & generate ir_cache
@@ -1450,9 +1426,11 @@ class Tile(BaseModel):
     """
     A unit in a feed, defined by a template, product(s) and content(s)
 
-    In general, tiles should be created by the feed (add, copy)
-
-    ir_cache is updated with every tile save.  See tile_saved task
+    - In general, tiles should be created by the feed (add, copy)
+    - ir_cache is updated with every tile save.  See tile_saved signal
+    - A placeholder tile is failing serialization (usually b/c its content and product are
+      failing serialization, or its missing necessary product/content for its tile template)
+    - Placeholder tiles are hidden by IntentRank default
 
     Feed -> Tile -> Products / Content
     """
@@ -1474,10 +1452,7 @@ class Tile(BaseModel):
     priority = models.IntegerField(null=True, default=0)
     clicks = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    # A placeholder tile is failing serialization (usually b/c its content and product are
-    # failing serialization, or its missing necessary product/content for its tile template
-    # Placeholders are hidden by IntentRank default
-    placeholder = models.BooleanField(default=False)
+    
     # Clean toggles in / out of stock
     in_stock = models.BooleanField(default=True)
 
@@ -1517,10 +1492,10 @@ class Tile(BaseModel):
 
     def clean(self):
         if self.pk:
-            products_stock_status = [bool(p.in_stock and not p.is_placeholder) \
+            products_stock_status = [bool(p.in_stock and not p.placeholder) \
                                      for p in self.products.all()]
             for content in self.content.all():
-                products_stock_status += [bool(p.in_stock and not p.is_placeholder) \
+                products_stock_status += [bool(p.in_stock and not p.placeholder) \
                                           for p in content.tagged_products.all()]
             if not len(products_stock_status):
                 # This tile has no tagged products, default to in_stock = True

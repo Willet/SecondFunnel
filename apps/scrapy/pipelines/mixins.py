@@ -190,7 +190,7 @@ class TilesMixin(object):
     """
     Adds methods to handle tiles
 
-    NOTE: Assumes global _category_cache <SimpleCache> exists
+    NOTE: Assumes global category_cache <SimpleCache> exists
     """
     def __init__(self, *args, **kwargs):
         # Categories are cached in a module-level <SimpleCache>
