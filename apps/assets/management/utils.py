@@ -15,7 +15,7 @@ from django.conf import settings
 
 from apps.assets.models import Category, Feed, Page, Product, ProductImage, Tile
 from apps.assets.signals import productimage_saved
-from apps.assets.utils import delay_tile_serialization, disable_tile_serialization
+from apps.assets.utils import delay_tile_serialization
 from apps.imageservice.utils import get_public_id
 
 

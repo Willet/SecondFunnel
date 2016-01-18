@@ -29,8 +29,9 @@ def enable_tile_serialization_signals():
 class disable_tile_serialization(ContextDecorator):
     """ Context manager that suppresses tile serialization until exit
         
-        Useful when creating a new tile that requires multiple steps before serializing
-            ex: adding multiple different m2m keys
+        Note: Must manually handle tile serialization at exit. delay_tile_serialization
+              is almost always preferable because it handles serialization automatically
+              & is exception-safe.
 
         Can safely be nested
     """
