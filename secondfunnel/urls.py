@@ -39,6 +39,8 @@ urlpatterns = patterns('',
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.light.views.landing_page'),
 
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
     # special top-level urls for RSS feeds
     url(r'^(?P<page_id>\d+)/(?P<feed_name>[^/\.]+\.rss)$',
         'apps.intentrank.views.get_rss_feed', name='get-feed'),
