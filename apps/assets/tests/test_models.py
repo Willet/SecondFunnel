@@ -248,6 +248,7 @@ class TagTest(TestCase):
         self.assertEqual(t.store_id, store.id)
         self.assertIsNone(t.url)
 
+
 class ContentTest(TestCase):
     # Content has no methods
     fixtures = ['assets_models.json']
@@ -263,13 +264,6 @@ class ContentTest(TestCase):
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
 
-    # the update function is broken
-
-    def update_test(self):
-        t = Content.objects.get(pk=6)
-        self.assertEqual(t.update(), t)
-        # if the update function was not broken, we would also test this:
-        # t.update(author="John")
 
 class ImageTest(TestCase):
     # Image has no methods

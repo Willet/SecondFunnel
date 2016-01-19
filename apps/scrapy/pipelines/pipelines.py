@@ -222,7 +222,9 @@ class ProductImagePipeline(ItemManifold, PlaceholderMixin):
         else:
             if refresh_images:
                 # clear existing images
+                spider.logger.warning(u"Clearing {} existing product images for {}".format(product.product_images.count(),product))
                 product.product_images.all().delete()
+                product.default_image = None # need to remove reference to deleted model before save
 
             old_images = list(product.product_images.all())
             images = []

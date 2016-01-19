@@ -12,9 +12,8 @@ class Migration(DataMigration):
             if bool(p.name == 'placeholder' or 'placeholder' in p.sku):
                 pks.add(p.pk)
 
-        placeholders = Product.objects.filter(pk__in=pks)
         # We can skip serialization b/c just transfering existing state
-        placeholders.update(placeholder=True)
+        placeholders = orm.Product.objects.filter(pk__in=pks).update(placeholder=True)
 
     def backwards(self, orm):
         # We can skip serialization b/c just transfering existing state
