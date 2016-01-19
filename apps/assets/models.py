@@ -1,11 +1,11 @@
 import calendar
+from copy import deepcopy
 import datetime
 import decimal
 import json
 import logging
 import re
 
-from copy import deepcopy
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
@@ -15,13 +15,15 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
 import apps.api.serializers as cg_serializers
-from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource, is_hex_color
+from apps.imageservice.fields import ImageSizesField
+from apps.imageservice.models import ImageSizes
+from apps.imageservice.utils import delete_resource, is_hex_color
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
 from apps.utils.classes import MemcacheSetting
 
-from .utils import disable_tile_serialization
+from .utils import delay_tile_serialization
 
 
 default_master_size = {
@@ -60,7 +62,8 @@ class BaseModel(models.Model, SerializableMixin):
 
     # To change this value, use model.save(skip_updated_at=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    # Denotes the item is meant to exist but is currently incomplete (unserializable)
+    placeholder = models.BooleanField(default=False)
     # used by IR to bypass frequent re/deserialization to shave off CPU time
     ir_cache = models.TextField(blank=True, null=True)
 
@@ -96,7 +99,7 @@ class BaseModel(models.Model, SerializableMixin):
             obj_id=self.pk).encode('ascii', 'ignore')
 
     @classmethod
-    def _copy(cls, obj, update_fields={}, exclude_fields=[]):
+    def _copy(cls, obj, update_fields=None, exclude_fields=None):
         """Copies fields over to new instance of class & saves it
         
         Note: related m2m fields not copied over by default! add to update_fields
@@ -114,6 +117,10 @@ class BaseModel(models.Model, SerializableMixin):
 
         :raises: ValidationError
         """
+        if update_fields is None:
+            update_fields = {}
+        if exclude_fields is None:
+            exclude_fields = []
         # NOTE: _meta API updated in Django 1.8, will need to re-implement
         default_exclude = ['id', 'ir_cache']
         autofields = [f.name for f in obj._meta.fields if isinstance(f, models.AutoField)]
@@ -141,9 +148,7 @@ class BaseModel(models.Model, SerializableMixin):
         # raise Exception("{}, class: {}".format(new_obj, type(new_obj)))
 
         with transaction.atomic():
-            with disable_tile_serialization():
-                # logging.debug(new_obj)
-                # logging.debug(type(new_obj))
+            with delay_tile_serialization():
                 new_obj.get_pk()
 
                 for (k,v) in m2m_kwargs.iteritems():
@@ -156,10 +161,10 @@ class BaseModel(models.Model, SerializableMixin):
                         raise TypeError("Value '{}' can't be assigned to \
                                          ManyToManyField '{}'".format(v, k))
 
-            new_obj.save() # run full_clean to validate
+                new_obj.save() # run full_clean to validate
         return new_obj
 
-    def _replace_relations(self, others, exclude_fields=[]):
+    def _replace_relations(self, others, exclude_fields=None):
         """
         Any relations pointing to `others` are replaced with `self`
         This is a core part of merging duplicate models
@@ -167,7 +172,10 @@ class BaseModel(models.Model, SerializableMixin):
         :param others - list of objects to replace with self
         :param exclude_fields - list of field names to exclude from merging
         """
-        exclude_fields = set(exclude_fields)
+        if exclude_fields is None:
+            exclude_fields = set()
+        else:
+            exclude_fields = set(exclude_fields)
 
         for obj in others:
             local_fields = set([f.name for f in obj._meta.local_fields])
@@ -199,12 +207,15 @@ class BaseModel(models.Model, SerializableMixin):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        if getattr(self, 'placeholder', False):
-            # if placeholder, leave ir_cache empty
-            new_ir_cache = ''
-        else:
+
+        try:
             new_ir_cache = self.to_str(skip_cache=True)
-            
+        except ir_serializers.SerializerError:
+            new_ir_cache = ''
+        
+        if hasattr(self, 'placeholder'):
+            self.placeholder = True if (len(new_ir_cache) == 0) else False
+
         self.ir_cache = new_ir_cache
 
         if new_ir_cache == old_ir_cache:
@@ -488,12 +499,6 @@ class Product(BaseModel):
         self.default_image = self.product_images.first()
         self.save()
 
-    @property
-    def is_placeholder(self):
-        # A placeholder product is created by the scraper, starts with name 'placeholder'
-        # and sku 'placeholder-{ semi-random hash }'
-        return bool(self.name == 'placeholder' or 'placeholder' in self.sku)
-
     def merge(self, other_products):
         """
         Handles trickiness of replacing references to old products to the new one
@@ -502,7 +507,7 @@ class Product(BaseModel):
         :param other_products - a list or QuerySet of <Product>s to replace relations with
         """
         if isinstance(other_products, Product):
-            other_products = list(other_products)
+            other_products = [other_products]
         for p in other_products:
             if self.store != p.store:
                 raise ValueError('Can not merge products from different stores')
@@ -525,7 +530,7 @@ class Product(BaseModel):
         if len(products) < 2:
             return products[0] if len(products) else None
 
-        not_placeholders = [p for p in products if not p.is_placeholder]
+        not_placeholders = [p for p in products if not p.placeholder]
         # merge into the most recent not placehoder, or the first placeholder
         if not_placeholders:
             not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
@@ -558,7 +563,7 @@ class ProductImage(BaseModel):
     height = models.PositiveSmallIntegerField(blank=True, null=True)
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
-
+    image_sizes = ImageSizesField(blank=True, null=True)
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     serializer = ir_serializers.ProductImageSerializer
@@ -568,6 +573,14 @@ class ProductImage(BaseModel):
         ordering = ('id', )
 
     def __init__(self, *args, **kwargs):
+        # Convert image_sizes dict to ImageSizes
+        if isinstance(kwargs.get('image_sizes', None), dict):
+            image_sizes = kwargs['image_sizes']
+            sizes = ImageSizes()
+            for (name, size) in image_sizes.items():
+                sizes[name] = size
+            kwargs['image_sizes'] = sizes
+
         super(ProductImage, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
@@ -577,29 +590,27 @@ class ProductImage(BaseModel):
         return "landscape" if self.width > self.height else "portrait"
 
     def save(self, *args, **kwargs):
-        """attributes.sizes.master is populated by cloudinary
+        """self.image_sizes['master'] is populated by cloudinary
         """
-        master_size = default_master_size
         try:
-            master_size = self.attributes['sizes']['master']
+            master_size = self.image_sizes['master']
         except KeyError:
-            pass
-        except TypeError:
-            if isinstance(self.attributes, list):
-                self.attributes = {"sizes": default_master_size}
-
-        if master_size:
-            self.width = master_size.get('width', 0)
-            self.height = master_size.get('height', 0)
+            master_size = {
+                'width': 0,
+                'height': 0,
+            }
+        if not self.width:
+            self.width = master_size['width']
+        if not self.height:
+            self.height = master_size['height']
 
         return super(ProductImage, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
-            if settings.CLOUDINARY_BASE_URL in self.url:
-                delete_cloudinary_resource(self.url)
-            elif settings.IMAGE_SERVICE_BUCKET in self.url:
-                delete_s3_resource(self.url)
+            # Delete stored image resources
+            delete_resource(self.url)
+            self.image_sizes.delete_resources()
         super(ProductImage, self).delete(*args, **kwargs)
 
     @property
@@ -681,24 +692,6 @@ class Content(BaseModel):
     class Meta(object):
         verbose_name_plural = 'Content'
 
-    def update(self, other=None, **kwargs):
-        """Additional operations for converting tagged-products: [123] into
-        actual tagged_products: [<Product>]s
-        """
-        if not other:
-            other = kwargs
-
-        if not other:
-            return self
-
-        if 'tagged-products' in other:
-            other['tagged-products'] = [Product.objects.get(id=x) for x in
-                                        other['tagged-products']]
-
-        # WARNING THIS METHOD DOESN'T EXIST IN THE SUPERCLASS
-        # Error: AttributeError: 'super' object has no attribute 'update'
-        return super(Content, self).update(other=other)
-
 
 class Image(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
@@ -742,10 +735,7 @@ class Image(Content):
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
-            if settings.CLOUDINARY_BASE_URL in self.url:
-                delete_cloudinary_resource(self.url)
-            elif settings.IMAGE_SERVICE_BUCKET in self.url:
-                delete_s3_resource(self.url)
+            delete_resource(self.url)
         super(Image, self).delete(*args, **kwargs)
 
 
@@ -1170,10 +1160,17 @@ class Feed(BaseModel):
         raise ValueError("remove() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
-    def get_all_products(self, pk_set=False):
+    @property
+    def categories(self):
+        """ Returns QuerySet of all categories tiles in this page belong to """
+        return Category.objects.filter(tiles__in=self.tiles.all()).distinct()
+
+    def get_all_products(self, pk_set=False, skip_similar_products=False, skip_tagged_products=False):
         """Gets all tagged, related & similar products to this feed. Useful for bulk updates
 
         pk_set (bool): if True, return a set of primary keys
+        skip_similar_products (bool): if True, don't add product.similar_products
+        skip_tagged_products (bool): if True, don't add content.tagged_products
 
         :returns <QuerySet> of products"""
         product_pks = set()
@@ -1182,11 +1179,12 @@ class Feed(BaseModel):
         for tile in self.tiles.all():
             for product in tile.products.all():
                 product_pks.add(product.pk)
-                if product.similar_products:
+                if not skip_similar_products and product.similar_products:
                     product_pks.update(product.similar_products.values_list('pk', flat=True))
-            for content in tile.content.all():
-                if content.tagged_products:
-                    product_pks.update(content.tagged_products.values_list('pk', flat=True))
+            if not skip_tagged_products:
+                for content in tile.content.all():
+                    if content.tagged_products:
+                        product_pks.update(content.tagged_products.values_list('pk', flat=True))
         if pk_set:
             return product_pks
         else:
@@ -1253,12 +1251,11 @@ class Feed(BaseModel):
         
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=self, template='product', priority=priority)
-                new_tile.placeholder = product.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(product)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
 
         if category:
             category.tiles.add(new_tile)
@@ -1303,13 +1300,13 @@ class Feed(BaseModel):
         else:
             template = 'image'
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=self, template=template, priority=priority)
                 new_tile.get_pk()
                 new_tile.content.add(content)
                 product_qs = content.tagged_products.all()
                 new_tile.products.add(*product_qs)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         if category:
             category.tiles.add(new_tile)
         logging.info(u"<Content {0}> added to the feed. Created \
@@ -1337,6 +1334,52 @@ class Feed(BaseModel):
         """
         tiles = self.tiles.filter(content__id=content.id)
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
+
+    def healthcheck(self):
+        num_tiles_total = self.tiles.count()
+        num_tiles_in_stock = self.tiles.filter(in_stock=True, placeholder=False).count()
+        num_tiles_out_stock = self.tiles.filter(in_stock=False, placeholder=False).count()
+        
+        percent = num_tiles_in_stock/float(num_tiles_total)
+
+        status = ""
+        status_message = []
+
+        if num_tiles_in_stock < 10:
+            status = "ERROR"
+            status_message.append("In-stock count < 10")
+        if percent < 0.1:
+            if status != "ERROR":
+                status = "ERROR"
+            status_message.append("In-stock count < 10%")
+        elif status != "ERROR":
+            if percent <= 0.3: 
+                status = "WARNING"
+                status_message.append("In-stock count is between 10% and 30%")
+            else:
+                status = "OK"
+                status_message.append("In-stock count is greater than 30%")
+
+        for cat in self.categories:
+            num_tiles_total = cat.tiles.filter(in_stock=True, placeholder=False).count()
+            if (num_tiles_total < 10):
+                if status != "ERROR":
+                    status = "ERROR"
+                    status_message = []
+                status_message.append(u"Category '{}' only has {} in-stock tiles".format(cat.name, num_tiles_total))
+        
+        status_message = "\n".join(status_message)
+        # Results output
+        results_message = {
+            "in_stock": num_tiles_in_stock,
+            "out_of_stock": num_tiles_out_stock,
+            "placeholder": self.tiles.filter(placeholder=True).count()
+        }
+
+        return {
+            "status": (status, status_message),
+            "results": results_message
+        }
 
 
 class Category(BaseModel):
@@ -1385,9 +1428,11 @@ class Tile(BaseModel):
     """
     A unit in a feed, defined by a template, product(s) and content(s)
 
-    In general, tiles should be created by the feed (add, copy)
-
-    ir_cache is updated with every tile save.  See tile_saved task
+    - In general, tiles should be created by the feed (add, copy)
+    - ir_cache is updated with every tile save.  See tile_saved signal
+    - A placeholder tile is failing serialization (usually b/c its content and product are
+      failing serialization, or its missing necessary product/content for its tile template)
+    - Placeholder tiles are hidden by IntentRank default
 
     Feed -> Tile -> Products / Content
     """
@@ -1409,9 +1454,7 @@ class Tile(BaseModel):
     priority = models.IntegerField(null=True, default=0)
     clicks = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    # A placeholder tile is for products or content that we are going to
-    # continue trying to add to the feed.  Placeholders are hidden by default
-    placeholder = models.BooleanField(default=False)
+    
     # Clean toggles in / out of stock
     in_stock = models.BooleanField(default=True)
 
@@ -1451,10 +1494,10 @@ class Tile(BaseModel):
 
     def clean(self):
         if self.pk:
-            products_stock_status = [bool(p.in_stock and not p.is_placeholder) \
+            products_stock_status = [bool(p.in_stock and not p.placeholder) \
                                      for p in self.products.all()]
             for content in self.content.all():
-                products_stock_status += [bool(p.in_stock and not p.is_placeholder) \
+                products_stock_status += [bool(p.in_stock and not p.placeholder) \
                                           for p in content.tagged_products.all()]
             if not len(products_stock_status):
                 # This tile has no tagged products, default to in_stock = True
@@ -1535,4 +1578,3 @@ class Tile(BaseModel):
             return next(c for c in contents if isinstance(c, cls))
         except StopIteration:
             raise LookupError
-

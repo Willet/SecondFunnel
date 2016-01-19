@@ -12,21 +12,26 @@ validator = URLValidator()
 class PlaceholderProduct(Product):
     """
     Sometimes adding a product fails, but we want a record that it should exist
-    Stored in same table as Product -> can't assign new fields!
 
-    PlaceholderProduct is DEFINED by name = "placeholder". Is automatically filtered
-    out by IntentRank
+    Only requirement is a valid URL for future scraping
+    
+    Stored in same table as Product -> can't assign new fields!
     """
     class Meta:
         proxy = True
 
     def save(self, *args, **kwargs):
-        self.name = "placeholder"
+        self.placeholder = True
         self.price = 0
+        self.sale_price = None
         self.in_stock = False
+
+        if not self.name:
+            self.name = "placeholder"
         if not self.sku:
             # Make-up a temporary, unique SKU
             self.sku = u"placeholder-{}".format(md5(self.url).hexdigest())
+        
         super(PlaceholderProduct, self).save(*args, **kwargs)
 
     def clean_fields(self, exclude=None):

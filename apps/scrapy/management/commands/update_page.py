@@ -13,7 +13,7 @@ class Command(BaseCommand):
     url_slug
         Url slug of the page to rescrape
 
-    -t, --recreate_tiles
+    -t, --recreate-tiles
         Recreate tiles the already exist.  Useful for removing out-dated associations & data.
 
     -i, --update-images
@@ -21,6 +21,9 @@ class Command(BaseCommand):
 
     -s, --scrape
         Use page scrapers (default is use datafeed).
+
+    -f, --fast
+        Skips similar products (note: can reduce scrape time by 3x - 4x)
     """
     option_list = BaseCommand.option_list + (
             make_option('-t','--recreate-tiles',
@@ -38,6 +41,11 @@ class Command(BaseCommand):
                 dest="scrape",
                 default=False,
                 help="Use page scraper."),
+            make_option('-f','--fast',
+                action="store_true",
+                dest="skip_similar_products",
+                default=False,
+                help="Skips similar products, can 3x improve scrape time."),
         )
 
     def handle(self, url_slug, **options):
@@ -46,6 +54,7 @@ class Command(BaseCommand):
             'recreate_tiles': options['recreate_tiles'],
             'skip_images': not options['update_images'],
             'skip_tiles': True,
+            'skip_similar_products': options['skip_similar_products'],
             'project': 'pages' if options['scrape'] else 'datafeeds',
         })
         

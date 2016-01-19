@@ -61,7 +61,7 @@ selenium==2.40.0
 bleach==1.4
 
 # Image Processing
-Pillow==2.3.0
+Pillow==2.3.0 # PIL - Python Image Library
 cloudinary==1.1.1
 numpy==1.8.0
 

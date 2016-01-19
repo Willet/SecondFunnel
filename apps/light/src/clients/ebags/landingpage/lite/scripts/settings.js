@@ -103,7 +103,7 @@
         {
           "mobileHeroImage":"",
           "displayName":"Packing Cubes",
-          "name":"packing-cube",
+          "name":"packing-cubes",
           "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg"
         }
       ],
@@ -119,7 +119,7 @@
   },
   "column_width":341,
   "home":{
-    "category":"all"
+    "category":"for-her"
   },
   "masonry":{
     "tileAspectRatio":1,
@@ -222,7 +222,7 @@
     {
       "mobileHeroImage":"",
       "displayName":"Packing Cubes",
-      "name":"packing-cube",
+      "name":"packing-cubes",
       "heroImage":"http://images.secondfunnel.com/store/ebags/holiday/Hero_Packing_Cubes.jpg"
     }
   ]

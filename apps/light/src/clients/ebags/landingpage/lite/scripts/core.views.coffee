@@ -2,18 +2,10 @@
 
 # @module core.views
 
-char_limit = 500
+char_limit = 300
 swipe = require('jquery-touchswipe')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    module.ProductView::initialize = _.wrap(
-        module.ProductView::initialize, (initialize, options) ->
-            initialize.call(@, options)
-            if App.support.mobile()
-                @numberOfImages += 1 # add slot of description
-            return
-    )
-
     module.ProductView::onBeforeRender = ->
         linkName = "More on #{@model.get('name') or @model.get('title')} »"
         inlineLink = "<a href='#{@model.get('url')}'>#{linkName}</a>"
@@ -122,15 +114,19 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         return
 
     module.ExpandedContent::showThumbnails = ->
-        # SLT thumbnails are always across the bottom
-        if @taggedProducts.length > 0
-            # Initialize carousel if this has tagged products
+        if @taggedProducts.length > 1 or \
+           (App.support.mobile() and @taggedProducts.length > 0)
+            # Make room for arrows
             thumbnailsInstance = new module.ProductThumbnailsView(
                 items: @taggedProducts
                 attrs:
                     'lookImageSrc': @model.get('defaultImage').url
-                    'lookName': @model.get('defaultImage').get('name')
-                    'orientation': 'landscape'
+                    'orientation': @model.get('defaultImage').get('orientation')
+                    'landscape':
+                        'height': '95%'
+                    'portrait':
+                        'fullHeight': '95%'
+                        'reducedHeight': '90%'
             )
             @productThumbnails.show(thumbnailsInstance)
             @ui.lookThumbnail.hide()

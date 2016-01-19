@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist, Multiple
 import mock
 import datetime
 import time
-import factory
 import logging
 import itertools
 from django.test import TestCase
@@ -16,16 +15,12 @@ import apps.assets
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
-from apps.assets.utils import disable_tile_serialization
+from apps.assets.utils import delay_tile_serialization
 import apps.intentrank.serializers as ir_serializers
 
 from apps.assets.signals import content_m2m_changed, content_saved, product_saved, \
                                 productimage_saved, tile_m2m_changed, tile_saved
 
-"""
-We are avoiding fixtures because they are so slow:
-http://www.mattjmorrison.com/2011/09/mocking-django.html
-"""
 
 class BaseModelTest(TestCase):
     fixtures = ['assets_models.json']
@@ -88,6 +83,7 @@ class StoreTest(TestCase):
         self.assertIsNot(self.store.cg_updated_at, None)
         self.assertTrue(self.store.id > 0)
 
+
 class ThemeTest(TestCase):
     # Theme has no methods
     fixtures = ['assets_models.json']
@@ -105,6 +101,7 @@ class ThemeTest(TestCase):
     def load_theme_test(self):
         t = Theme.objects.get(pk=2)
         self.assertEqual(t.load_theme(), u'mystore/landingpage/default/index.html')
+
 
 class ProductTest(TestCase):
     # Product has a method - clean
@@ -192,38 +189,96 @@ class ProductImageTest(TestCase):
         self.assertEqual(product_image.url, url)
         self.assertEqual(product_image.original_url, original_url)
 
+    def init_image_sizes_dict_test(self):
+        sizes = {
+            "master": {
+                "width": 640,
+                "height": 480,
+                "url": "http://images.secondfunnel.com/foo/bar.jpg",
+            },
+            "w400": {
+                "width": 400,
+                "height": 400,
+                "url": "http://images.secondfunnel.com/foo/w400/bar.jpg",
+            },
+            "h400": {
+                "height": 400,
+                "url": "http://images.secondfunnel.com/foo/h400/bar.jpg",
+            }
+        }
+        pi = ProductImage(
+                product=Product.objects.get(pk=3),
+                original_url="http://www.google.com/foo/bar.jpg",
+                image_sizes=sizes,
+                dominant_color="#FFFFFF",
+                url="http://images.secondfunnel.com/foo/bar.jpg",
+                file_type="jpg")
+        self.assertEqual(len(pi.image_sizes), 3)
+        self.assertTrue("master" in pi.image_sizes)
+        self.assertTrue("w400" in pi.image_sizes)
+        self.assertTrue("h400" in pi.image_sizes)
+        self.assertNotEqual(pi.image_sizes.find({"height": 400}), (None, None))
+        self.assertEqual(pi.image_sizes.find({"height": 500}), (None, None))
+
     def save_test(self):
         t = ProductImage.objects.get(pk=4)
         self.assertIsNone(t.width)
         self.assertIsNone(t.height)
-        with self.assertRaises(KeyError):
-            self.assertIsNone(t.attributes['sizes'])
+        self.assertEqual(len(t.image_sizes), 0)
         t.save()
         self.assertEqual(t.width, 0)
         self.assertEqual(t.height, 0)
 
     def save_dimensions_test(self):
         t = ProductImage.objects.get(pk=4)
-        t.attributes['sizes'] = {
-            "master": {
-                "width": 640,
-                "height": 480
-            }
+        t.image_sizes["master"] = {
+            "width": 640,
+            "height": 480
         }
         self.assertIsNone(t.width)
         self.assertIsNone(t.height)
-        self.assertIsNotNone(t.attributes['sizes'])
+        self.assertIsNotNone(t.image_sizes['master'])
         t.save()
         self.assertEqual(t.width, 640)
         self.assertEqual(t.height, 480)
         self.assertEqual(t.orientation, "landscape")
 
-    @mock.patch('apps.imageservice.utils.delete_cloudinary_resource', mock.Mock())
-    def delete_test(self):
-        t = ProductImage.objects.get(pk=4)
-        t.delete()
-        with self.assertRaises(ObjectDoesNotExist):
-            t = ProductImage.objects.get(pk=4)
+    @mock.patch('apps.assets.models.delete_resource')
+    def delete_dev_test(self, mock_delete_resource):
+        # No remote resources deleted from dev
+        with mock.patch('django.conf.settings.ENVIRONMENT', 'dev'):
+            pi = ProductImage.objects.get(pk=11)
+            with mock.patch.object(pi.image_sizes, 'delete_resources'):
+                pi.delete()
+                mock_delete_resource.assert_not_called()
+                pi.image_sizes.delete_resources.assert_not_called()
+                with self.assertRaises(ObjectDoesNotExist):
+                    pi = ProductImage.objects.get(pk=11)
+
+    @mock.patch('apps.assets.models.delete_resource')
+    def delete_stage_test(self, mock_delete_resource):
+        # No remote resources deleted from stage
+        with mock.patch('django.conf.settings.ENVIRONMENT', 'stage'):
+            pi = ProductImage.objects.get(pk=11)
+            with mock.patch.object(pi.image_sizes, 'delete_resources'):
+                pi.delete()
+                mock_delete_resource.assert_not_called()
+                pi.image_sizes.delete_resources.assert_not_called()
+                with self.assertRaises(ObjectDoesNotExist):
+                    pi = ProductImage.objects.get(pk=11)
+
+    @mock.patch('apps.assets.models.delete_resource')
+    def delete_production_test(self, mock_delete_resource):
+        # Url & image size remote resources deleted on production
+        with mock.patch('django.conf.settings.ENVIRONMENT', 'production'):
+            pi = ProductImage.objects.get(pk=11)
+            with mock.patch.object(pi.image_sizes, 'delete_resources'):
+                pi.delete()
+                mock_delete_resource.assert_called_once_with(pi.url)
+                pi.image_sizes.delete_resources.assert_called_once_with()
+                with self.assertRaises(ObjectDoesNotExist):
+                    pi = ProductImage.objects.get(pk=11)
+
 
 class TagTest(TestCase):
     # Tag has no methods
@@ -242,6 +297,7 @@ class TagTest(TestCase):
         self.assertEqual(t.store_id, store.id)
         self.assertIsNone(t.url)
 
+
 class ContentTest(TestCase):
     # Content has no methods
     fixtures = ['assets_models.json']
@@ -257,13 +313,6 @@ class ContentTest(TestCase):
         self.assertEqual(t.store, store)
         self.assertEqual(t.store_id, store.id)
 
-    # the update function is broken
-
-    def update_test(self):
-        t = Content.objects.get(pk=6)
-        self.assertEqual(t.update(), t)
-        # if the update function was not broken, we would also test this:
-        # t.update(author="John")
 
 class ImageTest(TestCase):
     # Image has no methods
@@ -484,55 +533,81 @@ class FeedTest(TestCase):
         self.assertEqual(f.store, store)
         self.assertEqual(f.store_id, store.id)
 
+    def find_tiles_test(self):
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
+        self.assertTrue(t.feed == f)
+        self.assertEqual(set(f.find_tiles()), set([t]))
+
     def find_tiles_content_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         c = Content.objects.get(pk=6)
         t.content.add(c)
+        self.assertTrue(t.feed == f)
         self.assertEqual(set(f.find_tiles(content=c)), set([t]))
 
     def find_tiles_product_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         p = Product.objects.get(pk=12)
         t.products.add(p)
+        self.assertTrue(t.feed == f)
         self.assertEqual(set(f.find_tiles(product=p)), set([t]))
 
     def find_tiles_none_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(set(f.find_tiles()), set([t]))
+        f = Feed.objects.get(pk=19)
+        self.assertTrue(f.tiles.count() == 0)
+        self.assertTrue(len(f.find_tiles()) == 0)
 
     def find_tiles_no_product_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         p = Product.objects.get(pk=12)
+        self.assertTrue(t.feed == f)
+        self.assertTrue(f.tiles.count() == 1)
+        self.assertTrue(t.products.count() == 0)
         self.assertEqual(set(f.find_tiles(product=p)), set([]))
 
     def find_tiles_no_content_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         c = Content.objects.get(pk=6)
+        self.assertTrue(t.feed == f)
+        self.assertTrue(f.tiles.count() == 1)
+        self.assertTrue(t.content.count() == 0)
         self.assertEqual(set(f.find_tiles(content=c)), set([]))
 
     def get_in_stock_tiles_test(self):
         f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(set(f.get_in_stock_tiles()), set([t]))
+        t1 = Tile.objects.get(pk=10)
+        t2 = Tile.objects.get(pk=11)
+        p1 = Product.objects.get(pk=12)
+        p2 = Product.objects.get(pk=13)
+        t1.products = [p1]
+        t2.products = [p2]
+        self.assertFalse(p1.in_stock)
+        self.assertTrue(p2.in_stock)
+        self.assertTrue(t1.feed == f)
+        self.assertTrue(t2.feed == f)
+        self.assertEqual(set(f.get_in_stock_tiles()), set([t2]))
 
     def get_in_stock_tiles_empty_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
         p = Product.objects.get(pk=12)
-        p.in_stock = False
         t.products.add(p)
+        self.assertFalse(p.in_stock)
+        self.assertTrue(t.feed == f)
+        self.assertTrue(f.tiles.count() == 1)
         self.assertEqual(set(f.get_in_stock_tiles()), set([]))
 
     def get_all_products_test(self):
-        f = Feed.objects.get(pk=9)
-        t = Tile.objects.get(pk=10)
-        p = Product.objects.get(pk=12)
+        f = Feed.objects.get(pk=13)
+        t = Tile.objects.get(pk=13)
+        p = Product.objects.get(pk=13) # in stock
         t.products.add(p)
+        self.assertTrue(t.feed == f)
         self.assertEqual(set(f.get_all_products()), set([p]))
 
     def get_all_products_no_products_test(self):
@@ -561,6 +636,19 @@ class FeedTest(TestCase):
         f = Feed.objects.get(pk=9)
         f._deepdelete_tiles(f.tiles.all())
         self.assertEqual(set(f.get_in_stock_tiles()), set([]))
+
+    def categories_test(self):
+        # property gets all cateogries
+        f = Feed.objects.get(pk=9)
+        c1 = Category.objects.get(pk=7)
+        c2 = Category.objects.get(pk=8)
+        t1 = Tile.objects.get(pk=10)
+        t2 = Tile.objects.get(pk=11)
+        c1.tiles.add(t1)
+        c2.tiles.add(t2)
+        self.assertTrue(t1.feed == f)
+        self.assertTrue(t2.feed == f)
+        self.assertTrue(set([c1, c2]) == set(f.categories))
 
     # These tests make sure the correct subfunction is called when .add() is called
 
@@ -608,13 +696,12 @@ class FeedTest(TestCase):
         p.product_images.add(i)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='product', priority=2)
-                new_tile.placeholder = p.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(p)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_product(p, priority=35, category=cat, force_create_tile=False)
         self.assertEqual(len(f.tiles.all()), 1)
         self.assertEqual(f.tiles.first(), new_tile)
@@ -631,13 +718,12 @@ class FeedTest(TestCase):
         p.product_images.add(i)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='product', priority=2)
-                new_tile.placeholder = p.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(p)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_product(p, priority=35, category=cat, force_create_tile=True)
         self.assertEqual(len(f.tiles.all()), 2)
         self.assertEqual(f.tiles.first().product, p)
@@ -660,13 +746,13 @@ class FeedTest(TestCase):
         c = Content.objects.get(pk=6)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='content', priority=2)
                 new_tile.placeholder = False
                 new_tile.get_pk()
                 new_tile.content.add(c)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_content(c, priority=35, category=cat, force_create_tile=False)
         self.assertEqual(len(f.tiles.all()), 1)
         self.assertEqual(f.tiles.first(), new_tile)
@@ -681,13 +767,13 @@ class FeedTest(TestCase):
         p = Content.objects.get(pk=6)
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=f, template='content', priority=2)
                 new_tile.placeholder = False
                 new_tile.get_pk()
                 new_tile.content.add(p)
                 new_tile.categories.add(cat)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         f._add_content(p, priority=35, category=cat, force_create_tile=True)
         self.assertEqual(len(f.tiles.all()), 2)
         self.assertEqual(f.tiles.first().content.first(), p)
@@ -700,6 +786,546 @@ class FeedTest(TestCase):
         f._copy_tile(t, priority=35, category=cat)
         self.assertEqual(len(f.tiles.all()), 1)
         # most functionality is in Tile._copy
+
+    # Tests for healthcheck
+    
+    # Returns Error
+    def health_check_error_test(self):
+        placeholder_count = 100
+        instock_count = 50
+        outstock_count = 850
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10%"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                })
+
+    def health_check_error1_test(self):
+        placeholder_count = 1
+        instock_count = 8
+        outstock_count = 5
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                })
+
+    def health_check_error2_test(self):
+        placeholder_count = 1
+        instock_count = 1
+        outstock_count = 10
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10\nIn-stock count < 10%"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                })
+
+    # Returns a Warning
+    def health_check_warning_test(self):
+        placeholder_count = 100
+        instock_count = 200
+        outstock_count = 700
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('WARNING', u"In-stock count is between 10% and 30%"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                })
+
+    # Returns an OK
+    def health_check_ok_test(self):
+        placeholder_count = 100
+        instock_count = 500
+        outstock_count = 400
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as categories_patch:
+                qs_mock = mock.Mock()
+                qs_mock.count.return_value = 1000
+                
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                categories_patch.return_value = categories_patch
+                categories_patch.tiles.return_value = qs_mock
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('OK', u"In-stock count is greater than 30%"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                })
+
+    # Normally returns an OK but changed to error + error messages due to categories.tiles < 10
+    def health_check_ok_error_test(self):
+        placeholder_count = 100
+        instock_count = 600
+        outstock_count = 300
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 5
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 10
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 8
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"Category 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
+
+   # Normally returns an OK but changed to error + error messages due to instock_count < 10
+    def health_check_ok_error1_test(self):
+        placeholder_count = 1
+        instock_count = 5
+        outstock_count = 4
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 11
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 10
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 11
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
+
+   # Normally returns an OK but changed to error + error messages due to instock_count < 10 and categories in_stock < 10
+    def health_check_ok_error2_test(self):
+        placeholder_count = 1
+        instock_count = 5
+        outstock_count = 4
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 5
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 10
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 8
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
+
+    # Normally returns an warning but changed to error + error messages due to categories.tiles < 10
+    def health_check_warning_error_test(self):
+        placeholder_count = 100
+        instock_count = 200
+        outstock_count = 700
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 5
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 10
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 8
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"Category 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
+
+    # Normally returns an warning but changed to error + error messages due to in-stock < 10
+    def health_check_warning_error1_test(self):
+        placeholder_count = 1
+        instock_count = 5
+        outstock_count = 3
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 5
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 10
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 8
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
+
+    # Normally returns an error, + error messages due to categories.tiles < 10
+    def health_check_error_error_test(self):
+        placeholder_count = 100
+        instock_count = 50
+        outstock_count = 850
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 5
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 8
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 8
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10%\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat2' only has 8 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
+
+    # Normally returns an error, + error messages due to in-stock count < 10
+    def health_check_error_error1_test(self):
+        placeholder_count = 1
+        instock_count = 3
+        outstock_count = 90
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 11
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 12
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 13
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10\nIn-stock count < 10%"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
+
+    # Normally returns an error, + error messages due to in-stock count < 10 and categories.tile < 10
+    def health_check_error_error2_test(self):
+        placeholder_count = 7
+        instock_count = 3
+        outstock_count = 90
+        total_count = placeholder_count + instock_count + outstock_count
+
+        def filter_side_effect(*args, **kwargs):
+            mocked = mock.Mock()
+            if kwargs['placeholder'] == True:
+                mocked.count.return_value = placeholder_count
+            elif kwargs['in_stock'] == True:
+                mocked.count.return_value = instock_count
+            else:
+                mocked.count.return_value = outstock_count
+            return mocked
+
+        cat1 = mock.Mock()
+        cat1.name = "cat1"
+        cat1.tiles.filter.return_value.count.return_value = 5
+        cat2 = mock.Mock()
+        cat2.name = "cat2"
+        cat2.tiles.filter.return_value.count.return_value = 8
+        cat3 = mock.Mock() 
+        cat3.name = "cat3"
+        cat3.tiles.filter.return_value.count.return_value = 8
+        cat_list = [cat1, cat2, cat3]
+
+        def fake_categories(ind):
+            return cat_list[ind]
+
+        with mock.patch('apps.assets.models.Feed.tiles') as tile_patch:
+            with mock.patch('apps.assets.models.Feed.categories') as feed_cat_patch:
+                tile_patch.count.return_value = total_count
+                tile_patch.filter.side_effect = filter_side_effect
+                feed_cat_patch.__iter__.return_value = cat_list
+                feed_cat_patch.__getitem__.side_effect = fake_categories
+
+                f = Feed.objects.get(pk=9)
+                results = f.healthcheck()
+                self.assertEqual(results,{
+                        'status': ('ERROR', u"In-stock count < 10\nIn-stock count < 10%\nCategory 'cat1' only has 5 in-stock tiles\nCategory 'cat2' only has 8 in-stock tiles\nCategory 'cat3' only has 8 in-stock tiles"), 
+                        'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
+                    })
 
 
 class TileTest(TestCase):
@@ -824,4 +1450,3 @@ class TileTest(TestCase):
         t = Tile.objects.get(pk=10)
         with self.assertRaises(LookupError):
             t.get_first_content_of(Content)
-

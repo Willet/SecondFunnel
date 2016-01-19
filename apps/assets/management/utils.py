@@ -15,8 +15,7 @@ from django.conf import settings
 
 from apps.assets.models import Category, Feed, Page, Product, ProductImage, Tile
 from apps.assets.signals import productimage_saved
-from apps.assets.utils import disable_tile_serialization
-from apps.intentrank.serializers import SerializerError
+from apps.assets.utils import delay_tile_serialization
 from apps.imageservice.utils import get_public_id
 
 
@@ -100,9 +99,6 @@ def generate_tiles_from_urls(feed, category, urls):
         else:
             try:
                 tile, created = feed.add(p, category=category)
-                if p.is_placeholder:
-                    t.placeholder = True
-                    t.save()
             except Exception as e:
                 results['error'].append({
                     'exception': repr(e),
@@ -142,10 +138,9 @@ def update_dominant_color(tiles):
     def get_resource_url(public_id):
         return "https:{}/resources/image/upload/{}?colors=1".format(settings.CLOUDINARY_API_URL, public_id)
 
-    post_save.disconnect(productimage_saved, sender=ProductImage)
     rescrape = [] # list of product urls that must be re-scraped
 
-    with disable_tile_serialization():
+    with delay_tile_serialization():
         with requests.Session() as s:
             s.auth = requests.auth.HTTPBasicAuth(settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET)
             for i, t in enumerate(tiles):
@@ -179,47 +174,26 @@ def update_dominant_color(tiles):
                     t.attributes['colspan'] = 1
                     t.save()
 
-    post_save.connect(productimage_saved, sender=ProductImage)
-    update_tiles_ir_cache(tiles)
     if len(rescrape):
         print "Rescrape these product urls with {'refresh-images': True}:"
         pprint(rescrape)
     return rescrape
 
-@disable_tile_serialization()
-def update_tiles_ir_cache(tiles):
-    """
-    Updates the ir_cache of tiles. Does not run full clean!
-
-    Returns: <list> of <tuple>(Tile, Error) for failed updates
-    """
-    dts = []
-    for t in tiles:
-        try:
-            # "manually" update tile ir cache
-            ir_cache, updated = t.update_ir_cache() # sets tile.ir_cache
-            if updated:
-                models.Model.save(t, update_fields=['ir_cache']) # skip full_clean
-            print "{}: updated".format(t)
-        except SerializerError as e:
-            print "\t{}: {}".format(t, e)
-            dts.append((t, e))
-        except ValidationError as e:
-            print "\t{}: {}".format(t, e)
-            dts.append((t, e))
-    return dts
-
-def remove_product_tiles_from_page(page_slug, prod_url_id_list, fake=False):
+def remove_product_tiles_from_page(page_slug, prod_url_id_list, category=False, fake=False):
     """
     Deletes all product tiles in page that contain a product in prod_list
 
     prod_list: list of product identifiers that would be in the URL
-    fake: if True, nothing is deleted
+    category: (optional) <str> or <Category> - remove product tiles from this category only
+    fake: (optional) <bool> if True, nothing is deleted
 
     Ex: remove_product_tiles_from_page("halloween", ["PRO-23545"])
     """
     fake_str = "FAKE: " if fake else ''
     page = Page.objects.get(url_slug=page_slug)
+    if category and isinstance(category, basestring):
+        category = Category.objects.get(store=page.store, name=category)
+
     for prod in prod_url_id_list:
         try:
             ps = Product.objects.filter(url__contains=prod)
@@ -227,7 +201,10 @@ def remove_product_tiles_from_page(page_slug, prod_url_id_list, fake=False):
             print "{}No tiles containing {}".format(fake_str, prod)
         else:
             for p in ps:
-                tiles = p.tiles.filter(feed=page.feed, template="product")
+                if category:
+                    tiles = p.tiles.filter(feed=page.feed, categories=category, template="product")
+                else:
+                    tiles = p.tiles.filter(feed=page.feed, template="product")
                 print "{}Deleting {} tiles containing {}".format(fake_str, tiles.count(), prod)
                 if not fake:
                     tiles.delete()

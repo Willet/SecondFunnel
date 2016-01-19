@@ -1,17 +1,18 @@
+from collections import namedtuple
 import hashlib
-import re
 import os
 import math
 import random
+import re
 from StringIO import StringIO
-from collections import namedtuple
+import urlparse
 
 import cloudinary.api
 import cloudinary.utils
 import cloudinary.uploader
 from django.conf import settings
 
-from apps.imageservice.models import ExtendedImage
+from apps.utils import aws
 
 
 IMAGE_SIZES = getattr(settings, 'IMAGE_SIZES', (
@@ -94,22 +95,40 @@ def delete_cloudinary_resource(public_id):
     public id, or url.
 
     @param public_id: Url/id of resource, a string.
-    @return: None
+    @return: Response
     """
     try:
-        cloudinary.api.delete_resources(list(public_id))
+        return cloudinary.api.delete_resources(list(public_id))
     except cloudinary.api.NotFound:
         public_id = get_public_id(public_id)
-        cloudinary.api.delete_resources(list(public_id))
+        return cloudinary.api.delete_resources(list(public_id))
 
 
 def delete_s3_resource(s3_url):
     """
     Deletes the S3 resource at the specified url
     @params s3_url
-    @return None
+    @return Response or None
     """
-    raise NotImplementedError
+    if not re.match(r'^(?:https?:)?//', s3_url):
+        # to parse a url, urlparse requires a protocol or '//'
+        url = "//" + s3_url
+    else:
+        url = s3_url
+    filename = urlparse(url).path
+    return aws.delete_from_bucket(settings.IMAGE_SERVICE_BUCKET, filename)
+
+
+def delete_resource(url):
+    """
+    If url is from a recognized source, delete it
+    @params url
+    @return Response
+    """
+    if settings.CLOUDINARY_BASE_URL in url:
+        return delete_cloudinary_resource(url)
+    elif settings.IMAGE_SERVICE_BUCKET in url:
+        return delete_s3_resource(url)
 
 
 def create_configuration(xpos, ypos, width, height):
@@ -143,6 +162,8 @@ def create_image(source):
     @param source: byte string
     @return: ExtendedImage object
     """
+    from apps.imageservice.models import ExtendedImage
+
     img = None
 
     try:

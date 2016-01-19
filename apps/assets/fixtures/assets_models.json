@@ -91,6 +91,7 @@
     "pk": 11,
     "fields": {
       "product": 13,
+      "image_sizes": "{\"h400\": {\"url\": \"http://images.secondfunnel.com/foo/h400/bar.jpg\", \"height\": 400}, \"master\": {\"url\": \"http://images.secondfunnel.com/foo/bar.jpg\", \"width\": 640, \"height\": 480}, \"w400\": {\"url\": \"http://images.secondfunnel.com/foo/w400/bar.jpg\", \"width\": 400, \"height\": 400}}",
       "url": "/another-image.jpg",
       "original_url": "test.com/another-image.jpg",
       "updated_at": "2015-11-18 00:43:26"
@@ -146,6 +147,15 @@
     }
   },
   {
+    "model": "assets.Category",
+    "pk": 8,
+    "fields": {
+      "name": "TestCategory2",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.Page",
     "pk": 8,
     "fields": {
@@ -173,6 +183,14 @@
       "updated_at": "2015-11-18 00:43:26"
     }
   },
+    {
+    "model": "assets.Feed",
+    "pk": 13,
+    "fields": {
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
   {
     "model": "assets.Feed",
     "pk": 18,
@@ -195,6 +213,24 @@
     "fields": {
       "template": "default",
       "feed": 9,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tile",
+    "pk": 11,
+    "fields": {
+      "template": "default",
+      "feed": 9,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+    {
+    "model": "assets.Tile",
+    "pk": 13,
+    "fields": {
+      "template": "default",
+      "feed": 13,
       "updated_at": "2015-11-18 00:43:26"
     }
   }

@@ -11,74 +11,7 @@
     <link rel="stylesheet" href="/static/light/ebags/landingpage/lite/styles/main.css" />
 
     @@include('shared/campaign_respond.html')
-    <!-- Begin Optimizer Tests -->
-    <!-- End Optimizer Tests -->
-    <script type="text/javascript">
-        window.TRACKING_PIXELS = {
-            'A': {
-                'view': 'http://9nl.us/up0t',
-                'click': 'http://9nl.us/xpdp'
-            }
-        };
-        window.ACTIVE_TEST = 'A';
-    </script>
-    {% if environment == 'production' %}
-        <script type='text/javascript'>
-            var interval = setInterval(function() {
-                var test, bindFn;
-
-                if (!window.ACTIVE_TEST) {
-                    return;
-                }
-
-                // Because we need to bind some events before anything else, use this fn
-                // http://stackoverflow.com/a/2641047
-                $.fn.bindFirst = function(name, fn) {
-                    // bind as you normally would
-                    // don't want to miss out on any jQuery magic
-                    this.on(name, fn);
-
-                    // Thanks to a comment by @Martin, adding support for
-                    // namespaced events too.
-                    this.each(function() {
-                        var handlers = $._data(this, 'events')[name.split('.')[0]];
-                        // take out the handler we just inserted from the end
-                        var handler = handlers.pop();
-                        // move it at the beginning
-                        handlers.splice(0, 0, handler);
-                    });
-                };
-
-                bindFn = function() {
-                    (new Image).src = window.TRACKING_PIXELS[test].click;
-                }
-
-                clearInterval(interval);
-                test = window.ACTIVE_TEST;
-
-                // Append click pixel
-                if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    $('.tile').bindFirst('click', bindFn);
-                } else {
-                    // Why doesn't bindFirst work on desktop?
-                    $('body').on('click', '.tile', bindFn);
-                }
-
-
-                // Append page view pixel
-                (new Image).src = window.TRACKING_PIXELS[test].view;
-            }, 1000);
-        </script>
-    {% endif %}
     <title>{{ page.name|default:"eBags" }}</title>
-    <!-- Begin CRAZY EGG -->
-    <script type="text/javascript">
-        setTimeout(function(){var a=document.createElement("script");
-        var b=document.getElementsByTagName("script")[0];
-        a.src=document.location.protocol+"//script.crazyegg.com/pages/scripts/0039/3591.js?"+Math.floor(new Date().getTime()/3600000);
-        a.async=true;a.type="text/javascript";b.parentNode.insertBefore(a,b)}, 1);
-    </script>
-    <!-- End CRAZY EGG -->
 </head>
 <body>
     <div class='navbar'>
@@ -158,7 +91,13 @@
                     <li class='brand'><%= obj.product.get('brand')['name'] %></span>
                     <% } %>
                     <li class="name"><%= obj.product.get('name') %></span>
-                    <li class="price"><%= obj.product.get('currency') %><%= obj.product.get('price') %></li>
+                    <li class="price"><%= obj.product.get('currency') %>
+                        <% if (obj.product.get('salePrice')) { %>
+                            <%= obj.product.get('salePrice') %>
+                        <% } else { %>
+                            <%= obj.product.get('price') %>
+                        <% } %>
+                    </li>
                 </ul>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
@@ -266,7 +205,7 @@
 
         <script type="text/template" id="image_info_template">
             <div class="tagged-product">
-                <div class="product-details mobile-only">
+                <div class="product-details">
                     <div class='title'>
                         <% include("product_title_template") %>
                     </div>
@@ -282,27 +221,8 @@
                         <% include("product_galleryDots_template") %>
                     </div>
                 </div>
-                <div class='buy mobile-only'>
+                <div class='buy'>
                     <% include("product_buy_template") %>
-                </div>
-                <div class="product-details desktop-only">
-                    <div class='title'>
-                        <% include("product_title_template") %>
-                    </div>
-                    <div class='price'>
-                        <% include("product_price_template") %>
-                    </div>
-                    <div class='description'>
-                        <% include("product_description_template") %>
-                    </div>
-                    <div class='buy'>
-                        <% include("product_buy_template") %>
-                    </div>
-                    <% if (obj['collectionName']) { %>
-                    <div class="back">
-                        Back to Collection Description
-                    </div>
-                    <% } %>
                 </div>
             </div>
         </script>
@@ -332,16 +252,16 @@
         </script>
 
         <script type="text/template" id="desktop_tagged_products">
-            <div class="feature">
-                <% var orientation = (obj.orientation || "square"); %>
-                <% var oneProduct = (obj.taggedProducts.length < 2); %>
-                <div class="cell look-image-container <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+            <% var orientation = (obj.orientation || "square"); %>
+            <% var oneProduct = (obj.taggedProducts.length < 2) ? "one-product" : ""; %>
+            <div class="feature <%= oneProduct %>">
+                <div class="cell look-image-container <%= orientation %>">
                     <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
                 </div>
                 <div class="cell shop <%= orientation %>">
                     <div class="product-thumbnails"></div>
                 </div>
-                <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                <div class="cell info <%= orientation %>">
                     <div class="product-info"></div>
                 </div>
             </div>
@@ -392,10 +312,10 @@
         <script type="text/template" id="product_thumbnails_template">
             <div class="stl-title"><span>shop the look</span></div>
             <div class="stl-carousel carousel-view">
-                <div class="stl-swipe-left carousel-swipe-left"></div>
-                <div class="stl-swipe-right carousel-swipe-right"></div>
-                <div class="stl-swipe-up carousel-swipe-up"></div>
-                <div class="stl-swipe-down carousel-swipe-down"></div>
+                <div class="stl-swipe-left carousel-swipe-left"><span></span></div>
+                <div class="stl-swipe-right carousel-swipe-right"><span></span></div>
+                <div class="stl-swipe-up carousel-swipe-up"><span></span></div>
+                <div class="stl-swipe-down carousel-swipe-down"><span></span></div>
                 <div class="stl-look-container carousel-container">
                     <div class="stl-look carousel-slide">
                         <div class="look-thumbnail mobile-only">

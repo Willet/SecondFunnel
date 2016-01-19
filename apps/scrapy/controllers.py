@@ -55,6 +55,7 @@ class PageMaintainer(object):
             'recreate_tiles': <bool> Recreate tiles if they already exist. Wipes old data, categories, etc.
             'refresh_images': <bool> Delete existing images & scrape new ones. Wipes old data
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
+                           Over-rules refresh_images
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
         }
 
@@ -79,14 +80,11 @@ class PageMaintainer(object):
 
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
-            'skip_images': options.get('skip_images', False),
+            'refresh_images': options.get('refresh_images', False),
+            'skip_images': options.get('skip_images', False), # skip_images over-rules refresh_images
             'skip_tiles': options.get('skip_tiles', False),
             'reporting_name': 'page {}'.format(self.page.url_slug.upper()),
         }
-        
-        if options.get('refresh_images', False):
-            logging.debug(u"Deleting product images prior to scrape")
-            self._delete_product_images(source_urls)
 
         self._run_scraper(spider_name=spider_name,
                           start_urls=source_urls,
@@ -106,10 +104,13 @@ class PageMaintainer(object):
             'recreate_tiles': <bool> Recreate tiles the already exist.  Useful for removing out-dated associations & data.
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
+            'skip_similar_products': <bool> Do not update similar products.
         }
         """
         # Add more logic here re start_urls
-        start_urls = set(self.feed.get_all_products().values_list('url', flat=True))
+        start_urls = set(self.feed.get_all_products(
+                            skip_similar_products=options.get('skip_similar_products', False)
+                        ).values_list('url', flat=True))
 
         # Override for page's spider_name to enable added spider functionality
         spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
@@ -173,21 +174,3 @@ class PageMaintainer(object):
             'NEWSPIDER_MODULE': project.__name__,
         })
         return settings
-
-    @disable_tile_serialization()
-    def _delete_product_images(self, urls):
-        """
-        This function triggers tile serialization because it saves
-        the products after removing the images
-        """
-        for url in urls:
-            # This should be unique, but quietly handle multiples
-            try:
-                ps = Product.objects.filter(url=url, store=self.store)
-            except Product.DoesNotExist:
-                pass
-            else:
-                for p in ps:
-                    p.in_stock = False # hide product tiles while they have no images
-                    p.save()
-                    p.product_images.all().delete()
