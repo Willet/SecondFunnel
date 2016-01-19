@@ -79,7 +79,7 @@ class ProductSerializer(IRSerializer):
             # Include a shallow similar_products. Prevents infinite loop
             similar_products = product.similar_products.all()
             if not product.store.display_out_of_stock:
-                similar_products = similar_products.filter(in_stock=True)
+                similar_products = similar_products.filter(in_stock=True, placeholder=False)
 
             for product in similar_products:
                 data['tagged-products'].append(self.get_dump_object(product, shallow=True))
@@ -126,7 +126,7 @@ class ContentSerializer(IRSerializer):
 
         tagged_products = content.tagged_products.all()
         if not content.store.display_out_of_stock:
-            tagged_products = tagged_products.filter(in_stock=True)
+            tagged_products = tagged_products.filter(in_stock=True, placeholder=False)
 
         for product in tagged_products:
             data['tagged-products'].append(product.serializer().get_dump_object(product, shallow=True))

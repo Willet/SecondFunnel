@@ -105,7 +105,7 @@ class DefaultTileSerializer(TileSerializer):
         }
         """
         content = self.get_dump_separated_content(tile)
-        products = [p.to_json() for p in tile.products.all()]
+        products = [p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)]
 
         data = self.get_core_attributes(tile)
         data.update(content)
@@ -161,7 +161,7 @@ class ImageTileSerializer(TileSerializer):
         except LookupError:
             raise SerializerError('Image Tile #{} must be tagged with an image'.format(tile.id))
 
-        products = ([p.to_json() for p in tile.products.all()] or
+        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
                     image['tagged-products'])
 
         data = self.get_core_attributes(tile)
@@ -191,7 +191,7 @@ class VideoTileSerializer(TileSerializer):
             video = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
             raise SerializerError('Video Tile #{} must be tagged with a video'.format(tile.id))
-        products = ([p.to_json() for p in tile.products.all()] or
+        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
                     video['tagged-products'])
 
         data = self.get_core_attributes(tile)
@@ -288,7 +288,7 @@ class CollectionTileSerializer(TileSerializer):
                 raise SerializerError(" Collection Tile #{} is not tagged with its \
                                        expanded Image #{}".format(tile.id, expandedImageId))
 
-        products = [p.to_json() for p in tile.products.all()]
+        products = [p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)]
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -316,7 +316,7 @@ class HeroTileSerializer(TileSerializer):
         except LookupError:
             raise SerializerError("Hero Tile expecting content to include an image".format(tile.id))
 
-        products = ([p.to_json() for p in tile.products.all()] or
+        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
                     image['tagged-products'])
 
         data = self.get_core_attributes(tile)
@@ -350,7 +350,7 @@ class HerovideoTileSerializer(TileSerializer):
             # optional
             image = {}
         
-        products = ([p.to_json() for p in tile.products.all()] or
+        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
                     video['tagged-products'] or image.get('tagged-products', []))
 
         data = self.get_core_attributes(tile)

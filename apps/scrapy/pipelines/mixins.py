@@ -4,8 +4,6 @@ from itertools import chain
 from scrapy.exceptions import CloseSpider
 
 from apps.assets.models import Category, Content, Feed, Product
-from apps.assets.utils import disable_tile_serialization
-from apps.intentrank.serializers import SerializerError
 from apps.scrapy.items import ScraperProduct, ScraperContent, ScraperImage
 from apps.scrapy.models import PlaceholderProduct
 
@@ -159,7 +157,7 @@ class PlaceholderMixin(object):
             product.in_stock = False
             try:
                 product.save()
-            except SerializerError as e:
+            except ValidationError as e:
                 spider.logger.info("Converting {} to placeholder because: {}".format(product, e))
                 self.convert_to_placeholder(product)
             created = False
@@ -172,18 +170,18 @@ class PlaceholderMixin(object):
             qs = Product.objects.filter(url=url, store=store)
             product = Product.merge_products(qs)
             product.in_stock = False
+            try:
+                product.save()
+            except ValidationError as e:
+                spider.logger.info("Converting {} to placeholder because: {}".format(product, e))
+                self.convert_to_placeholder(product)
             created = False
         return (product, created)
 
     def convert_to_placeholder(self, product):
         """ Takes an existing product and converts it and its product tiles to placeholders """
-        with disable_tile_serialization():
-            placeholder = PlaceholderProduct.objects.get(id=product.id)
-            placeholder.save()
-        for t in placeholder.tiles.all():
-            if t.template == "product":
-                t.placeholder = True # will skip update_ir_cache
-                t.save()
+        placeholder = PlaceholderProduct.objects.get(id=product.id)
+        placeholder.save()
 
 
 class TilesMixin(object):
@@ -212,7 +210,6 @@ class TilesMixin(object):
         feed_id = getattr(spider, 'feed_id', None)
         recreate_tiles = getattr(spider, 'recreate_tiles', False)
         categories = getattr(spider, 'categories', False)
-        placeholder = getattr(obj, 'is_placeholder', False)
 
         try:
             feed = Feed.objects.get(id=feed_id)
@@ -231,16 +228,11 @@ class TilesMixin(object):
             cat = self.category_cache.get_or_create(cname, store=item['store'])
             spider.logger.info(u"Adding <{}> to <{}>".format(obj, cat))
             tile, created = feed.add(obj, category=cat)
-            tile.placeholder = placeholder
-            tile.save()
             return (tile, created)
         else:
             tile, created = feed.add(obj)
-            tile.placeholder = placeholder
-            tile.save()
             for cname in categories:
                 cat = self.category_cache.get_or_create(cname, store=item['store'])
                 spider.logger.info(u"Adding <{}> to <{}>".format(obj, cat))
                 cat.tiles.add(tile)
             return (tile, created)
-
