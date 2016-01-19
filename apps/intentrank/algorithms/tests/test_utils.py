@@ -15,78 +15,69 @@ from apps.intentrank.algorithms.ir_magic import TemplateRatioEqualizer, TileRati
 import apps.intentrank.algorithms as algorithms
 from apps.intentrank.algorithms.utils import qs_for
 
-class IRMagicTest(TestCase):
+class IRFilterTest(TestCase):
     fixtures = ['assets_models.json']
 
     def filter_tiles_test(self):
-        tiles = [Tile.objects.get(pk=10)]
-        feed = Feed.objects.get(pk=9)
-        self.assertEqual(algorithms.ir_filter(tiles=tiles, feed=feed)[0], tiles[0])
-        self.assertEqual(len(algorithms.ir_filter(tiles=tiles, feed=feed)), len(tiles))
+        f = Feed.objects.get(pk=9) # has 2 in stock tiles
+        tiles = list(f.tiles.all()) # force load
+        result = algorithms.ir_filter(feed=f)
+        self.assertTrue(set(tiles) == set(result))
 
-    def filter_tiles_pi_tiles_test(self):
-        tiles = [Tile.objects.get(pk=10)]
-        feed = Feed.objects.get(pk=9)
-        f = Feed.objects.get(pk=9)
+    def filter_feed_test(self):
+        f = Feed.objects.get(pk=9) # has 2 in stock tiles
+        tiles = list(f.tiles.all()) # force load
+        result = algorithms.ir_filter(feed=f)
+        self.assertTrue(set(tiles) == set(result))
+
+    def filter_tiles_from_feed_test(self):
+        f = Feed.objects.get(pk=9) # has 2 in stock tiles
+        tiles = list(f.tiles.all()) # force load
         p = Product.objects.get(pk=3) # in stock product
         i = ProductImage.objects.get(pk=4)
-        p.default_image = i
         p.product_images.add(i)
         f.add(p)
-        logging.debug([t.placeholder for t in f.tiles.all()])
         # only tiles will be used b/c they are specifically specified
-        rslt = algorithms.ir_filter(tiles=tiles, feed=feed)
-        self.assertEqual(len(rslt), len(tiles))
-        self.assertEqual(rslt[0], tiles[0])
+        result = algorithms.ir_filter(tiles=tiles, feed=f)
+        self.assertTrue(set(tiles) == set(result))
 
-    def filter_tiles_pi_test(self):
-        tiles = [Tile.objects.get(pk=10)]
-        feed = Feed.objects.get(pk=9)
-        f = Feed.objects.get(pk=9)
+    def filter_out_of_stock_test(self):
+        f = Feed.objects.get(pk=9) # has 2 in stock tiles
+        tiles = list(f.tiles.all()) # force load
+        p = Product.objects.get(pk=12) # out of stock product
+        i = ProductImage.objects.get(pk=4)
+        p.product_images.add(i)
+        f.add(p)
+        result = algorithms.ir_filter(feed=f) # filter out out of stock product
+        self.assertTrue(set(tiles) == set(result))
+
+    def filter_placeholder_test(self):
+        f = Feed.objects.get(pk=9) # has 2 in stock tiles
+        tiles = list(f.tiles.all()) # force load
         p = Product.objects.get(pk=3) # in stock product
-        i = ProductImage.objects.get(pk=4)
-        p.default_image = i
-        p.product_images.add(i)
+        p.placeholder = True
+        p.save()
         f.add(p)
-        logging.debug([t.placeholder for t in f.tiles.all()])
-        rslt = algorithms.ir_filter(feed=feed)
-        self.assertEqual(len(rslt), 2)
-        self.assertEqual(len(feed.tiles.all()), 2)
-        logging.debug("feed: {}".format(feed.tiles.all()))
-        logging.debug("rslt: {}".format(rslt))
-        self.assertEqual(rslt[1], feed.tiles.all()[1])
-        self.assertEqual(rslt[0], feed.tiles.all()[0])
+        result = algorithms.ir_filter(feed=f) # filter out out of stock product
+        self.assertTrue(set(tiles) == set(result))
 
-    def filter_tiles_pi_oos_test(self):
-        tiles = [Tile.objects.get(pk=10)]
-        feed = Feed.objects.get(pk=9)
-        f = Feed.objects.get(pk=9)
-        p = Product.objects.get(pk=12) # out of stock product
-        i = ProductImage.objects.get(pk=4)
-        p.default_image = i
-        p.product_images.add(i)
-        f.add(p)
-        self.assertEqual(algorithms.ir_filter(tiles=tiles, feed=feed)[0], tiles[0])
-        self.assertEqual(len(algorithms.ir_filter(tiles=tiles, feed=feed)), len(tiles))
-
-    def filter_tiles_pi_oos_display_anyway_test(self):
+    def filter_out_of_stock_store_display_override_test(self):
         store = Store.objects.get(pk=1)
-        tiles = [Tile.objects.get(pk=10)]
-        feed = Feed.objects.get(pk=9)
-        f = Feed.objects.get(pk=9)
-        p = Product.objects.get(pk=12) # out of stock product
-        i = ProductImage.objects.get(pk=4)
-        p.default_image = i
-        p.product_images.add(i)
-        f.add(p)
         store.display_out_of_stock = True # includes p in ir_filter
         store.save()
-        logging.debug([t.placeholder for t in f.tiles.all()])
-        rslt = algorithms.ir_filter(tiles=tiles, feed=feed)
-        self.assertEqual(len(rslt), len(tiles))
-        self.assertEqual(rslt[0], tiles[0])
 
-    def filter_tiles_no_feed_no_tiles_test(self):
+        f = Feed.objects.get(pk=9) # has 2 in stock tiles
+        tiles = list(f.tiles.all()) # force load
+        p = Product.objects.get(pk=12) # out of stock product
+        i = ProductImage.objects.get(pk=4)
+        p.product_images.add(i)
+        new_tile, _ = f.add(p)
+        tiles.append(new_tile) # add out of stock tile
+
+        result = algorithms.ir_filter(feed=f) # does not filter out of stock b/c store
+        self.assertTrue(set(tiles) == set(result))
+
+    def filter_no_feed_no_tiles_test(self):
         with self.assertRaises(ValueError): 
             algorithms.ir_filter()
 
