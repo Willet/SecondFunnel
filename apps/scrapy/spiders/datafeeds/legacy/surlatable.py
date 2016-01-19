@@ -78,7 +78,7 @@ class SurLaTableDatafeed(CJDatafeed):
             sold_out_products = []
 
             # Update existing similar products
-            for sp in product.similar_products.all():
+            for sp in product.similar_products.iterator():
                 (sp_data, _) = self.lookup_table.find(mappings=[("SKU", sp.sku)], first=True)
                 if sp_data:
                     self._update_product_cj_fields(sp, sp_data)
