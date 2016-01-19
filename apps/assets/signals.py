@@ -49,7 +49,6 @@ def content_m2m_changed(sender, **kwargs):
            Tile -> Product -> similar products updated
     """
     if sender in [Content.tagged_products.through, Product.similar_products.through]:
-        logging.debug('content_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
         
         instances = []
         added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
@@ -92,7 +91,6 @@ def content_m2m_changed(sender, **kwargs):
 def tile_m2m_changed(sender, **kwargs):
     """Re-generate cache for IR tiles if products or content changed on tile."""
     if sender in [Tile.products.through, Tile.content.through]:
-        logging.debug('tile_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
 
         tiles = []
         added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
