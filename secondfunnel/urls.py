@@ -31,13 +31,11 @@ urlpatterns = patterns('',
     url(r'^tracker/', include('apps.tracking.urls')),
     url(r'^dashboard$', lambda x: HttpResponseRedirect('/dashboard/')),
     url(r'^dashboard/', include('apps.dashboard.urls')),
+    url(r'^api2/', include('apps.api2.urls')),
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
     url(r'^graph/', include('apps.api.urls')),
-
-    # api2 test
-    url(r'^api2/', include('apps.api2.urls')),
 
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.light.views.landing_page'),

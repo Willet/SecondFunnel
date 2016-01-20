@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from apps.assets.models import (Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile)
+from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile
 
 class StoreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,25 +24,29 @@ class ContentSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ('name', 'description', 'original_url', 'file_type', 'file_checksum',
-            'width', 'height', 'dominant_color')
+        fields = ('name', 'description', 'original_url', 'file_type', 'file_checksum', 'width', 'height',
+            'dominant_color','store', 'url', 'source', 'source_url', 'author', 'tagged_products', 'attributes',
+            'status')
 
 class GifSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gif
-        fields = ('gif_url', )
+        fields = ('gif_url', 'name', 'description', 'original_url', 'file_type', 'file_checksum', 'width', 
+            'height', 'dominant_color','store', 'url', 'source', 'source_url', 'author', 'tagged_products',
+            'attributes', 'status')
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = ('product', 'url', 'original_url', 'file_type', 'file_checksum', 'width',
-            'height', 'dominant_color', 'image_sizes', 'attributes')
+        fields = ('product', 'url', 'original_url', 'file_type', 'file_checksum', 'width', 'height', 
+            'dominant_color', 'image_sizes', 'attributes')
 
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ('name', 'caption', 'username', 'description', 'player', 'file_type',
-            'file_checksum', 'original_id')
+        fields = ('name', 'caption', 'username', 'description', 'player', 'file_type', 'file_checksum', 
+            'original_id', 'store', 'url', 'source', 'source_url', 'author', 'tagged_products', 
+            'attributes', 'status')
 
 class PageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,9 +59,4 @@ class TileSerializer(serializers.ModelSerializer):
         model = Tile
         fields = ('feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
             'in_stock', 'attributes')
-
-class TileConfigSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tile
-        fields = ('feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
-            'in_stock', 'attributes')
+        
