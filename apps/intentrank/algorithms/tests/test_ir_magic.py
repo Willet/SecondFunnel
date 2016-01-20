@@ -88,12 +88,12 @@ class TileRatioContainerTest(TestCase):
     def init_test(self):
         tile = Tile.objects.get(pk=10)
         feed = Feed.objects.get(pk=9)
-        feed.tiles.add(tile)
+        feed.add(tile)
         trc = TileRatioContainer(feed.tiles.all(), len(feed.tiles.all()))
-        self.assertEqual(trc.tiles[0], feed.tiles.first())
-        self.assertEqual(trc.total, len(feed.tiles.all()))
+        self.assertTrue(set(trc.tiles) == set(feed.tiles.all()))
+        self.assertEqual(trc.total, feed.tiles.count())
         self.assertEqual(trc.ratio, 1)
-        self.assertEqual(trc.num_total_tiles, 1)
+        self.assertEqual(trc.num_total_tiles, feed.tiles.count())
         self.assertEqual(trc.num_added, 0)
 
     def get_next_tile_test(self):
