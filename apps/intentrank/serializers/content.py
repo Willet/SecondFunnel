@@ -35,19 +35,12 @@ class ProductSerializer(IRSerializer):
 
         try:
             data["default-image"] = product.default_image.serializer().get_dump_object(product.default_image)
-            data["sizes"] = product.default_image.get('sizes', None)
-            data["orientation"] = product.default_image.orientation
         except AttributeError:
             try:
                 # fall back to first image
                 data["default-image"] = product_images[0].serializer().get_dump_object(product_images[0])
-                data["sizes"] = product_images[0].get('sizes', None)
-                data["orientation"] = product_images[0].orientation
             except (IndexError, AttributeError):
                 data['default-image'] = {}
-                data['sizes'] = {}
-                data['orientation'] = "portrait"
-
         
         if shallow:
             # Just have the default image & skip similar products
@@ -91,6 +84,13 @@ class ProductImageSerializer(IRSerializer):
     """This dumps some fields from the image as JSON."""
     def get_dump_object(self, product_image):
         """This will be the data used to generate the object."""
+        default_image_sizes = {
+            'master': {
+                'url': product_image.url,
+                'width': getattr(product_image, "width", '100%'),
+                'height': getattr(product_image, "height", '100%'),
+            },
+        }
 
         data = {
             "format": product_image.file_type or "jpg",
@@ -98,10 +98,7 @@ class ProductImageSerializer(IRSerializer):
             "dominant-color": product_image.dominant_color or "transparent",
             "url": product_image.url,
             "id": product_image.id,
-            "sizes": product_image.attributes.get('sizes', {
-                'width': getattr(product_image, "width", '100%'),
-                'height': getattr(product_image, "height", '100%'),
-            }),
+            "sizes": dict(product_image.image_sizes) or default_image_sizes,
             "orientation": product_image.orientation,
         }
 
