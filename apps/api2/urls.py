@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
 import views
+from decorators import check_login
 
 # The API URLs are now determined automatically by the router.
 # Additionally, we include the login URLs for the browsable API.

@@ -6,7 +6,6 @@ from django.http import HttpResponse, HttpResponseNotAllowed
 from apps.utils.functional import check_keys_exist, check_other_keys_dont_exist
 from secondfunnel.errors import MissingRequiredKeysError, TooManyKeysError
 
-
 def check_login(fn):
     """wrap the function around three wrappers that check for custom login."""
     @wraps(fn)
@@ -22,10 +21,8 @@ def check_login(fn):
                 content_type='application/json',
                 status=401
             )
-
         return fn(*args, **kwargs)
     return wrapped
-
 
 def append_headers(fn):
     """Provide the function's request object with a new NEW_HEADERS
@@ -49,7 +46,6 @@ def append_headers(fn):
 
         return fn(*args, **kwargs)
     return wrapped
-
 
 def validate_json_deserializable(fn):
     """Returns a malformed-json error if the message is not

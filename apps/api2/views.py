@@ -1,7 +1,7 @@
 from serializers import (StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer,
     ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, TileConfigSerializer)
-#from django.contrib.auth.models import User
-from permissions import IsOwnerOrReadOnly
+
+from decorators import check_login
 
 from rest_framework.decorators import api_view
 
@@ -58,12 +58,11 @@ class ImageList(generics.ListAPIView):
 class GifViewSet(viewsets.ModelViewSet):
     queryset = Gif.objects.all()
     serializer_class = GifSerializer
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-    #                       IsOwnerOrReadOnly,)
 
 class GifList(generics.ListAPIView):
     queryset = Gif.objects.all()
     serializer_class = GifSerializer
+    #permission_classes = (permissions.IsAuthenticated,)
 
 class ProductImageViewSet(viewsets.ModelViewSet):
     queryset = ProductImage.objects.all()
@@ -104,12 +103,6 @@ class TileViewSet(viewsets.ModelViewSet):
 class TileList(generics.ListAPIView):
     queryset = Tile.objects.all()
     serializer_class = TileSerializer
-
-# class TileConfigViewSet(viewsets.ModelViewSet):
-#     queryset = TileConfig.objects.all()
-#     serializer_class = TileConfigSerializer
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-#                           IsOwnerOrReadOnly,)
 
 @api_view(('GET',))
 def api_root(request, format=None):
