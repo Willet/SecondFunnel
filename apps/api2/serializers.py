@@ -1,10 +1,5 @@
-import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
-
-from django.core.serializers.json import Serializer as JSONSerializer
-from django.utils.text import slugify
-from apps.utils.classes import MemcacheSetting
 
 from apps.assets.models import (Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile)
 

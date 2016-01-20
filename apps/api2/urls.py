@@ -1,11 +1,7 @@
 from django.conf.urls import include, url
 import views
-from decorators import check_login
 
-# The API URLs are now determined automatically by the router.
-# Additionally, we include the login URLs for the browsable API.
 urlpatterns = [
-    #url(r'^', include(router.urls)),
     url(r'^$', views.api_root, name='api-root'),
 
     url(r'^store/$', views.StoreList.as_view(), name='store-list'),
