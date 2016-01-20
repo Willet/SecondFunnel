@@ -87,8 +87,8 @@ class ProductImageSerializer(IRSerializer):
         default_image_sizes = {
             'master': {
                 'url': product_image.url,
-                'width': getattr(product_image, "width", '100%'),
-                'height': getattr(product_image, "height", '100%'),
+                'width': product_image.width or '100%',
+                'height': product_image.height or '100%',
             },
         }
 

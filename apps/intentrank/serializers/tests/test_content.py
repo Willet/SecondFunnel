@@ -15,8 +15,6 @@ class ProductSerializerTest(TestCase):
         s = ir_serializers.ProductSerializer()
         data = s.get_dump_object(product)
         self.assertEqual(data['default-image'], {})
-        self.assertEqual(data['sizes'], {})
-        self.assertEqual(data['orientation'], "portrait")
         self.assertEqual(data["url"], product.url)
         self.assertEqual(data["sku"], getattr(product, "sku", ""))
         self.assertEqual(data["price"], product.price)
@@ -37,8 +35,6 @@ class ProductSerializerTest(TestCase):
         s = ir_serializers.ProductSerializer()
         data = s.get_dump_object(product, shallow=True)
         self.assertEqual(data['default-image'], image.to_json())
-        self.assertEqual(data['sizes'], None)
-        self.assertEqual(data['orientation'], "portrait")
         self.assertEqual(data["url"], product.url)
         self.assertEqual(data["sku"], getattr(product, "sku", ""))
         self.assertEqual(data["price"], product.price)
@@ -53,8 +49,11 @@ class ProductSerializerTest(TestCase):
         self.assertEqual(data["images"], [{
             'orientation': 'portrait',
             'sizes': {
-                'width': 0,
-                'height': 0
+                'master': {
+                    'url': u'/image.jpg',
+                    'width': '100%',
+                    'height': '100%',
+                },
             },
             'url': u'/image.jpg',
             'format': 'jpg',
@@ -79,10 +78,13 @@ class ProductImageSerializerTest(TestCase):
         self.assertEqual(data["url"], product_image.url)
         self.assertEqual(data["id"], product_image.id)
         self.assertEqual(data["orientation"], product_image.orientation)
-        self.assertEqual(data["sizes"], product_image.attributes.get('sizes', {
-                    'width': getattr(product_image, "width", '100%'),
-                    'height': getattr(product_image, "height", '100%'),
-                }))
+        self.assertEqual(data["sizes"], {
+            'master': {
+                'url': u'/image.jpg',
+                'width': '100%',
+                'height': '100%',
+            },
+        })
 
         logging.debug(data)
 
