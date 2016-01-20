@@ -1,4 +1,5 @@
 from functools import wraps
+import logging
 
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -35,10 +36,13 @@ def filter_tiles(fn):
         elif not feed:
             raise ValueError("Either tiles or feed must be supplied")
         else:
+            logging.debug(feed.tiles)
             tiles = feed.tiles
         
         # Filter out of stock tiles
         filters = Q(placeholder=False)
+
+        logging.debug(feed.store.display_out_of_stock)
 
         if not feed.store.display_out_of_stock:
             filters = filters & Q(in_stock=True)
@@ -54,6 +58,8 @@ def filter_tiles(fn):
             filters = filters & Q(template__in=['product','banner'])
         elif content_only:
             filters = filters & Q(template__in=['product','banner'])
+
+        logging.debug(filters)
 
         tiles = tiles.filter(filters)
 

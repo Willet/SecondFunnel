@@ -1,5 +1,4 @@
 import json
-import logging
 
 from django.db import models, transaction
 from django.db.models.signals import post_save, m2m_changed
@@ -50,7 +49,6 @@ def content_m2m_changed(sender, **kwargs):
            Tile -> Product -> similar products updated
     """
     if sender in [Content.tagged_products.through, Product.similar_products.through]:
-        logging.debug('content_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
         
         instances = []
         added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
@@ -82,7 +80,7 @@ def content_m2m_changed(sender, **kwargs):
                 # validation can be skipped because 
                 # only 2nd order product/content relationships are changed
                 ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-                logging.debug("\ttile updated: {}".format(ir_cache))
+
                 if updated:
                     post_save.disconnect(tile_saved, sender=Tile)
                     models.Model.save(tile, update_fields=['ir_cache', 'placeholder'])
@@ -93,7 +91,6 @@ def content_m2m_changed(sender, **kwargs):
 def tile_m2m_changed(sender, **kwargs):
     """Re-generate cache for IR tiles if products or content changed on tile."""
     if sender in [Tile.products.through, Tile.content.through]:
-        logging.debug('tile_m2m_changed {} {} {}'.format(kwargs.get('action'), sender, kwargs.get('reverse')))
 
         tiles = []
         added_or_removed_keys = kwargs.get('pk_set') or [] # for some signals, pk_set is None
@@ -120,7 +117,7 @@ def tile_m2m_changed(sender, **kwargs):
         for tile in tiles:
             # must validate
             ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-            logging.debug("\ttile updated: {}".format(ir_cache))
+            
             if updated:
                 post_save.disconnect(tile_saved, sender=Tile)
                 tile.save() # run full clean before saving ir cache
@@ -135,7 +132,6 @@ def tile_saved(sender, **kwargs):
         return
 
     ir_cache, updated = tile.update_ir_cache() # sets tile.ir_cache
-    logging.debug("tile_saved {}".format(ir_cache))
     if updated:
         post_save.disconnect(tile_saved, sender=Tile)
         models.Model.save(tile, update_fields=['ir_cache', 'placeholder']) # skip full_clean

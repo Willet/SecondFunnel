@@ -145,6 +145,7 @@ class BaseModel(models.Model, SerializableMixin):
         m2m_kwargs.update(m2m_update)
 
         new_obj = cls(**local_kwargs)
+        # raise Exception("{}, class: {}".format(new_obj, type(new_obj)))
 
         with transaction.atomic():
             with delay_tile_serialization():
@@ -264,6 +265,7 @@ class BaseModel(models.Model, SerializableMixin):
         :raises <AllSortsOfException>s, depending on input
         :returns tuple  (object, updated, created)
         """
+        logging.debug(cls)
         updated = created = False
 
         if not defaults:

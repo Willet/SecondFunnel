@@ -1,6 +1,6 @@
 from django.core.management import call_command
 from django.db.models.base import ModelBase
-from django.db import models, transaction
+from django.db import models, transaction, connection
 from django.core.exceptions import ValidationError, ObjectDoesNotExist, MultipleObjectsReturned
 import mock
 import datetime
@@ -9,7 +9,9 @@ import logging
 import itertools
 from django.test import TestCase
 from django.db.models.signals import post_save, m2m_changed
+from django.conf import settings
 
+import apps.assets
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
 from apps.imageservice.utils import delete_cloudinary_resource, delete_s3_resource
@@ -19,10 +21,55 @@ import apps.intentrank.serializers as ir_serializers
 from apps.assets.signals import content_m2m_changed, content_saved, product_saved, \
                                 productimage_saved, tile_m2m_changed, tile_saved
 
-# class BaseModelTest(TestCase):
-#     def setUp(self):
-#         # create a dummy model to inherit abstract class BaseModel
-#         self.model = ModelBase(BaseModel)
+
+class BaseModelTest(TestCase):
+    fixtures = ['assets_models.json']
+
+    def bm_copy_test(self):
+        # store was chosen because it is the simplest object
+        b = Store.objects.get(pk=1)
+        b.random_field = "random value"
+        result = b._copy(b)
+        self.assertEqual(result["name"], "MyStore")
+        self.assertEqual(result["description"], "")
+        self.assertEqual(result["slug"], "store_slug")
+        self.assertEqual(result["default_theme"], None)
+        self.assertEqual(result["default_page"], None)
+        self.assertEqual(result["public_base_url"], "http://gifts.mystore.com")
+        self.assertEqual(result["random_field"], None) # not changed
+        self.assertNotEqual(result.pk, b.pk)
+
+    def bm_replace_relations_test(self):
+        # for merging products
+        b = Product.objects.get(pk=3)
+        o = Product.objects.get(pk=12)
+        b.similar_products.add(o)
+        b._replace_relations([o])
+        # should undo similar_products.add
+        self.assertEqual(len(b.similar_products.all()), 1)
+        self.assertEqual(b.similar_products.first(), b)
+
+    def update_ir_cache_test(self):
+        b = Store.objects.get(pk=1)
+        old_ir_cache = b.ir_cache # = None, FYI
+        with mock.patch('apps.assets.models.Store.to_str', autospec=True) as mocked_handler:
+            b.update_ir_cache()
+            self.assertEquals(mocked_handler.call_count, 1)
+        self.assertIs(type(b.ir_cache).__class__, mock.MagicMock.__class__)
+
+    def update_or_create_test(self):
+        b = Store.objects.get(pk=1)
+        obj, created, updated = b.update_or_create(pk=1)
+        self.assertEqual(obj, b)
+        self.assertEqual(created, False)
+        self.assertEqual(updated, False)
+
+    def get_test(self):
+        b = Store.objects.get(pk=1)
+        self.assertEqual(b.get("name"), "MyStore")
+        self.assertIsNone(b.get("nothing"))
+        # raise Exception()
+
 
 class StoreTest(TestCase):
     # Store has no methods
@@ -35,6 +82,7 @@ class StoreTest(TestCase):
         self.assertIsNot(self.store.cg_created_at, None)
         self.assertIsNot(self.store.cg_updated_at, None)
         self.assertTrue(self.store.id > 0)
+
 
 class ThemeTest(TestCase):
     # Theme has no methods
@@ -53,6 +101,7 @@ class ThemeTest(TestCase):
     def load_theme_test(self):
         t = Theme.objects.get(pk=2)
         self.assertEqual(t.load_theme(), u'mystore/landingpage/default/index.html')
+
 
 class ProductTest(TestCase):
     # Product has a method - clean
@@ -1278,6 +1327,7 @@ class FeedTest(TestCase):
                         'results': {'in_stock': instock_count, 'placeholder': placeholder_count, 'out_of_stock': outstock_count}
                     })
 
+
 class TileTest(TestCase):
     # Tile has no methods
     fixtures = ['assets_models.json']
@@ -1400,4 +1450,3 @@ class TileTest(TestCase):
         t = Tile.objects.get(pk=10)
         with self.assertRaises(LookupError):
             t.get_first_content_of(Content)
-
