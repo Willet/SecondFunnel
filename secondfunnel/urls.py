@@ -36,10 +36,11 @@ urlpatterns = patterns('',
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
     url(r'^graph/', include('apps.api.urls')),
 
+    # api2 test
+    url(r'^api2/', include('apps.api2.urls')),
+
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.light.views.landing_page'),
-
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
     # special top-level urls for RSS feeds
     url(r'^(?P<page_id>\d+)/(?P<feed_name>[^/\.]+\.rss)$',
