@@ -165,6 +165,7 @@ CLOUDINARY = {
 # REST Framework API settings
 
 REST_FRAMEWORK = {
+    'PAGE_SIZE': 10,
     'PAGINATE_BY': 50,
     'PAGINATE_BY_PARAM': 'page_size',
     'MAX_PAGINATE_BY': 100,
