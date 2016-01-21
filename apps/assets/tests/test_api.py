@@ -445,3 +445,41 @@ class APITest(APITestCase):
         response = self.client.get(reverse('tile-list')+'100/')
         self.assertEqual(response.data,{u'detail': u'Not found'})
         self.assertEqual(response.data[u'detail'],u'Not found')
+
+    def feed_test(self):
+        response = self.client.get(reverse('feed-list'))
+        self.assertEqual(len(response.data),4)
+        self.assertEqual(response.data[0]['id'],9)
+        self.assertEqual(response.data[0]['feed_algorithm'],"magic")
+        self.assertEqual(response.data[0]['feed_ratio'],Decimal('0.20'))
+        self.assertEqual(response.data[1]['id'],13)
+        self.assertEqual(response.data[1]['feed_algorithm'],"priority")
+        self.assertEqual(response.data[1]['feed_ratio'],Decimal('0.6'))
+
+    def feed_single_test(self):
+        response = self.client.get(reverse('feed-list')+'18/')
+        self.assertEqual(response.data['feed_algorithm'],"non-priority")
+        self.assertEqual(response.data['feed_ratio'],Decimal('0.3'))
+
+    def feed_error_test(self):
+        response = self.client.get(reverse('feed-list')+'100/')
+        self.assertEqual(response.data,{u'detail': u'Not found'})
+        self.assertEqual(response.data[u'detail'],u'Not found')
+
+    def category_test(self):
+        response = self.client.get(reverse('category-list'))
+        self.assertEqual(len(response.data),2)
+        self.assertEqual(response.data[0]['name'],u'TestCategory')
+        self.assertEqual(response.data[0]['id'],7)
+        self.assertEqual(response.data[1]['name'],u'TestCategory2')
+        self.assertEqual(response.data[1]['id'],8)
+
+    def category_single_test(self):
+        response = self.client.get(reverse('category-list')+'8/')
+        self.assertEqual(response.data['name'],u'TestCategory2')
+        self.assertEqual(response.data['id'],8)
+
+    def category_error_test(self):
+        response = self.client.get(reverse('category-list')+'100/')
+        self.assertEqual(response.data,{u'detail': u'Not found'})
+        self.assertEqual(response.data[u'detail'],u'Not found')

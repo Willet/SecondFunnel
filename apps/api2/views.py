@@ -1,7 +1,5 @@
-from serializers import (StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer,
-    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer)
-#from django.contrib.auth.models import User
-from permissions import IsOwnerOrReadOnly
+from serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
+    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer
 
 from rest_framework.decorators import api_view
 
@@ -13,7 +11,7 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework import generics
 
-from apps.assets.models import (Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile)
+from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 
 class StoreViewSet(viewsets.ModelViewSet):
     queryset = Store.objects.all()
@@ -87,15 +85,33 @@ class TileList(generics.ListAPIView):
     queryset = Tile.objects.all()
     serializer_class = TileSerializer
 
+class FeedViewSet(viewsets.ModelViewSet):
+    queryset = Feed.objects.all()
+    serializer_class = FeedSerializer
+
+class FeedList(generics.ListAPIView):
+    queryset = Feed.objects.all()
+    serializer_class = FeedSerializer
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+class CategoryList(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
 @api_view(('GET',))
 def api_root(request, format=None):
     return Response({
         'store': reverse('store-list', request=request, format=format),
-        'snippets': reverse('product-list', request=request, format=format),
+        'product': reverse('product-list', request=request, format=format),
         'content': reverse('content-list', request=request, format=format),
         'image': reverse('image-list', request=request, format=format),
         'gif': reverse('gif-list', request=request, format=format),
         'productimage': reverse('productimage-list', request=request, format=format),
         'page': reverse('page-list', request=request, format=format),
-        'tile': reverse('tile-list', request=request, format=format)
+        'tile': reverse('tile-list', request=request, format=format),
+        'feed': reverse('feed-list', request=request, format=format),
+        'category': reverse('category-list', request=request, format=format)
     })

@@ -230,7 +230,9 @@
     "pk": 9,
     "fields": {
       "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "updated_at": "2015-11-18 00:43:26",
+      "feed_ratio": 0.20,
+      "feed_algorithm": "magic"
     }
   },
     {
@@ -238,6 +240,8 @@
     "pk": 13,
     "fields": {
       "store": 1,
+      "feed_ratio": 0.6,
+      "feed_algorithm": "priority",
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -246,6 +250,8 @@
     "pk": 18,
     "fields": {
       "store": 1,
+      "feed_ratio": 0.3,
+      "feed_algorithm": "non-priority",
       "updated_at": "2015-11-18 00:43:26"
     }
   },

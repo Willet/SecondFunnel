@@ -12,6 +12,8 @@ router.register(r'productimage', views.ProductImageViewSet)
 router.register(r'video', views.VideoViewSet)
 router.register(r'page', views.PageViewSet)
 router.register(r'tile', views.TileViewSet)
+router.register(r'feed', views.FeedViewSet)
+router.register(r'category', views.CategoryViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
@@ -24,5 +26,7 @@ urlpatterns = [
     url(r'^video/$', views.VideoList.as_view(), name='video-list'),
     url(r'^page/$', views.PageList.as_view(), name='page-list'),
     url(r'^tile/$', views.TileList.as_view(), name='tile-list'),
+    url(r'^feed/$', views.FeedList.as_view(), name='feed-list'),
+    url(r'^category/$', views.CategoryList.as_view(), name='category-list'),
     url(r'^auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

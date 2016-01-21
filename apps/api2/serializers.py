@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile
+from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 
 class StoreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,3 +59,14 @@ class TileSerializer(serializers.ModelSerializer):
         model = Tile
         fields = ('id', 'feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
             'in_stock', 'attributes')
+
+class FeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feed
+        fields = ('id', 'feed_algorithm', 'feed_ratio', 'store', 'is_finite', 'source_urls', 'spider_name', 'created_at', 
+            'updated_at')
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'tiles', 'store', 'name', 'url', 'created_at', 'updated_at')
