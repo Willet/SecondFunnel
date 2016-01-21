@@ -14,3 +14,8 @@ SOUTH_TESTS_MIGRATE = False
 DATABASES['default']['NAME'] = 'sfdb'
 DATABASES['default']['HOST'] = 'localhost'
 DATABASES['default']['PORT'] = 5432
+
+#disable API authentication requirements for testing
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': []
+}

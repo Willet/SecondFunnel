@@ -59,4 +59,3 @@ class TileSerializer(serializers.ModelSerializer):
         model = Tile
         fields = ('id', 'feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
             'in_stock', 'attributes')
-        
