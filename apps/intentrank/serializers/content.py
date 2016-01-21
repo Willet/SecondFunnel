@@ -44,7 +44,7 @@ class ProductSerializer(IRSerializer):
         
         if shallow:
             # Just have the default image & skip similar products
-            data["images"] = [data["default-image"]]
+            data["images"] = [data["default-image"]] if data['default-image'] else []
         else:
             # Order images
             if product.attributes.get('product_images_order'):
@@ -70,9 +70,9 @@ class ProductSerializer(IRSerializer):
             data["images"] = [image.serializer().get_dump_object(image) for image in product_images]
 
             # Include a shallow similar_products. Prevents infinite loop
-            similar_products = product.similar_products.all()
+            similar_products = product.similar_products.filter(placeholder=False)
             if not product.store.display_out_of_stock:
-                similar_products = similar_products.filter(in_stock=True, placeholder=False)
+                similar_products = similar_products.filter(in_stock=True)
 
             for product in similar_products:
                 data['tagged-products'].append(self.get_dump_object(product, shallow=True))
@@ -121,9 +121,9 @@ class ContentSerializer(IRSerializer):
             'tagged-products': [],
         }
 
-        tagged_products = content.tagged_products.all()
+        tagged_products = content.tagged_products.filter(placeholder=False)
         if not content.store.display_out_of_stock:
-            tagged_products = tagged_products.filter(in_stock=True, placeholder=False)
+            tagged_products = tagged_products.filter(in_stock=True)
 
         for product in tagged_products:
             data['tagged-products'].append(product.serializer().get_dump_object(product, shallow=True))

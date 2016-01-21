@@ -39,8 +39,13 @@
     "pk": 3,
     "fields": {
       "name": "Default",
+      "description": "foo",
+      "details": "bar",
+      "sku": "123ABC",
       "store": 1,
       "price": 19.99,
+      "sale_price": 9.99,
+      "in_stock": true,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -80,6 +85,15 @@
   {
     "model": "assets.ProductImage",
     "pk": 4,
+    "fields": {
+      "url": "/image.jpg",
+      "original_url": "test.com/image.jpg",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.ProductImage",
+    "pk": 5,
     "fields": {
       "url": "/image.jpg",
       "original_url": "test.com/image.jpg",

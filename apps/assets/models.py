@@ -441,7 +441,7 @@ class Product(BaseModel):
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
     # currently known used attrs:
-    # - product_set
+    # - product_images_order: list(<ProductImage> id's in order they should appear) TODO add validation
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     similar_products = models.ManyToManyField('self', related_name='reverse_similar_products',
