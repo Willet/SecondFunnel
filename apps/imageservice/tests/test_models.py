@@ -27,6 +27,15 @@ class ImageSizesTest(TestCase):
         img_sizes = ImageSizes(internal_json=internal_json)
         self.assertEqual(img_sizes, self.img_sizes)
 
+    def init_internal_dict_test(self):
+        self.img_sizes[self.name] = self.size
+        self.img_sizes[self.name2] = self.size4
+        img_sizes = ImageSizes(internal_dict={
+            self.name: self.size,
+            self.name2: self.size4,
+        })
+        self.assertEqual(img_sizes, self.img_sizes)
+
     def add_test(self):
         # add new size, should not call _remove
         with patch.object(self.img_sizes, '_remove'):

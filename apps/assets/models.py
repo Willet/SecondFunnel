@@ -21,17 +21,10 @@ from apps.imageservice.utils import delete_resource, is_hex_color
 import apps.intentrank.serializers as ir_serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
+from apps.utils.functional import get_image_file_type
 from apps.utils.classes import MemcacheSetting
 
 from .utils import delay_tile_serialization
-
-
-default_master_size = {
-    'master': {
-        'width': '100%',
-        'height': '100%',
-    }
-}
 
 
 class SerializableMixin(object):
@@ -441,7 +434,7 @@ class Product(BaseModel):
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
     # currently known used attrs:
-    # - product_set
+    # - product_images_order: list(<ProductImage> id's in order they should appear) TODO add validation
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     similar_products = models.ManyToManyField('self', related_name='reverse_similar_products',
@@ -715,7 +708,15 @@ class Image(Content):
 
     def save(self, *args, **kwargs):
         """attributes.sizes.master is populated by cloudinary
+
+            TODO: move attributes['sizes'] to Image.sizes & make ImageSizesField
+            TODO: if sizes.master is not populated, should use PIL to determine width/height
         """
+        default_master_size = {
+            'url': self.url,
+            'width': 0,
+            'height': 0,
+        }
         master_size = default_master_size
         try:
             master_size = self.attributes['sizes']['master']
@@ -723,15 +724,19 @@ class Image(Content):
             pass
         except TypeError:
             if isinstance(self.attributes, list):
-                self.attributes = { "sizes": default_master_size }
+                self.attributes = { "sizes": { 'master': default_master_size, } }
 
         if master_size:
-            self.width = master_size.get('width', 0)
-            self.height = master_size.get('height', 0)
+            self.width = master_size.get('width', None)
+            self.height = master_size.get('height', None)
             logging.info(u"Setting {} width and height to {}x{}".format(self, self.width, self.height))
 
         return super(Image, self).save(*args, **kwargs)
 
+    def clean(self):
+        file_type = get_image_file_type(self.url)
+        if file_type:
+            self.file_type = file_type
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
@@ -744,6 +749,9 @@ class Gif(Image):
 
     serializer = ir_serializers.GifSerializer
     cg_serializer = cg_serializers.GifSerializer
+
+    def clean(self):
+        self.file_type = "gif"
 
 
 class Video(Content):

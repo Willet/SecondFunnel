@@ -39,8 +39,13 @@
     "pk": 3,
     "fields": {
       "name": "Default",
+      "description": "foo",
+      "details": "bar",
+      "sku": "123ABC",
       "store": 1,
       "price": 19.99,
+      "sale_price": 9.99,
+      "in_stock": true,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -88,11 +93,20 @@
   },
   {
     "model": "assets.ProductImage",
+    "pk": 5,
+    "fields": {
+      "url": "/image.jpg",
+      "original_url": "test.com/image.jpg",
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.ProductImage",
     "pk": 11,
     "fields": {
       "product": 13,
       "image_sizes": "{\"h400\": {\"url\": \"http://images.secondfunnel.com/foo/h400/bar.jpg\", \"height\": 400}, \"master\": {\"url\": \"http://images.secondfunnel.com/foo/bar.jpg\", \"width\": 640, \"height\": 480}, \"w400\": {\"url\": \"http://images.secondfunnel.com/foo/w400/bar.jpg\", \"width\": 400, \"height\": 400}}",
-      "url": "/another-image.jpg",
+      "url": "/another-image.png",
       "original_url": "test.com/another-image.jpg",
       "updated_at": "2015-11-18 00:43:26"
     }
@@ -133,6 +147,40 @@
       "url": "/content.jpg",
       "source": "upload",
       "original_url": "test.com/image.jpg",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Image",
+    "pk": 16,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "original_url": "test.com/image.gif",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Gif",
+    "pk": 16,
+    "fields": {
+      "url": "/content.jpg",
+      "gif_url": "/content.gif",
+      "source": "upload",
+      "original_url": "test.com/image.gif",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Video",
+    "pk": 6,
+    "fields": {
+      "url": "/content.jpg",
+      "source": "upload",
+      "player": "youtube",
       "store": 1,
       "updated_at": "2015-11-18 00:43:26"
     }
