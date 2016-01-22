@@ -162,6 +162,18 @@ CLOUDINARY = {
     'api_secret': CLOUDINARY_API_SECRET
 }
 
+# REST Framework API settings
+
+REST_FRAMEWORK = {
+    'PAGE_SIZE': 10,
+    'PAGINATE_BY': 50,
+    'PAGINATE_BY_PARAM': 'page_size',
+    'MAX_PAGINATE_BY': 100,
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
+
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJOVROL7FV33DULAA'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -309,6 +321,7 @@ THIRD_PARTY_APPS = (
 LOCAL_APPS = (
     # our apps
     'apps.api',
+    'apps.api2',
     'apps.assets',
     'apps.intentrank',
     'apps.contentgraph',

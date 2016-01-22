@@ -31,6 +31,7 @@ urlpatterns = patterns('',
     url(r'^tracker/', include('apps.tracking.urls')),
     url(r'^dashboard$', lambda x: HttpResponseRedirect('/dashboard/')),
     url(r'^dashboard/', include('apps.dashboard.urls')),
+    url(r'^api2/', include('apps.api2.urls')),
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
