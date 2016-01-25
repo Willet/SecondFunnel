@@ -1,0 +1,49 @@
+{% extends 'console_base.html' %}
+{% load static %}
+{% if user.is_authenticated %}
+    {% block head %} {{ user.first_name }} {% endblock %}
+{% endif %}
+{% block main %}
+
+    <div id="main-content">
+        <div class="page-content">
+            <div class="row">
+                <div class="col-md-12">
+                    <h2><i class="fa fa-dashboard"></i>Welcome
+                        {% if user.is_authenticated %}
+                            {{ user.first_name }}
+                        {% endif %} to {{ siteName }} Dashboard Management
+                    </h2>
+                </div>
+                <!--/col-md-12-->
+            </div>
+            <!--/row-->
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="block-web">
+                        <h3 class="content-header">
+                            Add product:
+                        </h3>
+                        <form>
+                            URL: <input type="text" field="url"><br>
+                            SKU: <input type="text" field="sku"><br>
+                            <input type="submit" value="submit">
+                        </form>
+                    </div>
+                    <div class="block-web">
+                        <h3 class="content-header">
+                            Remove product:
+                        </h3>
+                    </div>
+                    <!--/block-web-->
+                </div>
+                <!--/col-md-12-->
+            </div>
+            <!--/row-->
+
+
+        </div>
+        <!--/page-content end-->
+    </div><!--/main-content end-->
+{% endblock %}

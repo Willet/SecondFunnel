@@ -139,6 +139,29 @@ def overview(request):
         'domain': settings.WEBSITE_BASE_URL,
     })
 
+@login_required(login_url=LOGIN_URL)
+def dashboard_manage(request, dashboard_slug):
+    profile = UserProfile.objects.get(user=request.user)
+    dashboards = profile.dashboards.all()
+    dashboard_id = ''
+    for x in range(0, dashboards.count()):
+        if dashboards[x].page.url_slug == dashboard_slug:
+            dashboard_id = dashboards[x].pk
+            break
+
+    if dashboard_id == '' or not profile.dashboards.all().filter(pk=dashboard_id):
+        # can't view page
+        return HttpResponseRedirect('/dashboard/')
+    else:
+        context_dict = {}
+        try:
+            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
+        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            return HttpResponseRedirect('/dashboard/')
+        context_dict['dashboard_id'] = cur_dashboard.pk
+        context_dict['siteName'] = cur_dashboard.site_name
+    context = RequestContext(request)
+    return render_to_response('manage.html', context_dict, context)
 
 def user_login(request):
     """
