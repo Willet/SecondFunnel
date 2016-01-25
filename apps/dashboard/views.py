@@ -119,7 +119,6 @@ def dashboard(request, dashboard_slug):
             cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
-        print cur_dashboard
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name
 
