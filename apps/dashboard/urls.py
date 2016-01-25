@@ -8,5 +8,5 @@ urlpatterns = patterns(
     url(r'^overview', 'overview', name='overview'),
     #url(r'^register', 'user_registration', name='register'),
     url(r'retrieve-data', 'get_data', name="get_data"),
-    url(r'^(?P<dashboard_id>\d+)', 'dashboard', name='dashboard'),
+    url(r'^(?P<dashboard_slug>[-\w]+)', 'dashboard', name='dashboard'),
 )

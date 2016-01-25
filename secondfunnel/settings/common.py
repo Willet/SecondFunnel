@@ -287,7 +287,13 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    from_project_root('apps/pinpoint/static'), # DEFER: remove this
+    #from_project_root('apps/pinpoint/static'), # DEFER: remove this
+    #os.path.join(PROJECT_ROOT, 'scrapy', 'templates'),
+    #os.path.join(PROJECT_ROOT, 'dashboard', 'templates'),
+    from_project_root('apps/scrapy/templates'),
+    from_project_root('apps/dashboard/templates'),
+    from_project_root('apps/intentrank/templates'),
+    from_project_root('apps/light/templates'),
 )
 
 FRAMEWORK_APPS = (

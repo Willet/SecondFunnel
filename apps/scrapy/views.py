@@ -18,7 +18,7 @@ def index(request):
     data = {
         'stores': stores,
     }
-    return render(request, 'index.html', data)
+    return render(request, 'scrapy_index.html', data)
 
 @login_required
 def page(request, page_slug):
