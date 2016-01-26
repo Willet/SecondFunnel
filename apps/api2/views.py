@@ -21,6 +21,11 @@ class StoreList(generics.ListAPIView):
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
 
+    def post(self, request, *args, **kwargs):
+        method = kwargs.get('method')
+        print kwargs
+        return Response(method)
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

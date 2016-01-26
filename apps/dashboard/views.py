@@ -1,5 +1,6 @@
 import json
 
+from django import forms
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.shortcuts import render_to_response, render
@@ -9,18 +10,24 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from apps.assets.models import Store
+from apps.assets.models import Category, Page, Product, Store
 from apps.dashboard.models import DashBoard, UserProfile, Query
-
 
 LOGIN_URL = '/dashboard/login'
 
+class ManageForm(forms.Form):
+    selection_choices = (
+        ('URL', 'URL'),
+        ('SKU', 'SKU'),
+        ('ID', 'ID')
+    )
+    selection = forms.ChoiceField(choices=selection_choices)
+    num = forms.CharField(label='Number', max_length=100)
 
 def error(error_message):
     print error_message
     response = {'error': error_message}
     return HttpResponseServerError(json.dumps(response), content_type='application/json')
-
 
 # @cache_page(60*60)  # cache page for an hour
 # @login_required(login_url=LOGIN_URL)
@@ -77,7 +84,6 @@ def get_data(request):
     # last ditch. Unknown error happened which caused success case to not happen
     return HttpResponse(response, content_type='application/json')
 
-
 @login_required(login_url=LOGIN_URL)
 def index(request):
     """ The main page of the dashboard, shows a list of
@@ -104,13 +110,12 @@ def dashboard(request, dashboard_slug):
     """
     profile = UserProfile.objects.get(user=request.user)
     dashboards = profile.dashboards.all()
-    dashboard_id = ''
-    for x in range(0, dashboards.count()):
-        if dashboards[x].page.url_slug == dashboard_slug:
-            dashboard_id = dashboards[x].pk
-            break
+    dashboard = dashboards.filter(page__url_slug=dashboard_slug).first()
+    if not dashboard:
+        return HttpResponseRedirect('/dashboard')
+    dashboard_id = dashboard.id
 
-    if dashboard_id == '' or not profile.dashboards.all().filter(pk=dashboard_id):
+    if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
         # can't view page
         return HttpResponseRedirect('/dashboard/')
     else:
@@ -121,9 +126,7 @@ def dashboard(request, dashboard_slug):
             return HttpResponseRedirect('/dashboard/')
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name
-
         return render(request, 'dashboard.html', context_dict)
-
 
 @login_required(login_url=LOGIN_URL)
 def overview(request):
@@ -141,27 +144,79 @@ def overview(request):
 
 @login_required(login_url=LOGIN_URL)
 def dashboard_manage(request, dashboard_slug):
-    profile = UserProfile.objects.get(user=request.user)
-    dashboards = profile.dashboards.all()
-    dashboard_id = ''
-    for x in range(0, dashboards.count()):
-        if dashboards[x].page.url_slug == dashboard_slug:
-            dashboard_id = dashboards[x].pk
-            break
+    if request.method != "POST":
+        # Blank Page
+        form = ManageForm()
+        profile = UserProfile.objects.get(user=request.user)
+        dashboards = profile.dashboards.all()
+        dashboard = dashboards.filter(page__url_slug=dashboard_slug).first()
 
-    if dashboard_id == '' or not profile.dashboards.all().filter(pk=dashboard_id):
-        # can't view page
-        return HttpResponseRedirect('/dashboard/')
-    else:
-        context_dict = {}
-        try:
-            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+        if not dashboard:
+            return HttpResponseRedirect('/dashboard')
+        dashboard_id = dashboard.id
+
+        if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
             return HttpResponseRedirect('/dashboard/')
-        context_dict['dashboard_id'] = cur_dashboard.pk
-        context_dict['siteName'] = cur_dashboard.site_name
-    context = RequestContext(request)
-    return render_to_response('manage.html', context_dict, context)
+        else:
+            try:
+                cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
+            except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+                return HttpResponseRedirect('/dashboard/')
+            context = RequestContext(request)
+            return render(request, 'manage.html', {
+                    'form': form, 
+                    'context': context, 
+                    'siteName': cur_dashboard.site_name, 
+                    'status': ''
+                })
+    else:
+        form = ManageForm(request.POST)
+        action =  request.POST['submit']
+        selection = request.POST['selection']
+        num = request.POST['num']
+
+        profile = UserProfile.objects.get(user=request.user)
+        dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
+        dashboard_id = dashboard.first().id
+        page_id = dashboard.first().page_id 
+        page = Page.objects.get(pk=page_id)
+
+        status = ["Product with " + selection + ": " + num]
+
+        product = ''
+        if selection == 'URL':
+            product = Product.objects.filter(store=page.store, url=num)
+        elif selection == 'SKU':
+            product = Product.objects.filter(store=page.store, sku=num)
+        else:
+            product = Product.objects.filter(store=page.store, id=num)
+
+        if not product:
+            status.append(", Store: " + page.store.name + " has not been found. " + action + " failed.")
+        else: 
+            status.append(", Name: " + product.first().name)
+            if action == 'Add':
+                if page.feed.tiles.filter(products=product, template="product"):
+                    status.append(", Store: " + page.store.name + " is already added. " + action + " failed.")
+                else:
+                    page.feed.add(product.first())
+                    status.append(" has been added")
+            else:
+                if not page.feed.tiles.filter(products=product, template="product"):
+                    status.append(", Store: " + page.store.name + " has not been found. " + action + " failed.")
+                else:
+                    page.feed.remove(product.first())
+                    status.append(" has been removed")
+
+        status = "".join(status)
+        # Reset the form to empty
+        form = ManageForm()
+
+        return render(request, 'manage.html', {
+                'form': form, 
+                'siteName': DashBoard.objects.get(pk=dashboard_id).site_name, 
+                'status': status
+            })
 
 def user_login(request):
     """
@@ -195,9 +250,28 @@ def user_login(request):
                                   {},  # no context variables to pass
                                   context)
 
-
 @login_required(login_url=LOGIN_URL)
 def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
     return HttpResponseRedirect('/dashboard/')
+
+@login_required(login_url=LOGIN_URL)
+def add_product(request, dashboard_slug):
+    context = RequestContext(request)
+    print "add product"
+
+    if request.method == 'POST':
+        url = request.POST.get('url') 
+        sku = request.POST.get('sku')
+        id = request.POST.get('id')
+    return HttpResponseRedirect('/dashboard/' + dashboard_slug + '/manage')
+
+@login_required(login_url=LOGIN_URL)
+def remove_product(request, dashboard_slug):
+    context = RequestContext(request)
+    print "remove product"
+
+    if request.method == 'POST':
+        print "POST"
+

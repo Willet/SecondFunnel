@@ -9,10 +9,12 @@
         <div class="page-content">
             <div class="row">
                 <div class="col-md-12">
-                    <h2><i class="fa fa-dashboard"></i>Welcome
+                    <h2><i class="fa fa-dashboard"></i>
+                        Welcome
                         {% if user.is_authenticated %}
                             {{ user.first_name }}
-                        {% endif %} to {{ siteName }} Dashboard Management
+                        {% endif %} to {{ siteName }} 
+                        Dashboard Management
                     </h2>
                 </div>
                 <!--/col-md-12-->
@@ -21,20 +23,33 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <div class="block-web">
+                    <div class="block-web">                        
                         <h3 class="content-header">
-                            Add product:
+                            Add product with:
                         </h3>
-                        <form>
-                            URL: <input type="text" field="url"><br>
-                            SKU: <input type="text" field="sku"><br>
-                            <input type="submit" value="submit">
+                        <form role="form" action="manage" method="post">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <input type="submit" name="submit" value="Add">
                         </form>
+                        {% csrf_token %}
+                        {% if 'REMOVE' not in status.upper %}
+                            {{ status }}
+                        {% endif %}
                     </div>
                     <div class="block-web">
                         <h3 class="content-header">
-                            Remove product:
+                            Remove product with:
                         </h3>
+                        <form role="form" action="manage" method="post">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <input type="submit" name="submit" value="Remove">
+                        </form>
+                        {% csrf_token %}
+                        {% if 'ADD' not in status.upper %}
+                            {{ status }}
+                        {% endif %}
                     </div>
                     <!--/block-web-->
                 </div>

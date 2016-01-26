@@ -17,6 +17,7 @@ router.register(r'category', views.CategoryViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
+    url(r'store/(?P<id>[\d]+)/(?P<method>\w+)/$', views.StoreList.as_view(), name='store-list'),
     url(r'^store/$', views.StoreList.as_view(), name='store-list'),
     url(r'^product/$', views.ProductList.as_view(), name='product-list'),
     url(r'^content/$', views.ContentList.as_view(), name='content-list'),
