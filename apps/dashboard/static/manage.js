@@ -6,9 +6,8 @@ var result;
 
 var Page = Backbone.Model.extend({
     defaults: {
-        //method: "", //Add, remove
-        id: '', //ID of the asset
-        input: ''
+        selection: '' ,
+        num: ''
     },
 
     urlRoot: api_URL,
@@ -17,40 +16,34 @@ var Page = Backbone.Model.extend({
     },
 
     getCustomURL: function (method) {
-        var methodCase;
-        if (_.contains(['add', 'remove'], method))
-            methodCase = 'create';
-        switch (methodCase) {
+        switch (method) {
             case 'read':
-                return api_URL + 'page/' + this.id + '/';
-            case 'create':
-                return api_URL + 'page/' + this.id + '/' + method + '/';
+                return api_URL + 'page/' + url_slug + '/';
+            case 'add':
+                return api_URL + 'page/' + url_slug + '/' + method + '/';
+            case 'remove':
+                return api_URL + 'page/' + url_slug + '/' + method + '/';
         }
     },
 
     sync: function (method, model, options) {
-        console.log(method);
-        console.log(model);
-        console.log(options);
         options || (options = {});
         options.url = this.getCustomURL(method.toLowerCase());
-
-        if (_.contains(['add', 'remove'], method))
-            method = 'create';
-
-        console.log("----");
-        console.log(method);
-        console.log(model);
-        console.log(options);
         return Backbone.sync.call(this, method, model, options);
     },
 
     add: function (product) {
-        this.sync('add', product, product.attributes.input);
+        var options = {
+            'url': this.getCustomURL('add')
+        };
+        return Backbone.sync.call(this, 'create', product , options);
     },
 
     remove: function (product) {
-        this.sync('remove', product, product.attributes.input);
+        var options = {
+            'url': this.getCustomURL('remove')
+        };
+        return Backbone.sync.call(this, 'create', product , options);
     }
 });
 
@@ -67,31 +60,34 @@ var formView = Backbone.View.extend({
     submit: function(e) {
     	e.preventDefault();
         var method = '';
+        
         if (e.target.id == "add-form")
             method = 'add';
         else
             method = 'remove';
+
         var selection = e.target.selection.value;
         var num = e.target.id_num.value;
 
         var page = new Page({
-            //method: method,
-            id: url_slug,
-            input: {
-                selection: selection,
-                num: num
-            }
+            selection: selection,
+            num: num
         });
-        page.add(page);
-        console.log(page);
-        // page.save({}, {
-        //     success: function (model, response, options) {
-        //         console.log("Saved");
-        //     },
-        //     error: function (model, xhr, options) {
-        //         console.log("error");
-        //     }
-        // });
+        if (method == 'add') {
+            result = page.add(page);
+            result.done(function(){
+                $('#add-result').html(JSON.parse(result.responseText).status);
+                $('#remove-result').html("");
+            })
+        }
+        else{
+            result = page.remove(page);
+            result.done(function(){
+                $('#add-result').html("");
+                $('#remove-result').html(JSON.parse(result.responseText).status);
+            })       
+        }
+
     },
 });
 

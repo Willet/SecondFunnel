@@ -31,6 +31,9 @@ class ProductList(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    def post(self, request, *args, **kwargs):
+        return {"Found"}
+
 class ContentViewSet(viewsets.ModelViewSet):
     queryset = Content.objects.all()
     serializer_class = ContentSerializer
@@ -86,6 +89,7 @@ class PageList(generics.ListAPIView):
         print "request.POST"
         print request.POST
         print type(request.POST)
+
         action = kwargs.get('method').lower()
         slug = kwargs.get('id')
 
