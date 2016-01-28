@@ -10,11 +10,12 @@ from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from urlparse import urlparse
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 
 import ast
- 
+
 class StoreViewSet(viewsets.ModelViewSet):
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
@@ -27,12 +28,48 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    def post(self, request, *args, **kwargs):
+        method = kwargs.get('pk')
+        data = ''
+        product = ''
+        found = 0
+        key = []
+
+        if request.POST == {}:
+            data = ast.literal_eval(request.body)
+        else:
+            data = request.POST
+        print data
+        if len(data) < 1:
+            return Response("too few inputs")
+
+        if method == 'search':
+            if 'id' in data:
+                key = ['ID','id']
+                product = Product.objects.filter(pk = data['id'])
+
+            if 'name' in data:
+                key = ['name','name']
+                product = Product.objects.filter(name = data['name'])
+
+            if 'sku' in data:
+                key = ['SKU','sku']
+                product = Product.objects.filter(sku = data['sku'])
+
+            if 'url' in data:
+                key = ['URL', 'url']
+                product = Product.objects.filter(url = data['url'])
+
+            if product:
+                return Response("Product with " + key[0] + ": " + data[key[1]] + " has been found.")
+            else:
+                return Response("Product with " + key[0] + ": " + data[key[1]] + " could not be found.", 404)
+
+        return Response({"detail": "Method 'POST' not allowed."}, 405)
+
 class ProductList(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
-    def post(self, request, *args, **kwargs):
-        return {"Found"}
 
 class ContentViewSet(viewsets.ModelViewSet):
     queryset = Content.objects.all()
@@ -83,13 +120,6 @@ class PageList(generics.ListAPIView):
     serializer_class = PageSerializer
 
     def post(self, request, *args, **kwargs):
-        print "request.body"
-        print request.body
-        print type(request.body)
-        print "request.POST"
-        print request.POST
-        print type(request.POST)
-
         action = kwargs.get('method').lower()
         slug = kwargs.get('id')
 
@@ -154,12 +184,6 @@ class PageList(generics.ListAPIView):
             "num": num,
             "status": status,
             })
-
-    def add(self,id):
-        return 1
-
-    def remove(self,id):
-        return 1
 
 class TileViewSet(viewsets.ModelViewSet):
     queryset = Tile.objects.all()

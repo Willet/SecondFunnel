@@ -4,6 +4,37 @@ var api_URL = "http://localhost:8000/api2/";
 
 var result;
 
+var Product = Backbone.Model.extend({
+    defaults: {},
+
+    urlRoot: api_URL,
+
+    initialize: function () {
+    },
+
+    getCustomURL: function (method) {
+        switch (method) {
+            case 'read':
+                return api_URL + 'page/' + url_slug + '/';
+            case 'search':
+                return api_URL + 'product/search/';
+        }
+    },
+
+    sync: function (method, model, options) {
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.sync.call(this, method, model, options);
+    },
+
+    search: function(searchString) {
+        var options = {
+            'url': this.getCustomURL('search')
+        };
+        return Backbone.sync.call(this, 'create', searchString, options);
+    }
+})
+
 var Page = Backbone.Model.extend({
     defaults: {
         selection: '' ,
@@ -73,21 +104,42 @@ var formView = Backbone.View.extend({
             selection: selection,
             num: num
         });
-        if (method == 'add') {
-            result = page.add(page);
+        if ((method == 'add') || (method == 'remove')) {
+            var searchString = new Product();
+            if (selection == 'URL')
+                searchString.set({url: page.attributes.num});
+            if (selection == 'ID')
+                searchString.set({url: page.id});
+            if (selection == 'SKU')
+                searchString.set({url: page.attributes.sku});
+
+            result = searchString.search(searchString);
             result.done(function(){
-                $('#add-result').html(JSON.parse(result.responseText).status);
-                $('#remove-result').html("");
+                if (method == 'add') {
+                    result = page.add(page);
+                    result.done(function(){
+                        $('#add-result').html(JSON.parse(result.responseText).status);
+                        $('#remove-result').html("");
+                    })
+                }
+                else{
+                    result = page.remove(page);
+                    result.done(function(){
+                        $('#add-result').html("");
+                        $('#remove-result').html(JSON.parse(result.responseText).status);
+                    })       
+                }
+            }).fail(function(){
+                if (method == 'add'){
+                    $('#add-result').html(JSON.parse(result.responseText));
+                    $('#remove-result').html("");
+                }
+                else{
+                    $('#add-result').html("");
+                    $('#remove-result').html(JSON.parse(result.responseText));
+                }
             })
         }
-        else{
-            result = page.remove(page);
-            result.done(function(){
-                $('#add-result').html("");
-                $('#remove-result').html(JSON.parse(result.responseText).status);
-            })       
-        }
-
     },
 });
 
@@ -112,24 +164,3 @@ $(document).ready(function(){
         headers: { "X-CSRFToken": getCookie("csrftoken")}
     });
 });
-
-    // sendRequest: function (attr) {
-    //     var url = attr.attributes.apiURL + attr.attributes.asset + "/" + attr.attributes.id + "/" + attr.attributes.method + "/";
-    //     var input = attr.attributes.input;
-    //     result = jQuery.ajax({
-    //         url: url,
-    //         type: 'POST',
-    //         dataType: 'application/json',
-    //         accept: 'application/json',
-    //         data: input
-    //     });
-    //     return result;
-    // }
-
-
-
-        // result = Request.sendRequest(Request);
-        // //readystate 1
-        // console.log(result.readyState);
-        // console.log(result);
-        // $('#add-result').html(result.responseText);

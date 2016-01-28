@@ -129,6 +129,7 @@ def dashboard(request, dashboard_slug):
             return HttpResponseRedirect('/dashboard/')
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name
+        context_dict['dashboard_slug'] = dashboard_slug
         return render(request, 'dashboard.html', context_dict)
 
 @login_required(login_url=LOGIN_URL)
@@ -147,8 +148,6 @@ def overview(request):
 
 @login_required(login_url=LOGIN_URL)
 def dashboard_manage(request, dashboard_slug):
-    #if request.method != "POST":
-        # Blank Page
     form = ManageForm()
     profile = UserProfile.objects.get(user=request.user)
     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
@@ -173,32 +172,6 @@ def dashboard_manage(request, dashboard_slug):
                 'status': '',
                 'url_slug': dashboard.first().page_id
             })
-    #else:
-    #     profile = UserProfile.objects.get(user=request.user)
-    #     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
-    #     dashboard_id = dashboard.first().id
-    #     page_id = dashboard.first().page_id 
-
-    #     form = ManageForm(request.POST)
-    #     action =  request.POST['submit']
-    #     selection = request.POST['selection']
-    #     num = request.POST['num']
-
-    #     url = 'http://localhost:8000' + API_URL + 'page/' + str(page_id) + '/' + str(action).lower() + '/'
-    #     data = {'selection': selection, 'num': num}
-    #     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    #     r = requests.post(url, data=json.dumps(data), headers=headers, auth=('sf','sf'))
-    #     print r
-    #     answer = r.json()
-    #     print answer
-    #     # Reset the form to empty
-    #     form = ManageForm()
-
-    #     return render(request, 'manage.html', {
-    #             'form': form, 
-    #             'siteName': DashBoard.objects.get(pk=dashboard_id).site_name, 
-    #             'status': answer
-    #         })
 
 def user_login(request):
     """
