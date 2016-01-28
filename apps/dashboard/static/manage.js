@@ -113,7 +113,6 @@ $(document).ready(function(){
     });
 });
 
-
     // sendRequest: function (attr) {
     //     var url = attr.attributes.apiURL + attr.attributes.asset + "/" + attr.attributes.id + "/" + attr.attributes.method + "/";
     //     var input = attr.attributes.input;
