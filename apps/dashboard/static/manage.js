@@ -104,39 +104,44 @@ var formView = Backbone.View.extend({
             selection: selection,
             num: num
         });
+
         if ((method == 'add') || (method == 'remove')) {
             var searchString = new Product();
             if (selection == 'URL')
                 searchString.set({url: page.attributes.num});
             if (selection == 'ID')
-                searchString.set({url: page.id});
+                searchString.set({id: page.attributes.num});
             if (selection == 'SKU')
-                searchString.set({url: page.attributes.sku});
+                searchString.set({sku: page.attributes.num});
 
             result = searchString.search(searchString);
+
             result.done(function(){
-                if (method == 'add') {
-                    result = page.add(page);
-                    result.done(function(){
+                if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
+                    if (method == 'add') {
+                        result = page.add(page);
+                        result.done(function() {
+                            $('#add-result').html(JSON.parse(result.responseText).status);
+                            $('#remove-result').html("");
+                        })
+                    }
+                    else {
+                        result = page.remove(page);
+                        result.done(function(){
+                            $('#add-result').html("");
+                            $('#remove-result').html(JSON.parse(result.responseText).status);
+                        })       
+                    }
+                }
+                else{
+                    if (method == 'add'){
                         $('#add-result').html(JSON.parse(result.responseText).status);
                         $('#remove-result').html("");
-                    })
-                }
-                else{
-                    result = page.remove(page);
-                    result.done(function(){
+                    }
+                    else{
                         $('#add-result').html("");
                         $('#remove-result').html(JSON.parse(result.responseText).status);
-                    })       
-                }
-            }).fail(function(){
-                if (method == 'add'){
-                    $('#add-result').html(JSON.parse(result.responseText));
-                    $('#remove-result').html("");
-                }
-                else{
-                    $('#add-result').html("");
-                    $('#remove-result').html(JSON.parse(result.responseText));
+                    }
                 }
             })
         }

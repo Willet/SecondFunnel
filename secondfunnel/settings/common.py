@@ -171,7 +171,8 @@ REST_FRAMEWORK = {
     'MAX_PAGINATE_BY': 100,
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    )
+    ),
+    #'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
 
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/

@@ -52,4 +52,4 @@ class AdminSlackHandler(logging.Handler):
         title = u"{} Server".format(os.getenv("AWS_GROUP", "Dev"))
         message = u"%s\n\nRequest repr(): %s" % (self.format(record), request_repr)
 
-        #slack.msg(channel=channel, sender="django", title=title, message=message, level="error")
+        slack.msg(channel=channel, sender="django", title=title, message=message, level="error")
