@@ -3,6 +3,15 @@
 {% if user.is_authenticated %}
     {% block head %} {{ user.first_name }} {% endblock %}
 {% endif %}
+{% block scripts %}
+    <script>
+        var url_slug = {{ url_slug }};
+    </script>
+    <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
+    <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
+    <script type="text/javascript" src="{% static "manage.js" %}"></script>
+{% endblock %}
+
 {% block main %}
 
     <div id="main-content">
@@ -21,35 +30,41 @@
             </div>
             <!--/row-->
 
-            <div class="row">
+            <div class="row" id="allforms">
                 <div class="col-md-12">
                     <div class="block-web">                        
                         <h3 class="content-header">
                             Add product with:
                         </h3>
-                        <form role="form" action="manage" method="post">
+                        <!--<form role="form" action="manage" method="post" id="add-form">-->
+                        <form id="add-form">
                             {% csrf_token %}
                             {{ form.as_p }}
-                            <input type="submit" name="submit" value="Add">
+                            <!--<input type="submit" name="submit" value="Add">-->
+                            <input type="submit" id="add-button" value="Add">
                         </form>
                         {% csrf_token %}
                         {% if 'REMOVE' not in status.upper %}
                             {{ status }}
                         {% endif %}
+                        <div id="add-result"></div>
                     </div>
                     <div class="block-web">
                         <h3 class="content-header">
                             Remove product with:
                         </h3>
-                        <form role="form" action="manage" method="post">
+                        <!--<form role="form" action="manage" method="post" id="remove-form">-->
+                        <form id="remove-form">
                             {% csrf_token %}
                             {{ form.as_p }}
-                            <input type="submit" name="submit" value="Remove">
+                            <!--<input type="submit" name="submit" value="Remove">-->
+                            <input type="submit" id="remove-button" value="Remove">
                         </form>
                         {% csrf_token %}
                         {% if 'ADD' not in status.upper %}
                             {{ status }}
                         {% endif %}
+                        <div id="remove-result"></div>
                     </div>
                     <!--/block-web-->
                 </div>
