@@ -63,7 +63,7 @@
       "description": "wah",
       "details": "<li>wah wah</li>",
       "url": "www.facebook.com/product",
-      "sku": "1234",
+      "sku": "355353",
       "price": 20.99,
       "sale_price": 19.99,
       "currency": "$",
@@ -93,7 +93,7 @@
       "description": "default default",
       "details": "<li>blah blah</li>",
       "url": "www.google.com/product",
-      "sku": "1234",
+      "sku": "1234566789",
       "price": 29.99,
       "sale_price": 9.99,
       "currency": "$",
@@ -232,9 +232,10 @@
     "model": "assets.Page",
     "pk": 8,
     "fields": {
-      "name": "TestPage",
+      "name": "TestPage1",
       "url_slug": "test_page",
       "store": 1,
+      "feed": 9,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -242,7 +243,7 @@
     "model": "assets.Page",
     "pk": 17,
     "fields": {
-      "name": "TestPage",
+      "name": "TestPage2",
       "url_slug": "other_test_page",
       "store": 1,
       "updated_at": "2015-11-18 00:43:26"

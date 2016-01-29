@@ -1,11 +1,9 @@
-import datetime
-from decimal import *
-from django.core.urlresolvers import reverse
+#import datetime
 import json
-from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
-import time
+#from decimal import *
+from django.core.urlresolvers import reverse
 
+from rest_framework.test import APITestCase
 
 class APITest(APITestCase):
     fixtures = ['assets_api.json']
@@ -51,8 +49,8 @@ class APITest(APITestCase):
 
     def store_error_test(self):
         response = self.client.get(reverse('store-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def product_test(self):
         response = self.client.get(reverse('product-list'))
@@ -64,12 +62,12 @@ class APITest(APITestCase):
 
         self.assertEqual(product0['id'], 3)
         self.assertEqual(product0['name'], 'Default')
-        self.assertEqual(product0['price'], Decimal('19.99'))
+        self.assertEqual(product0['price'], u'19.99')
         self.assertEqual(product0['in_stock'], True)
 
         self.assertEqual(product1['id'], 12)
         self.assertEqual(product1['name'], 'Default2')
-        self.assertEqual(product1['price'], Decimal('20.99'))
+        self.assertEqual(product1['price'], u'20.99')
         self.assertEqual(product1['in_stock'], False)
         # test all keys of 1 product
         self.assertEqual(product2['id'], 15)
@@ -78,9 +76,9 @@ class APITest(APITestCase):
         self.assertEqual(product2['description'], u'default default')
         self.assertEqual(product2['details'], u'<li>blah blah</li>')
         self.assertEqual(product2['url'], u'www.google.com/product')
-        self.assertEqual(product2['sku'], u'1234')
-        self.assertEqual(product2['price'], Decimal('29.99'))
-        self.assertEqual(product2['sale_price'], Decimal('9.99'))
+        self.assertEqual(product2['sku'], u'1234566789')
+        self.assertEqual(product2['price'], u'29.99')
+        self.assertEqual(product2['sale_price'], u'9.99')
         self.assertEqual(product2['currency'], u'$')
         self.assertEqual(product2['default_image'], 11)
         self.assertEqual(product2['last_scraped_at'], None)
@@ -90,7 +88,7 @@ class APITest(APITestCase):
 
         self.assertEqual(product3['id'], 13)
         self.assertEqual(product3['name'], 'Default3')
-        self.assertEqual(product3['price'], Decimal('21.99'))
+        self.assertEqual(product3['price'], u'21.99')
         self.assertEqual(product3['in_stock'], True)
 
     def product_single_test(self):
@@ -102,9 +100,9 @@ class APITest(APITestCase):
         self.assertEqual(product['description'], u'default default')
         self.assertEqual(product['details'], u'<li>blah blah</li>')
         self.assertEqual(product['url'], u'www.google.com/product')
-        self.assertEqual(product['sku'], u'1234')
-        self.assertEqual(product['price'], Decimal('29.99'))
-        self.assertEqual(product['sale_price'], Decimal('9.99'))
+        self.assertEqual(product['sku'], u'1234566789')
+        self.assertEqual(product['price'], u'29.99')
+        self.assertEqual(product['sale_price'], u'9.99')
         self.assertEqual(product['currency'], u'$')
         self.assertEqual(product['default_image'], 11)
         self.assertEqual(product['last_scraped_at'], None)
@@ -114,8 +112,64 @@ class APITest(APITestCase):
 
     def product_error_test(self):
         response = self.client.get(reverse('product-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
+
+    def product_search_URL_successful_test(self):
+        response = self.client.post('/api2/product/search/', {'url': 'www.facebook.com/product'})
+        self.assertEqual(response.data, {'status': 'Product with URL: www.facebook.com/product has been found.'})
+
+    def product_search_sku_successful_test(self):
+        response = self.client.post('/api2/product/search/', {'sku': 355353})
+        self.assertEqual(response.data, {'status': 'Product with SKU: 355353 has been found.'})
+
+    def product_search_ID_successful_test(self):
+        response = self.client.post('/api2/product/search/', {'id': 12})
+        self.assertEqual(response.data, {'status': 'Product with ID: 12 has been found.'})
+
+    def product_search_URL_unsuccessful_test(self):
+        response = self.client.post('/api2/product/search/', {'url': 'www.secondfunnel.com'})
+        self.assertEqual(response.data, {'status': 'Product with URL: www.secondfunnel.com could not be found.'})
+
+    def product_search_sku_unsuccessful_test(self):
+        response = self.client.post('/api2/product/search/', {'sku': 123456789})
+        self.assertEqual(response.data, {'status': 'Product with SKU: 123456789 could not be found.'})
+
+    def product_search_ID_unsuccessful_test(self):
+        response = self.client.post('/api2/product/search/', {'id': 12356})
+        self.assertEqual(response.data, {'status': 'Product with ID: 12356 could not be found.'})
+
+    def product_search_URL_input_numbers_test(self):
+        response = self.client.post('/api2/product/search/', {'url': "12345"})
+        self.assertEqual(response.data, {'status': 'Product with URL: 12345 could not be found.'})
+
+    def product_search_URL_input_letters_test(self):
+        response = self.client.post('/api2/product/search/', {'url': "asdf1234asf"})
+        self.assertEqual(response.data, {'status': 'Product with URL: asdf1234asf could not be found.'})
+
+    def product_search_sku_input_URL_test(self):
+        response = self.client.post('/api2/product/search/', {'sku': "http://www.google.com"})
+        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+
+    def product_search_sku_input_letters_test(self):
+        response = self.client.post('/api2/product/search/', {'sku': "asdf123456"})
+        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+
+    def product_search_ID_input_URL_test(self):
+        response = self.client.post('/api2/product/search/', {'sku': "http://www.google.com"})
+        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+
+    def product_search_ID_input_letters_test(self):
+        response = self.client.post('/api2/product/search/', {'sku': "asdf1234"})
+        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+
+    def product_search_no_input_test(self):
+        response = self.client.post('/api2/product/search/')
+        self.assertEqual(response.data, {'status': 'Too few inputs.'})
+
+    def product_bad_method_test(self):
+        response = self.client.post('/api2/product/test1/')
+        self.assertEqual(response.data, {'detail': "Method 'POST' not allowed."})
 
     def content_test(self):
         response = self.client.get(reverse('content-list'))
@@ -161,8 +215,8 @@ class APITest(APITestCase):
 
     def content_error_test(self):
         response = self.client.get(reverse('content-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def image_test(self):
         response = self.client.get(reverse('image-list'))
@@ -205,8 +259,8 @@ class APITest(APITestCase):
 
     def image_error_test(self):
         response = self.client.get(reverse('image-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def gif_test(self):
         response = self.client.get(reverse('gif-list'))
@@ -249,8 +303,8 @@ class APITest(APITestCase):
 
     def gif_error_test(self):
         response = self.client.get(reverse('gif-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def productimage_test(self):
         response = self.client.get(reverse('productimage-list'))
@@ -314,8 +368,8 @@ class APITest(APITestCase):
 
     def productimage_error_test(self):
         response = self.client.get(reverse('productimage-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def video_test(self):
         response = self.client.get(reverse('video-list'))
@@ -356,8 +410,8 @@ class APITest(APITestCase):
 
     def video_error_test(self):
         response = self.client.get(reverse('video-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def page_test(self):
         response = self.client.get(reverse('page-list'))
@@ -367,7 +421,7 @@ class APITest(APITestCase):
 
         self.assertEqual(page0['id'], 8)
         self.assertEqual(page0['store'], 1)
-        self.assertEqual(page0['name'], u'TestPage')
+        self.assertEqual(page0['name'], u'TestPage1')
         self.assertEqual(page0['theme'], None)
         self.assertEqual(page0['theme_settings'], '{}')
         self.assertEqual(page0['dashboard_settings'], '{}')
@@ -376,11 +430,11 @@ class APITest(APITestCase):
         self.assertEqual(page0['url_slug'], u'test_page')
         self.assertEqual(page0['legal_copy'], None)
         self.assertEqual(page0['last_published_at'], None)
-        self.assertEqual(page0['feed'], None)
+        self.assertEqual(page0['feed'], 9)
 
         self.assertEqual(page1['id'], 17)
         self.assertEqual(page1['store'], 1)
-        self.assertEqual(page1['name'], u'TestPage')
+        self.assertEqual(page1['name'], u'TestPage2')
         self.assertEqual(page1['theme'], None)
         self.assertEqual(page1['theme_settings'], '{}')
         self.assertEqual(page1['dashboard_settings'], '{}')
@@ -396,7 +450,7 @@ class APITest(APITestCase):
         page = response.data
         self.assertEqual(page['id'], 17)
         self.assertEqual(page['store'], 1)
-        self.assertEqual(page['name'], u'TestPage')
+        self.assertEqual(page['name'], u'TestPage2')
         self.assertEqual(page['theme'], None)
         self.assertEqual(page['theme_settings'], '{}')
         self.assertEqual(page['dashboard_settings'], '{}')
@@ -409,8 +463,191 @@ class APITest(APITestCase):
 
     def page_error_test(self):
         response = self.client.get(reverse('page-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
+
+    def page_add_successful_URL_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product'})
+        self.assertEqual(response.data['status'], u'Product with URL: www.google.com/product, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'www.google.com/product')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_successful_SKU_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'SKU', 'num': '1234'})
+        self.assertEqual(response.data['status'], 'Product with SKU: 1234, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'SKU')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_successful_ID_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': '3'})
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'ID')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_unsuccessful_URL_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/'})
+        self.assertEqual(response.data['status'], u'Product with URL: www.google.com/, Store: MyStore has not been found. Add failed.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'www.google.com/')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_unsuccessful_SKU_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'SKU', 'num': '6555555'})
+        self.assertEqual(response.data['status'], u'Product with SKU: 6555555, Store: MyStore has not been found. Add failed.')
+        self.assertEqual(response.data['selection'], u'SKU')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'6555555')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_unsuccessful_ID_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': '6555555'})
+        self.assertEqual(response.data['status'], u'Product with ID: 6555555, Store: MyStore has not been found. Add failed.')
+        self.assertEqual(response.data['selection'], u'ID')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'6555555')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_already_added_URL_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product'})
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product'})
+        self.assertEqual(response.data['status'], u'Product with URL: www.google.com/product, Name: Default, Store: MyStore is already added. Add failed.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'www.google.com/product')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_already_added_SKU_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'SKU', 'num': '1234'})
+        response = self.client.post('/api2/page/8/add/', {'selection': 'SKU', 'num': '1234'})
+        self.assertEqual(response.data['status'], u'Product with SKU: 1234, Name: Default, Store: MyStore is already added. Add failed.')
+        self.assertEqual(response.data['selection'], u'SKU')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_already_added_ID_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': '3'})
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': '3'})
+        self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default, Store: MyStore is already added. Add failed.')
+        self.assertEqual(response.data['selection'], u'ID')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_no_input_test(self):
+        response = self.client.post('/api2/page/8/add/')
+        self.assertEqual(response.data['status'], u'Too few inputs.')
+
+    def page_add_too_many_input_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': '6555555', 'num2': '63'})
+        self.assertEqual(response.data['status'], u'Too many inputs.')
+
+    def page_add_bad_inputs_test(self):
+        response = self.client.post('/api2/page/8/add/', {'asfd': 'asdf', 'asdf': 'asdf', 'asdf': 'asdf'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
+
+    def page_remove_successful_URL_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product'})
+        self.assertEqual(response.data['status'], u'Product with URL: www.google.com/product, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'www.google.com/product')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'URL', 'num': 'www.google.com/product'})
+        self.assertEqual(response.data['status'], u'Product with URL: www.google.com/product, Name: Default has been removed.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'www.google.com/product')
+        self.assertEqual(response.data['action'], u'Remove')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_remove_successful_SKU_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'SKU', 'num': 1234})
+        self.assertEqual(response.data['status'], 'Product with SKU: 1234, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'SKU')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'SKU', 'num': 1234})
+        self.assertEqual(response.data['status'], 'Product with SKU: 1234, Name: Default has been removed.')
+        self.assertEqual(response.data['selection'], u'SKU')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['action'], u'Remove')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_remove_successful_ID_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': 3})
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'ID')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': 3})
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
+        self.assertEqual(response.data['selection'], u'ID')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['action'], u'Remove')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_remove_unsuccessful_URL_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'URL', 'num': "http://google.com"})
+        self.assertEqual(response.data['status'], u'Product with URL: http://google.com, Store: MyStore has not been found. Remove failed.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'http://google.com')
+        self.assertEqual(response.data['action'], u'Remove')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_remove_unsuccessful_SKU_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'SKU', 'num': "100000"})
+        self.assertEqual(response.data['status'], u'Product with SKU: 100000, Store: MyStore has not been found. Remove failed.')
+        self.assertEqual(response.data['selection'], u'SKU')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'100000')
+        self.assertEqual(response.data['action'], u'Remove')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_remove_unsuccessful_ID_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': "100000"})
+        self.assertEqual(response.data['status'], u'Product with ID: 100000, Store: MyStore has not been found. Remove failed.')
+        self.assertEqual(response.data['selection'], u'ID')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'100000')
+        self.assertEqual(response.data['action'], u'Remove')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_remove_no_input_test(self):
+        response = self.client.post('/api2/page/8/remove/')
+        self.assertEqual(response.data['status'], u'Too few inputs.')
+
+    def page_remove_too_many_input_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': '6555555', 'num2': '63'})
+        self.assertEqual(response.data['status'], u'Too many inputs.')
+
+    def page_remove_bad_inputs_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'asfd': 'asdf', 'asdf': 'asdf', 'asdf': 'asdf'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
 
     def tile_test(self):
         response = self.client.get(reverse('tile-list'))
@@ -469,8 +706,8 @@ class APITest(APITestCase):
 
     def tile_error_test(self):
         response = self.client.get(reverse('tile-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def feed_test(self):
         response = self.client.get(reverse('feed-list'))
@@ -480,21 +717,21 @@ class APITest(APITestCase):
 
         self.assertEqual(feed0['id'],9)
         self.assertEqual(feed0['feed_algorithm'],"magic")
-        self.assertEqual(feed0['feed_ratio'],Decimal('0.20'))
+        self.assertEqual(feed0['feed_ratio'],u'0.20')
 
         self.assertEqual(feed1['id'],13)
         self.assertEqual(feed1['feed_algorithm'],"priority")
-        self.assertEqual(feed1['feed_ratio'],Decimal('0.6'))
+        self.assertEqual(feed1['feed_ratio'],u'0.60')
 
     def feed_single_test(self):
         response = self.client.get(reverse('feed-list')+'18/')
         self.assertEqual(response.data['feed_algorithm'],"non-priority")
-        self.assertEqual(response.data['feed_ratio'],Decimal('0.3'))
+        self.assertEqual(response.data['feed_ratio'],u'0.30')
 
     def feed_error_test(self):
         response = self.client.get(reverse('feed-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def category_test(self):
         response = self.client.get(reverse('category-list'))
@@ -515,5 +752,5 @@ class APITest(APITestCase):
 
     def category_error_test(self):
         response = self.client.get(reverse('category-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found'})
-        self.assertEqual(response.data[u'detail'],u'Not found')
+        self.assertEqual(response.data,{u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'],u'Not found.')

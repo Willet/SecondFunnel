@@ -25,25 +25,30 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def post(self, request, *args, **kwargs):
         method = kwargs.get('pk')
-        data = ''
-        product = ''
-        found = 0
-        key = []
-
-        if request.POST == {}:
-            data = ast.literal_eval(request.body)
-        else:
-            data = request.POST
-        if len(data) < 1:
-            return Response({"status": "too few inputs"})
 
         if method == 'search':
+            data = ''
+            product = ''
+            found = 0
+            key = []
+
+            if request.POST == {}:
+                if request.body == "":
+                    return Response({"status": "Too few inputs."})
+                else:
+                    data = ast.literal_eval(request.body)
+            else:
+                data = request.POST
+
+            if len(data) < 1:
+                return Response({"status": "Too few inputs."})
+
             if 'id' in data:
                 key = ['ID','id']
                 try:
                     data['id'] = int(data['id'])
                 except ValueError:
-                    return Response({"status": "Please enter a number"})
+                    return Response({"status": "Please enter a number."})
                 product = Product.objects.filter(pk = data['id'])
 
             if 'name' in data:
@@ -55,9 +60,9 @@ class ProductViewSet(viewsets.ModelViewSet):
                 try:
                     data['sku'] = int(data['sku'])
                 except ValueError:
-                    return Response({"status": "Please enter a number"})
+                    return Response({"status": "Please enter a number."})
                 product = Product.objects.filter(sku = data['sku'])
-
+            print data
             if 'url' in data:
                 key = ['URL', 'url']
                 product = Product.objects.filter(url = data['url'])
@@ -66,8 +71,8 @@ class ProductViewSet(viewsets.ModelViewSet):
                 return Response({"status": "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."})
             else:
                 return Response({"status": "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."})
-
-        return Response({"detail": "Method 'POST' not allowed."}, 405)
+        else:
+            return Response({"detail": "Method 'POST' not allowed."}, 405)
 
     @detail_route(methods=['post'])
     def search(self, request, *args, **kwargs):
@@ -111,21 +116,28 @@ class PageViewSet(viewsets.ModelViewSet):
         action = "Add"
 
         if request.POST == {}:
-            data = ast.literal_eval(request.body)
+            if request.body == "":
+                return Response({"status": "Too few inputs."})
+            else:
+                data = ast.literal_eval(request.body)
         else:
             data = request.POST
 
         if len(data) < 2:
-            return Response({"status": "Too few inputs"})
+            return Response({"status": "Too few inputs."})
         elif len(data) > 2:
-            return Response({"status": "Too many inputs"})
+            return Response({"status": "Too many inputs."})
 
+        if 'selection' in data and 'num' in data:
+            pass
+        else:
+            return Response({"status": "Bad inputs."})
+            
         selection = data['selection'].upper()
         num = data['num']
 
         page = Page.objects.get(pk=pk)
-
-        status = ["Product with " + selection + ": " + num]
+        status = ["Product with " + selection + ": " + str(num)]
 
         product = ''
         if selection == 'URL':
@@ -143,7 +155,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 status.append(", Store: " + page.store.name + " is already added. " + action + " failed.")
             else:
                 page.feed.add(product.first())
-                status.append(" has been added")
+                status.append(" has been added.")
 
         status = "".join(status)
 
@@ -161,21 +173,29 @@ class PageViewSet(viewsets.ModelViewSet):
         action = "Remove"
 
         if request.POST == {}:
-            data = ast.literal_eval(request.body)
+            if request.body == "":
+                return Response({"status": "Too few inputs."})
+            else:
+                data = ast.literal_eval(request.body)
         else:
             data = request.POST
 
         if len(data) < 2:
-            return Response({"status": "Too few inputs"})
+            return Response({"status": "Too few inputs."})
         elif len(data) > 2:
-            return Response({"status": "Too many inputs"})
+            return Response({"status": "Too many inputs."})
+
+        if 'selection' in data and 'num' in data:
+            pass
+        else:
+            return Response({"status": "Bad inputs."})
 
         selection = data['selection'].upper()
         num = data['num']
 
         page = Page.objects.get(pk=pk)
 
-        status = ["Product with " + selection + ": " + num]
+        status = ["Product with " + selection + ": " + str(num)]
 
         product = ''
         if selection == 'URL':
@@ -193,7 +213,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 status.append(", Store: " + page.store.name + " has not been found. " + action + " failed.")
             else:
                 page.feed.remove(product.first())
-                status.append(" has been removed")
+                status.append(" has been removed.")
 
         status = "".join(status)
 
