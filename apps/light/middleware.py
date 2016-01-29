@@ -1,5 +1,6 @@
 from django.conf import settings
 
+
 class BrowserSyncMiddleware(object):
     """
     Middleware to inject BrowerSync used by light integration
