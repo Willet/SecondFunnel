@@ -146,7 +146,7 @@
     "fields": {
       "url": "/content.jpg",
       "source": "upload",
-      "original_url": "test.com/image.jpg",
+      "source_url": "test.com/image.jpg",
       "store": 1,
       "updated_at": "2015-11-18 00:43:26"
     }
@@ -157,7 +157,7 @@
     "fields": {
       "url": "/content.jpg",
       "source": "upload",
-      "original_url": "test.com/image.gif",
+      "source_url": "test.com/image.gif",
       "store": 1,
       "updated_at": "2015-11-18 00:43:26"
     }
@@ -169,7 +169,7 @@
       "url": "/content.jpg",
       "gif_url": "/content.gif",
       "source": "upload",
-      "original_url": "test.com/image.gif",
+      "source_url": "test.com/image.gif",
       "store": 1,
       "updated_at": "2015-11-18 00:43:26"
     }

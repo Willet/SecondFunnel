@@ -55,8 +55,7 @@ INSTALLED_APPS += (
 MIDDLEWARE_CLASSES += (
     'snippetscream.ProfileMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    # oddly enough, this goes *after* debug_toolbar
-    'apps.utils.middleware.NonHtmlDebugToolbarMiddleware',
+    'apps.utils.middleware.NonHtmlDebugToolbarMiddleware', # *after* debug_toolbar
     'apps.utils.middleware.ShowHandlerMiddleware',
     'devserver.middleware.DevServerMiddleware',
     'apps.light.middleware.BrowserSyncMiddleware',

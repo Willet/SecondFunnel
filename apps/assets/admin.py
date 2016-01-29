@@ -107,13 +107,13 @@ class ProductImageAdmin(BaseAdmin):
 
 
 class ImageAdmin(BaseAdmin):
-    ordering = BaseAdmin.ordering + ['original_url']
-    list_display = ['id', 'store', 'url'] + BaseAdmin.list_display + ['original_url']
+    ordering = BaseAdmin.ordering + ['source_url']
+    list_display = ['id', 'store', 'url'] + BaseAdmin.list_display + ['source_url']
     search_fields = ['id', 'url', 'name', 'description']
 
 
 class GifAdmin(ImageAdmin):
-    list_display = ['id', 'store', 'gif_url'] + BaseAdmin.list_display + ['url', 'original_url']
+    list_display = ['id', 'store', 'gif_url'] + BaseAdmin.list_display + ['url', 'source_url']
     search_fields = ImageAdmin.search_fields + ['gif_url']
 
 
