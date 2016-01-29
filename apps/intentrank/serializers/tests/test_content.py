@@ -137,8 +137,8 @@ class ProductSerializerTest(TestCase):
         p3 = Product.objects.get(pk=3)
         p.similar_products = [p2, p3]
         data = self.s.get_dump_object(p)
-        self.assertTrue(self.s.get_dump_object(p2, shallow=True) in data['tagged-products'])
-        self.assertTrue(self.s.get_dump_object(p3, shallow=True) in data['tagged-products'])
+        self.assertTrue(self.s.get_dump_object(p2, shallow=True) in data["tagged-products"])
+        self.assertTrue(self.s.get_dump_object(p3, shallow=True) in data["tagged-products"])
 
     def get_dump_object_similar_products_placeholder_test(self):
         p = Product.objects.get(pk=12)
@@ -149,7 +149,7 @@ class ProductSerializerTest(TestCase):
         p3.save()
         p.similar_products = [p3, p2]
         data = self.s.get_dump_object(p)
-        self.assertEqual(data['tagged-products'], [self.s.get_dump_object(p2, shallow=True)])
+        self.assertEqual(data["tagged-products"], [self.s.get_dump_object(p2, shallow=True)])
 
     def get_dump_object_similar_products_out_of_stock_test(self):
         p = Product.objects.get(pk=3)
@@ -157,7 +157,7 @@ class ProductSerializerTest(TestCase):
         p3 = Product.objects.get(pk=12) # out of stock
         p.similar_products = [p3, p2]
         data = self.s.get_dump_object(p)
-        self.assertEqual(data['tagged-products'], [self.s.get_dump_object(p2, shallow=True)])
+        self.assertEqual(data["tagged-products"], [self.s.get_dump_object(p2, shallow=True)])
 
     def get_dump_object_similar_products_out_of_stock_store_override_test(self):
         p = Product.objects.get(pk=3)
@@ -168,7 +168,7 @@ class ProductSerializerTest(TestCase):
         store.save()
         p.similar_products = [p3, p2]
         data = self.s.get_dump_object(p)
-        self.assertTrue(len(data['tagged-products']) == 2)
+        self.assertTrue(len(data["tagged-products"]) == 2)
 
     def get_dump_object_similar_products_shallow_test(self):
         p = Product.objects.get(pk=12)
@@ -185,10 +185,10 @@ class ProductSerializerTest(TestCase):
         p2.save()
         data = self.s.get_dump_object(p)
         # tagged-products should be shallow
-        self.assertEqual(data['tagged-products'], [self.s.get_dump_object(p2, shallow=True)])
-        tagged_product = data['tagged-products'][0]
+        self.assertEqual(data["tagged-products"], [self.s.get_dump_object(p2, shallow=True)])
+        tagged_product = data["tagged-products"][0]
         # shallow tagged-product should have no tagged-products
-        self.assertEqual(tagged_product['tagged-products'], [])
+        self.assertEqual(tagged_product["tagged-products"], [])
         # shallow tagged-product should have be only default image
         i_json = i.to_json()
         self.assertEqual(tagged_product['default-image'], i_json)
@@ -202,7 +202,7 @@ class ProductSerializerTest(TestCase):
         i2 = ProductImage.objects.get(pk=11) # should be filtered out
         p2.product_images = [i, i2]
         data = self.s.get_dump_object(p)
-        tagged_product = data['tagged-products'][0]
+        tagged_product = data["tagged-products"][0]
         # shallow tagged-product image should be 1st image b/c no default_image
         i2_json = i2.to_json()
         self.assertEqual(tagged_product['default-image'], i2_json)
@@ -213,7 +213,7 @@ class ProductSerializerTest(TestCase):
         p2 = Product.objects.get(pk=3)
         p.similar_products.add(p2)
         data = self.s.get_dump_object(p)
-        tagged_product = data['tagged-products'][0]
+        tagged_product = data["tagged-products"][0]
         # shallow tagged-product image should be empty
         self.assertEqual(tagged_product['default-image'], {})
         self.assertEqual(tagged_product['images'], [])
@@ -281,21 +281,19 @@ class ContentSerializer(TestCase):
         c.source = "internet"
         c.source_url = "http://www.google.com"
         c.url = "http://www.blah.com/image.jpg"
-        c.author = "Frank"
         c.status = "approved"
         c.attributes = {
             "random_field": "random_value",
         }
         c.save()
         data = self.s.get_dump_object(c)
-        self.assertEqual(data['id'], c.id)
-        self.assertEqual(data['store-id'], c.store.id)
-        self.assertEqual(data['source'], c.source)
-        self.assertEqual(data['source_url'], c.source_url)
-        self.assertEqual(data['url'], c.url)
-        self.assertEqual(data['author'], c.author)
-        self.assertEqual(data['status'], c.status)
-        self.assertEqual(data['tagged-products'], [])
+        self.assertEqual(data["id"], c.id)
+        self.assertEqual(data["storeId"], c.store.id)
+        self.assertEqual(data["source"], c.source)
+        self.assertEqual(data["sourceUrl"], c.source_url)
+        self.assertEqual(data["url"], c.url)
+        self.assertEqual(data["status"], c.status)
+        self.assertEqual(data["tagged-products"], [])
         self.assertEqual(data["randomField"], c.attributes["random_field"]) # camelCase
 
     def get_dump_object_tagged_products_test(self):
@@ -304,8 +302,8 @@ class ContentSerializer(TestCase):
         p3 = Product.objects.get(pk=3)
         c.tagged_products = [p2, p3]
         data = self.s.get_dump_object(c)
-        self.assertTrue(self.sp.get_dump_object(p2, shallow=True) in data['tagged-products'])
-        self.assertTrue(self.sp.get_dump_object(p3, shallow=True) in data['tagged-products'])
+        self.assertTrue(self.sp.get_dump_object(p2, shallow=True) in data["tagged-products"])
+        self.assertTrue(self.sp.get_dump_object(p3, shallow=True) in data["tagged-products"])
 
     def get_dump_object_tagged_products_placeholder_test(self):
         c = Content.objects.get(pk=6)
@@ -316,7 +314,7 @@ class ContentSerializer(TestCase):
         p3.save()
         c.tagged_products = [p3, p2]
         data = self.s.get_dump_object(c)
-        self.assertEqual(data['tagged-products'], [self.sp.get_dump_object(p2, shallow=True)])
+        self.assertEqual(data["tagged-products"], [self.sp.get_dump_object(p2, shallow=True)])
 
     def get_dump_object_tagged_products_out_of_stock_test(self):
         c = Content.objects.get(pk=6)
@@ -324,7 +322,7 @@ class ContentSerializer(TestCase):
         p3 = Product.objects.get(pk=12) # out of stock
         c.tagged_products = [p3, p2]
         data = self.s.get_dump_object(c)
-        self.assertEqual(data['tagged-products'], [self.sp.get_dump_object(p2, shallow=True)])
+        self.assertEqual(data["tagged-products"], [self.sp.get_dump_object(p2, shallow=True)])
 
     def get_dump_object_tagged_products_out_of_stock_store_override_test(self):
         c = Content.objects.get(pk=6)
@@ -335,7 +333,7 @@ class ContentSerializer(TestCase):
         store.save()
         c.tagged_products = [p3, p2]
         data = self.s.get_dump_object(c)
-        self.assertTrue(len(data['tagged-products']) == 2)
+        self.assertTrue(len(data["tagged-products"]) == 2)
 
     def get_dump_object_tagged_products_shallow_test(self):
         c = Content.objects.get(pk=6)
@@ -352,14 +350,14 @@ class ContentSerializer(TestCase):
         p2.save()
         data = self.s.get_dump_object(c)
         # tagged-products should be shallow
-        self.assertEqual(data['tagged-products'], [self.sp.get_dump_object(p2, shallow=True)])
-        tagged_product = data['tagged-products'][0]
+        self.assertEqual(data["tagged-products"], [self.sp.get_dump_object(p2, shallow=True)])
+        tagged_product = data["tagged-products"][0]
         # shallow tagged-product should have no tagged-products
-        self.assertEqual(tagged_product['tagged-products'], [])
+        self.assertEqual(tagged_product["tagged-products"], [])
         # shallow tagged-product should have be only default image
         i_json = i.to_json()
-        self.assertEqual(tagged_product['default-image'], i_json)
-        self.assertEqual(tagged_product['images'], [i_json])
+        self.assertEqual(tagged_product["default-image"], i_json)
+        self.assertEqual(tagged_product["images"], [i_json])
 
     def get_dump_object_tagged_products_first_image_test(self):
         c = Content.objects.get(pk=6)
@@ -369,21 +367,21 @@ class ContentSerializer(TestCase):
         i2 = ProductImage.objects.get(pk=11) # should be filtered out
         p2.product_images = [i, i2]
         data = self.s.get_dump_object(c)
-        tagged_product = data['tagged-products'][0]
+        tagged_product = data["tagged-products"][0]
         # shallow tagged-product image should be 1st image b/c no default_image
         i2_json = i2.to_json()
-        self.assertEqual(tagged_product['default-image'], i2_json)
-        self.assertEqual(tagged_product['images'], [i2_json])
+        self.assertEqual(tagged_product["default-image"], i2_json)
+        self.assertEqual(tagged_product["images"], [i2_json])
 
     def get_dump_object_tagged_products_no_image_test(self):
         c = Content.objects.get(pk=6)
         p2 = Product.objects.get(pk=3)
         c.tagged_products.add(p2)
         data = self.s.get_dump_object(c)
-        tagged_product = data['tagged-products'][0]
+        tagged_product = data["tagged-products"][0]
         # shallow tagged-product image should be empty
-        self.assertEqual(tagged_product['default-image'], {})
-        self.assertEqual(tagged_product['images'], [])
+        self.assertEqual(tagged_product["default-image"], {})
+        self.assertEqual(tagged_product["images"], [])
 
 
 class ImageSerializer(TestCase):
@@ -396,8 +394,6 @@ class ImageSerializer(TestCase):
         i = Image.objects.get(pk=6)
         i.source = "internet"
         i.soure_url = "www.google.com"
-        i.author = "googs"
-        i.file_type = "png"
         i.url = u"/image.png"
         i.width = 100
         i.height = 100
@@ -419,15 +415,14 @@ class ImageSerializer(TestCase):
         }
         i.save()
         data = self.s.get_dump_object(i)
-        self.assertEqual(data['id'], i.id)
-        self.assertEqual(data['store-id'], i.store.id)
-        self.assertEqual(data['source'], i.source)
-        self.assertEqual(data['source_url'], i.source_url)
-        self.assertEqual(data['url'], i.url)
-        self.assertEqual(data['author'], i.author)
-        self.assertEqual(data['status'], i.status)
+        self.assertEqual(data["id"], i.id)
+        self.assertEqual(data["storeId"], i.store.id)
+        self.assertEqual(data["source"], i.source)
+        self.assertEqual(data["sourceUrl"], i.source_url)
+        self.assertEqual(data["url"], i.url)
+        self.assertEqual(data["status"], i.status)
         self.assertEqual(data["type"], "image")
-        self.assertEqual(data["format"], i.file_type)
+        self.assertEqual(data["format"], "png")
         self.assertEqual(data["dominant-color"], i.dominant_color)
         self.assertEqual(data["orientation"], i.orientation, 'portrait')
         self.assertEqual(data["sizes"], i.attributes.get('sizes'))
@@ -436,7 +431,6 @@ class ImageSerializer(TestCase):
     def get_dump_object_defaults_test(self):
         i = Image.objects.get(pk=6)
         data = self.s.get_dump_object(i)
-        self.assertEqual(data["format"], "jpg") # default
         self.assertEqual(data["dominant-color"], "transparent") # default
         self.assertEqual(data["sizes"], {
             'master': {
@@ -457,7 +451,6 @@ class GifSerializer(TestCase):
         i = Gif.objects.get(pk=16)
         i.source = "internet"
         i.soure_url = "www.google.com"
-        i.author = "googs"
         i.url = u"/image.png"
         i.gif_url = u"/image.gif"
         i.width = 100
@@ -480,15 +473,14 @@ class GifSerializer(TestCase):
         }
         i.save()
         data = self.s.get_dump_object(i)
-        self.assertEqual(data['id'], i.id)
-        self.assertEqual(data['store-id'], i.store.id)
-        self.assertEqual(data['source'], i.source)
-        self.assertEqual(data['source_url'], i.source_url)
-        self.assertEqual(data['url'], i.url)
-        self.assertEqual(data['author'], i.author)
-        self.assertEqual(data['status'], i.status)
-        self.assertEqual(data["type"], "image")
-        self.assertEqual(data["format"], "gif")
+        self.assertEqual(data["id"], i.id)
+        self.assertEqual(data["storeId"], i.store.id)
+        self.assertEqual(data["source"], i.source)
+        self.assertEqual(data["sourceUrl"], i.source_url)
+        self.assertEqual(data["url"], i.url)
+        self.assertEqual(data["status"], i.status)
+        self.assertEqual(data["type"], "gif")
+        self.assertEqual(data["format"], "png")
         self.assertEqual(data["dominant-color"], i.dominant_color)
         self.assertEqual(data["gifUrl"], i.gif_url)
         self.assertEqual(data["orientation"], i.orientation, 'portrait')
@@ -498,7 +490,6 @@ class GifSerializer(TestCase):
     def get_dump_object_defaults_test(self):
         i = Gif.objects.get(pk=16)
         data = self.s.get_dump_object(i)
-        self.assertEqual(data["format"], "gif") # default
         self.assertEqual(data["dominant-color"], "transparent") # default
         self.assertEqual(data["sizes"], {
             'master': {
@@ -520,8 +511,7 @@ class VideoSerializer(TestCase):
         v.source = "internet"
         v.soure_url = "www.google.com"
         v.url = u"www.youtube.com/watch?v=KfKFqidUe4M"
-        v.author = "googs"
-        v.caption = "hello world"
+        v.name = "hello world"
         v.description = "a simple hello, to the world"
         v.status = "approved"
         v.original_id = "KfKFqidUe4M"
@@ -530,25 +520,21 @@ class VideoSerializer(TestCase):
         }
         v.save()
         data = self.s.get_dump_object(v)
-        self.assertEqual(data['id'], v.id)
-        self.assertEqual(data['store-id'], v.store.id)
-        self.assertEqual(data['source'], v.source)
-        self.assertEqual(data['source_url'], v.source_url)
-        self.assertEqual(data['url'], v.url)
-        self.assertEqual(data['author'], v.author)
-        self.assertEqual(data['status'], v.status)
-        self.assertEqual(data["type"], "video")
-        self.assertEqual(data["caption"], v.caption)
-        self.assertEqual(data["description"], v.description)
-        self.assertEqual(data["original-id"], v.original_id)
-        self.assertEqual(data["original-url"], v.source_url)
+        self.assertEqual(data["id"], v.id)
+        self.assertEqual(data["storeId"], v.store.id)
         self.assertEqual(data["source"], v.source)
+        self.assertEqual(data["sourceUrl"], v.source_url)
+        self.assertEqual(data["url"], v.url)
+        self.assertEqual(data["status"], v.status)
+        self.assertEqual(data["name"], v.name)
+        self.assertEqual(data["description"], v.description)
+        self.assertEqual(data["type"], "video")
+        self.assertEqual(data["original-id"], v.original_id)
         self.assertEqual(data["randomField"], v.attributes["random_field"]) # camelCase
 
     def get_dump_object_defaults_test(self):
         v = Video.objects.get(pk=6)
         data = self.s.get_dump_object(v)
-        self.assertEqual(data["caption"], "") # default
+        self.assertEqual(data["name"], "") # default
         self.assertEqual(data["description"], "") # default
         self.assertEqual(data["original-id"], v.id) # default
-        self.assertEqual(data["original-url"], v.url) # default
