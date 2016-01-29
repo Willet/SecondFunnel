@@ -112,11 +112,10 @@ class ContentSerializer(IRSerializer):
     def get_dump_object(self, content):
         data = {
             'id': content.id,
-            'store-id': content.store.id,
+            'storeId': content.store.id,
             'source': content.source,
-            'source_url': content.source_url,
+            'sourceUrl': content.source_url,
             'url': content.url or content.source_url,
-            'author': content.author,
             'status': content.status,
             'tagged-products': [],
         }
@@ -146,16 +145,14 @@ class ImageSerializer(ContentSerializer):
 
         data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
-            "format": image.file_type or "jpg",
+            "name": image.name or "",
+            "description": image.description or "",
+            "format": image.file_type,
             "type": "image",
             "dominant-color": image.dominant_color or "transparent",
             "sizes": image.attributes.get('sizes', default_image_sizes),
             "orientation": image.orientation or "portrait",
         })
-        if getattr(image, 'description', False):
-            data.update({"description": image.description})
-        if getattr(image, 'name', False):
-            data.update({"name": image.name})
 
         return data
 
@@ -174,8 +171,10 @@ class GifSerializer(ContentSerializer):
 
         data = super(GifSerializer, self).get_dump_object(gif)
         data.update({
-            "format": gif.file_type or "gif",
-            "type": "image",
+            "name": gif.name or "",
+            "description": gif.description or "",
+            "format": gif.file_type,
+            "type": "gif",
             "dominant-color": gif.dominant_color or "transparent",
             "sizes": gif.attributes.get('sizes', default_image_sizes),
             "orientation": gif.orientation or "portrait",
@@ -192,11 +191,10 @@ class VideoSerializer(ContentSerializer):
         data = super(VideoSerializer, self).get_dump_object(video)
 
         data.update({
+            "name": video.name or "",
+            "description": video.description or "",
             "type": "video",
-            "caption": video.caption or '',
-            "description": video.description or '',
             "original-id": video.original_id or video.id,
-            "original-url": video.source_url or video.url,
             "source": video.source or 'youtube',
         })
 
