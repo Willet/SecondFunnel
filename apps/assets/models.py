@@ -651,10 +651,10 @@ class Content(BaseModel):
     url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
-    author = models.CharField(max_length=255, blank=True, null=True)
-
     tagged_products = models.ManyToManyField('Product', null=True, blank=True,
                                              related_name='content')
+    name = models.CharField(max_length=1024, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     # tiles = <RelatedManager> Tiles (many-to-many relationship)
 
     ## all other fields of proxied models will be store in this field
@@ -687,10 +687,6 @@ class Content(BaseModel):
 
 
 class Image(Content):
-    name = models.CharField(max_length=1024, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-
-    original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
 
@@ -745,22 +741,22 @@ class Image(Content):
 
 
 class Gif(Image):
+    """
+    A Gif is an Image that *also* has a .gif url.  Allows for progressive loading of the .gif
+    """
     gif_url = models.TextField() # location of gif image
 
     serializer = ir_serializers.GifSerializer
     cg_serializer = cg_serializers.GifSerializer
 
-    def clean(self):
-        self.file_type = "gif"
+    def delete(self, *args, **kwargs):
+        if settings.ENVIRONMENT == "production":
+            delete_resource(self.url)
+            delete_resource(self.gif_url)
+        super(Image, self).delete(*args, **kwargs)
 
 
 class Video(Content):
-    name = models.CharField(max_length=1024, blank=True, null=True)
-
-    caption = models.CharField(max_length=255, blank=True, default="")
-    username = models.CharField(max_length=255, blank=True, default="")
-    description = models.TextField(blank=True, null=True)
-
     player = models.CharField(max_length=255)
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
@@ -770,6 +766,11 @@ class Video(Content):
 
     serializer = ir_serializers.VideoSerializer
     cg_serializer = cg_serializers.VideoSerializer
+
+    def clean(self):
+        file_type = get_image_file_type(self.url)
+        if file_type:
+            self.file_type = file_type
 
 
 class Review(Content):
