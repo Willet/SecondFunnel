@@ -15,38 +15,36 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'store', 'name', 'description', 'details', 'url', 'sku', 'price', 'sale_price', 
             'currency', 'default_image', 'last_scraped_at', 'in_stock', 'attributes', 'similar_products')
 
-class ContentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Content
-        fields = ('id', 'store', 'url', 'source', 'source_url', 'author', 'tagged_products', 
-            'attributes', 'status')
-
-class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Image
-        fields = ('id', 'name', 'description', 'original_url', 'file_type', 'file_checksum', 'width', 'height',
-            'dominant_color','store', 'url', 'source', 'source_url', 'author', 'tagged_products', 'attributes',
-            'status')
-
-class GifSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gif
-        fields = ('id', 'gif_url', 'name', 'description', 'original_url', 'file_type', 'file_checksum', 'width', 
-            'height', 'dominant_color','store', 'url', 'source', 'source_url', 'author', 'tagged_products',
-            'attributes', 'status')
-
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ('id', 'product', 'url', 'original_url', 'file_type', 'file_checksum', 'width', 'height', 
             'dominant_color', 'image_sizes', 'attributes')
 
+class ContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Content
+        fields = ('id', 'store', 'name', 'description', 'url', 'source', 'source_url', 'tagged_products', 
+            'attributes', 'status')
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ('id', 'file_type', 'file_checksum', 'width', 'height', 'dominant_color', 'store',
+            'name', 'description', 'url', 'source', 'source_url', 'tagged_products', 'attributes', 'status')
+
+class GifSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gif
+        fields = ('id', 'gif_url', 'file_type', 'file_checksum', 'width', 'height', 'dominant_color',
+            'store', 'name', 'description', 'url', 'source', 'source_url', 'tagged_products',
+            'attributes', 'status')
+
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ('id', 'name', 'caption', 'username', 'description', 'player', 'file_type', 'file_checksum', 
-            'original_id', 'store', 'url', 'source', 'source_url', 'author', 'tagged_products', 
-            'attributes', 'status')
+        fields = ('id', 'player', 'file_type', 'file_checksum', 'original_id', 'store', 'name',
+            'description', 'url', 'source', 'source_url', 'tagged_products', 'attributes', 'status')
 
 class PageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,8 +61,8 @@ class TileSerializer(serializers.ModelSerializer):
 class FeedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feed
-        fields = ('id', 'feed_algorithm', 'feed_ratio', 'store', 'is_finite', 'source_urls', 'spider_name', 'created_at', 
-            'updated_at')
+        fields = ('id', 'feed_algorithm', 'feed_ratio', 'store', 'is_finite', 'source_urls',
+            'spider_name', 'created_at', 'updated_at')
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
