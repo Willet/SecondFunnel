@@ -62,7 +62,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 except ValueError:
                     return Response({"status": "Please enter a number."})
                 product = Product.objects.filter(sku = data['sku'])
-            print data
+
             if 'url' in data:
                 key = ['URL', 'url']
                 product = Product.objects.filter(url = data['url'])
