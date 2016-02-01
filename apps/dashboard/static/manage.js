@@ -135,7 +135,35 @@ var formView = Backbone.View.extend({
                 }
                 else{
                     if (method == 'add'){
+                        // scrape
                         $('#add-result').html(JSON.parse(result.responseText).status);
+                        if (selection == 'URL'){
+                            $('#add-result').append(" Scraping...")
+                        }
+                        $.ajax({
+                            url: urlAddPath('scrape'),
+                            type: 'POST',
+                            data: {
+                                'cat': encodeURIComponent({
+                                    "urls":[num],
+                                    "priorities":["0"],
+                                    "name": //Category here
+                                }),
+                                'page': page,
+                                'tiles': false,
+                                'refresh_images': true
+                            },
+                            success: function(data, status) {
+                                $('#add-result').html($('#add-result').html() + '\nScrape succeeded with status: ' + status);
+                                console.log('Scrape succeeded with status: ' + status);
+                            },
+                            error: function(obj, status, error) {
+                                $('#add-result').addClass('warning');
+                                $('#add-result').html('\nScrape failed with status: ' + error);
+                                console.warn('Scrape failed with status: ' + error);
+                                console.warn(obj);
+                            }
+                        });
                         $('#remove-result').html("");
                     }
                     else{
@@ -162,6 +190,11 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+var urlAddPath = function (path) {
+    var url = urlParse(window.location.href).pathname;
+    return url + ((url.slice(-1) !== '/') ? '/' + path : path);
+};
 
 $(document).ready(function(){
     var Forms = new formView();

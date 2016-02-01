@@ -5,7 +5,7 @@ from time import sleep
 from django import forms
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render_to_response, render, get_object_or_404
 from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
@@ -104,7 +104,6 @@ def index(request):
 
     context = RequestContext(request)
     return render_to_response('dashboard_index.html', context_dict, context)
-    #return render_to_response('dashboard_index.html',context)
 
 @login_required(login_url=LOGIN_URL)
 def dashboard(request, dashboard_slug):
@@ -164,13 +163,15 @@ def dashboard_manage(request, dashboard_slug):
         except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
         context = RequestContext(request)
+        cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'manage.html', {
                 'form': form, 
                 'context': context, 
                 'siteName': cur_dashboard.site_name, 
                 'status': '',
-                'url_slug': dashboard.first().page_id
+                'url_slug': dashboard.first().page_id,
+                'page': cur_dashboard_page
             })
 
 def user_login(request):
