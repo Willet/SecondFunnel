@@ -35,7 +35,6 @@ urlpatterns = patterns('',
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
-    url(r'^graph/', include('apps.api.urls')),
 
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.light.views.landing_page'),
