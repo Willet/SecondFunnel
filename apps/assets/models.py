@@ -14,11 +14,10 @@ from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
-import apps.api.serializers as cg_serializers
 from apps.imageservice.fields import ImageSizesField
 from apps.imageservice.models import ImageSizes
 from apps.imageservice.utils import delete_resource, is_hex_color
-import apps.intentrank.serializers as ir_serializers
+from apps.intentrank import serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
 from apps.utils.functional import get_image_file_type
@@ -33,7 +32,7 @@ class SerializableMixin(object):
     To implement specific json formats, override these methods.
     """
 
-    serializer = cg_serializer = cg_serializers.RawSerializer
+    serializer = serializers.IRSerializer
 
     def to_json(self, skip_cache=False):
         """default method for all models to have a json representation."""
@@ -43,10 +42,6 @@ class SerializableMixin(object):
 
     def to_str(self, skip_cache=False):
         return self.serializer().to_str([self], skip_cache=skip_cache)
-
-    def to_cg_json(self):
-        """serialize into CG model. This is an instance shorthand."""
-        return self.cg_serializer.dump(self)
 
 
 class BaseModel(models.Model, SerializableMixin):
@@ -203,7 +198,7 @@ class BaseModel(models.Model, SerializableMixin):
 
         try:
             new_ir_cache = self.to_str(skip_cache=True)
-        except ir_serializers.SerializerError:
+        except serializers.SerializerError:
             new_ir_cache = ''
         
         if hasattr(self, 'placeholder'):
@@ -355,7 +350,7 @@ class BaseModel(models.Model, SerializableMixin):
         """
         try:
             super(BaseModel, self).save(*args, **kwargs)
-        except ir_serializers.SerializerError:
+        except serializers.SerializerError:
             # ignore errors on serialization of incomplete model
             pass
 
@@ -392,8 +387,7 @@ class Store(BaseModel):
         help_text="e.g. http://explore.nativeshoes.com, used for store detection",
         blank=True, null=True)
 
-    serializer = ir_serializers.StoreSerializer
-    cg_serializer = cg_serializers.StoreSerializer
+    serializer = serializers.StoreSerializer
 
     @classmethod
     def from_json(cls, json_data):
@@ -440,8 +434,7 @@ class Product(BaseModel):
     similar_products = models.ManyToManyField('self', related_name='reverse_similar_products',
                                               symmetrical=False, null=True, blank=True)
 
-    serializer = ir_serializers.ProductSerializer
-    cg_serializer = cg_serializers.ProductSerializer
+    serializer = serializers.ProductSerializer
 
     def __init__(self, *args, **kwargs):
         super(Product, self).__init__(*args, **kwargs)
@@ -559,8 +552,7 @@ class ProductImage(BaseModel):
     image_sizes = ImageSizesField(blank=True, null=True)
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
-    serializer = ir_serializers.ProductImageSerializer
-    cg_serializer = cg_serializers.ProductImageSerializer
+    serializer = serializers.ProductImageSerializer
 
     class Meta(BaseModel.Meta):
         ordering = ('id', )
@@ -672,8 +664,7 @@ class Content(BaseModel):
         ('tagged-products', 'tagged_products'),
     )
 
-    serializer = ir_serializers.ContentSerializer
-    cg_serializer = cg_serializers.ContentSerializer
+    serializer = serializers.ContentSerializer
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
@@ -695,8 +686,7 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    serializer = ir_serializers.ImageSerializer
-    cg_serializer = cg_serializers.ImageSerializer
+    serializer = serializers.ImageSerializer
 
     @property
     def orientation(self):
@@ -746,8 +736,7 @@ class Gif(Image):
     """
     gif_url = models.TextField() # location of gif image
 
-    serializer = ir_serializers.GifSerializer
-    cg_serializer = cg_serializers.GifSerializer
+    serializer = serializers.GifSerializer
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
@@ -764,8 +753,7 @@ class Video(Content):
     # e.g. oHg5SJYRHA0
     original_id = models.CharField(max_length=255, blank=True, null=True)
 
-    serializer = ir_serializers.VideoSerializer
-    cg_serializer = cg_serializers.VideoSerializer
+    serializer = serializers.VideoSerializer
 
     def clean(self):
         file_type = get_image_file_type(self.url)
@@ -868,8 +856,7 @@ class Page(BaseModel):
         ('shareText', 'description'),  # ordered for cg <- sf
     )
 
-    serializer = ir_serializers.PageSerializer
-    cg_serializer = cg_serializers.PageSerializer
+    serializer = serializers.PageSerializer
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
@@ -1068,7 +1055,7 @@ class Feed(BaseModel):
     source_urls = ListField(blank=True, type=unicode) # List of urls feed is generated from, allowed to be empty
     spider_name = models.CharField(max_length=64, blank=True) # Spider defines behavior to update / regenerate page, '' valid
 
-    serializer = ir_serializers.FeedSerializer
+    serializer = serializers.FeedSerializer
 
     def __unicode__(self):
         try:
@@ -1470,8 +1457,6 @@ class Tile(BaseModel):
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
-    cg_serializer = cg_serializers.TileSerializer
-
     def _copy(self, *args, **kwargs):
         update_fields = kwargs.pop('update_fields', {})
 
@@ -1540,11 +1525,11 @@ class Tile(BaseModel):
         serializer = None
         try:
             target_class = self.template.capitalize()
-            serializer = getattr(ir_serializers,
+            serializer = getattr(serializers,
                                  '{}TileSerializer'.format(target_class))
         except AttributeError:
             # cannot find e.g. 'Youtube'TileSerializer -- use default
-            serializer = ir_serializers.DefaultTileSerializer
+            serializer = serializers.DefaultTileSerializer
         
         return serializer().to_str([self], skip_cache=skip_cache)
 
@@ -1552,7 +1537,7 @@ class Tile(BaseModel):
     def tile_config(self):
         """(read-only) representation of the tile as its content graph
         tileconfig."""
-        return cg_serializers.TileConfigSerializer.dump(self)
+        raise NotImplementedError
 
     @property
     def product(self):
