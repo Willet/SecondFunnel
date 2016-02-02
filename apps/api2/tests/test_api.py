@@ -559,6 +559,18 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'asfd': 'asdf', 'asdf': 'asdf', 'asdf': 'asdf'})
         self.assertEqual(response.data['status'], u'Bad inputs.')
 
+    def page_add_missing_inputs_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'number': '6555555'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
+
+    def page_add_missing_inputs2_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selected': 'ID', 'num': '6555555'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
+
+    def page_add_missing_inputs3_test(self):
+        response = self.client.post('/api2/page/8/add/', {'select': 'ID', 'number': '6555555'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
+
     def page_remove_successful_URL_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product'})
         self.assertEqual(response.data['status'], u'Product with URL: www.google.com/product, Name: Default has been added.')
@@ -644,6 +656,18 @@ class APITest(APITestCase):
 
     def page_remove_bad_inputs_test(self):
         response = self.client.post('/api2/page/8/remove/', {'asfd': 'asdf', 'asdf': 'asdf', 'asdf': 'asdf'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
+
+    def page_remove_missing_inputs_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'number': '6555555'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
+
+    def page_remove_missing_inputs2_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selected': 'ID', 'num': '6555555'})
+        self.assertEqual(response.data['status'], u'Bad inputs.')
+
+    def page_remove_missing_inputs3_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'select': 'ID', 'number': '6555555'})
         self.assertEqual(response.data['status'], u'Bad inputs.')
 
     def tile_test(self):

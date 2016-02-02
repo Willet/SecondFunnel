@@ -178,9 +178,7 @@ class PageViewSet(viewsets.ModelViewSet):
         elif len(data) > 2:
             return Response({"status": "Too many inputs."})
 
-        if 'selection' in data and 'num' in data:
-            pass
-        else:
+        if not 'selection' in data or not 'num' in data:
             return Response({"status": "Bad inputs."})
             
         selection = data['selection'].upper()
@@ -235,7 +233,7 @@ class PageViewSet(viewsets.ModelViewSet):
         elif len(data) > 2:
             return Response({"status": "Too many inputs."})
 
-        if not 'selection' in data and not 'num' in data:
+        if not 'selection' in data or not 'num' in data:
             return Response({"status": "Bad inputs."})
 
         selection = data['selection'].upper()
