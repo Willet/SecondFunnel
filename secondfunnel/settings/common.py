@@ -305,7 +305,6 @@ LOCAL_APPS = (
     'apps.api2',
     'apps.assets',
     'apps.intentrank',
-    'apps.contentgraph',
     'apps.website',
     'apps.tracking',
     'apps.utils',
@@ -424,7 +423,6 @@ FIXTURE_DIRS = (
 
 WEBSITE_BASE_URL = 'http://secondfunnel.com'
 INTENTRANK_BASE_URL = WEBSITE_BASE_URL
-CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',

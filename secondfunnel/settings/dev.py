@@ -22,7 +22,6 @@ INTERNAL_IPS = ('localhost',  # virtualenv
 
 WEBSITE_BASE_URL = ''.format(INTERNAL_IP)
 INTENTRANK_BASE_URL = WEBSITE_BASE_URL
-CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
 INTENTRANK_CONFIG_BUCKET_NAME = None
 
