@@ -87,11 +87,13 @@ class ProductViewSet(viewsets.ModelViewSet):
             else:
                 data = request.POST
 
-            if len(data) < 1:
+            if len(data) < 2:
                 return Response({"status": "Too few inputs."})
 
             if not 'url' in data:
-                return Response({"status": "No selection input found."})
+                return Response({"status": "No URL found."})
+            elif not 'url_slug' in data:
+                return Response({"status": "No Page ID found."})
             else:
                 # Scraper
                 categories = []
@@ -107,21 +109,16 @@ class ProductViewSet(viewsets.ModelViewSet):
                 if 'url_slug' in data:
                     page = Page.objects.get(pk=data['url_slug'])
 
-                print url
-                print page
-                print options
-                print categories
-                print priorities
-                # def process(request, page, url, options, categories, priorities):
-                #     maintainer = PageMaintainer(page)
-                #     maintainer.add(source_urls=url, categories=categories, options=options)
+                def process(request, page, url, options, categories, priorities):
+                    maintainer = PageMaintainer(page)
+                    maintainer.add(source_urls=url, categories=categories, options=options)
 
-                #     if categories and priorities:
-                #         prioritize(request, page.url_slug)
+                    if categories and priorities:
+                        prioritize(request, page.url_slug)
 
-                # p = Process(target=process, args=[request, page, url, options, categories, priorities])
-                # p.start()
-                # p.join()
+                p = Process(target=process, args=[request, page, url, options, categories, priorities])
+                p.start()
+                p.join()
 
                 return Response({"status": "Scraped!"})
         else:

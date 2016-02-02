@@ -153,7 +153,7 @@ var formView = Backbone.View.extend({
                             });
                             result = scrapeURL.scrape(scrapeURL);
                             result.done(function(){
-                                $('#add-result').append(JSON.parse(result.responseText).status);
+                                $('#add-result').append(" " + JSON.parse(result.responseText).status);
                             })
                         }
                         $('#remove-result').html("");
@@ -182,44 +182,6 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
-var urlAddPath = function (path) {
-    var url = urlParse(window.location.href).pathname;
-    return url + ((url.slice(-1) !== '/') ? '/' + path : path);
-};
-
-var urlParse = function (url) {
-    // Trick to parse url is to use location object of a-tag
-    var path, port, a = document.createElement('a');
-    a.href = url;
-    path = a.pathname;
-
-    // IE excludes the leading /
-    if (path.length && path.charAt(0) !== '/') {
-        path = '/' + path;
-    }
-
-    // Check if port is in url, because:
-    // - Safari reports "0" when no port is in the href
-    // - IE reports "80" when no port is in the href
-    port = (url.indexOf(":" + a.port) > -1) ? a.port : "";
-
-    // <protocol>//<hostname>:<port><pathname><search><hash>
-    // hreft - complete url
-    // host - <hostname>:<port>
-    // origin - <protocal>//<hostname>:<port>
-    return {
-        'href':     a.href,
-        'host':     a.host,
-        'origin':   a.origin,
-        'protocol': a.protocol,
-        'hostname': a.hostname,
-        'port':     port,
-        'pathname': path, // if path, includes leading '/'
-        'search':   a.search, // if search, includes leading '?'
-        'hash':     a.hash // if hash, includes leading '#'
-    };
-};
 
 $(document).ready(function(){
     var Forms = new formView();
