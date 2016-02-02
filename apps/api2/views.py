@@ -1,4 +1,5 @@
 import ast
+from multiprocessing import Process
 
 from django.contrib.auth.models import User
 from rest_framework import renderers
@@ -10,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
+from apps.scrapy.controllers import PageMaintainer
 from serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
     ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer
 
@@ -43,6 +45,9 @@ class ProductViewSet(viewsets.ModelViewSet):
             if len(data) < 1:
                 return Response({"status": "Too few inputs."})
 
+            if len(data) > 1:
+                return Response({"status": "Too many inputs."})
+
             if 'id' in data:
                 key = ['ID','id']
                 try:
@@ -71,13 +76,64 @@ class ProductViewSet(viewsets.ModelViewSet):
                 return Response({"status": "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."})
             else:
                 return Response({"status": "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."})
+        elif method == 'scrape':
+            data = ''
+
+            if request.POST == {}:
+                if request.body == "":
+                    return Response({"status": "Too few inputs."})
+                else:
+                    data = ast.literal_eval(request.body)
+            else:
+                data = request.POST
+
+            if len(data) < 1:
+                return Response({"status": "Too few inputs."})
+
+            if not 'url' in data:
+                return Response({"status": "No selection input found."})
+            else:
+                # Scraper
+                categories = []
+                priorities = []
+
+                options = {
+                    'skip_tiles': False,
+                    'refresh_images': True
+                }
+
+                url = data['url']
+                page = ''
+                if 'url_slug' in data:
+                    page = Page.objects.get(pk=data['url_slug'])
+
+                print url
+                print page
+                print options
+                print categories
+                print priorities
+                # def process(request, page, url, options, categories, priorities):
+                #     maintainer = PageMaintainer(page)
+                #     maintainer.add(source_urls=url, categories=categories, options=options)
+
+                #     if categories and priorities:
+                #         prioritize(request, page.url_slug)
+
+                # p = Process(target=process, args=[request, page, url, options, categories, priorities])
+                # p.start()
+                # p.join()
+
+                return Response({"status": "Scraped!"})
         else:
             return Response({"detail": "Method 'POST' not allowed."}, 405)
 
     @detail_route(methods=['post'])
     def search(self, request, *args, **kwargs):
-        return Response("search func")
-        
+        return Response("Search")
+    
+    @detail_route(methods=['post'])
+    def scrape(self, request, *args, **kwargs):
+        return Response("Scrape")
 
 class ContentViewSet(viewsets.ModelViewSet):
     queryset = Content.objects.all()
@@ -109,7 +165,7 @@ class PageViewSet(viewsets.ModelViewSet):
     serializer_class = PageSerializer
 
     def post(self, request, pk, *args, **kwargs):
-        return Response("post")
+        return Response("Post")
 
     @detail_route(methods=['post'])
     def add(self, request, pk, *args, **kwargs):

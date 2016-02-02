@@ -11,9 +11,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
 
 from apps.assets.models import Category, Page, Product, Store
 from apps.dashboard.models import DashBoard, UserProfile, Query
+from apps.scrapy.views import scrape
 
 LOGIN_URL = '/dashboard/login'
 API_URL = '/api2/'
@@ -211,23 +213,3 @@ def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
     return HttpResponseRedirect('/dashboard/')
-
-@login_required(login_url=LOGIN_URL)
-def add_product(request, dashboard_slug):
-    context = RequestContext(request)
-    print "add product"
-
-    if request.method == 'POST':
-        url = request.POST.get('url') 
-        sku = request.POST.get('sku')
-        id = request.POST.get('id')
-    return HttpResponseRedirect('/dashboard/' + dashboard_slug + '/manage')
-
-@login_required(login_url=LOGIN_URL)
-def remove_product(request, dashboard_slug):
-    context = RequestContext(request)
-    print "remove product"
-
-    if request.method == 'POST':
-        print "POST"
-

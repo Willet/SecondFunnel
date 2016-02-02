@@ -17,7 +17,9 @@ var Product = Backbone.Model.extend({
             case 'read':
                 return api_URL + 'page/' + url_slug + '/';
             case 'search':
-                return api_URL + 'product/search/';
+                return api_URL + 'product/' + method + '/'; 
+            case 'scrape':
+                return api_URL + 'product/' + method + '/'; 
         }
     },
 
@@ -32,6 +34,13 @@ var Product = Backbone.Model.extend({
             'url': this.getCustomURL('search')
         };
         return Backbone.sync.call(this, 'create', searchString, options);
+    },
+
+    scrape: function (URL) {
+        var options = {
+            'url': this.getCustomURL('scrape')
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
     }
 })
 
@@ -51,9 +60,9 @@ var Page = Backbone.Model.extend({
             case 'read':
                 return api_URL + 'page/' + url_slug + '/';
             case 'add':
-                return api_URL + 'page/' + url_slug + '/' + method + '/';
+                return api_URL + 'page/' + url_slug + '/' + method + '/'; 
             case 'remove':
-                return api_URL + 'page/' + url_slug + '/' + method + '/';
+                return api_URL + 'page/' + url_slug + '/' + method + '/'; 
         }
     },
 
@@ -135,35 +144,18 @@ var formView = Backbone.View.extend({
                 }
                 else{
                     if (method == 'add'){
-                        // scrape
                         $('#add-result').html(JSON.parse(result.responseText).status);
                         if (selection == 'URL'){
-                            $('#add-result').append(" Scraping...")
+                            $('#add-result').append(" Scraping...");
+                            var scrapeURL = new Product({
+                                url: page.attributes.num,
+                                url_slug: url_slug
+                            });
+                            result = scrapeURL.scrape(scrapeURL);
+                            result.done(function(){
+                                $('#add-result').append(JSON.parse(result.responseText).status);
+                            })
                         }
-                        $.ajax({
-                            url: urlAddPath('scrape'),
-                            type: 'POST',
-                            data: {
-                                'cat': encodeURIComponent({
-                                    "urls":[num],
-                                    "priorities":["0"],
-                                    "name": //Category here
-                                }),
-                                'page': page,
-                                'tiles': false,
-                                'refresh_images': true
-                            },
-                            success: function(data, status) {
-                                $('#add-result').html($('#add-result').html() + '\nScrape succeeded with status: ' + status);
-                                console.log('Scrape succeeded with status: ' + status);
-                            },
-                            error: function(obj, status, error) {
-                                $('#add-result').addClass('warning');
-                                $('#add-result').html('\nScrape failed with status: ' + error);
-                                console.warn('Scrape failed with status: ' + error);
-                                console.warn(obj);
-                            }
-                        });
                         $('#remove-result').html("");
                     }
                     else{
@@ -194,6 +186,39 @@ function getCookie(name) {
 var urlAddPath = function (path) {
     var url = urlParse(window.location.href).pathname;
     return url + ((url.slice(-1) !== '/') ? '/' + path : path);
+};
+
+var urlParse = function (url) {
+    // Trick to parse url is to use location object of a-tag
+    var path, port, a = document.createElement('a');
+    a.href = url;
+    path = a.pathname;
+
+    // IE excludes the leading /
+    if (path.length && path.charAt(0) !== '/') {
+        path = '/' + path;
+    }
+
+    // Check if port is in url, because:
+    // - Safari reports "0" when no port is in the href
+    // - IE reports "80" when no port is in the href
+    port = (url.indexOf(":" + a.port) > -1) ? a.port : "";
+
+    // <protocol>//<hostname>:<port><pathname><search><hash>
+    // hreft - complete url
+    // host - <hostname>:<port>
+    // origin - <protocal>//<hostname>:<port>
+    return {
+        'href':     a.href,
+        'host':     a.host,
+        'origin':   a.origin,
+        'protocol': a.protocol,
+        'hostname': a.hostname,
+        'port':     port,
+        'pathname': path, // if path, includes leading '/'
+        'search':   a.search, // if search, includes leading '?'
+        'hash':     a.hash // if hash, includes leading '#'
+    };
 };
 
 $(document).ready(function(){
