@@ -113,9 +113,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                     maintainer = PageMaintainer(page)
                     maintainer.add(source_urls=url, categories=categories, options=options)
 
-                    if categories and priorities:
-                        prioritize(request, page.url_slug)
-
                 p = Process(target=process, args=[request, page, url, options, categories, priorities])
                 p.start()
                 p.join()
@@ -238,9 +235,7 @@ class PageViewSet(viewsets.ModelViewSet):
         elif len(data) > 2:
             return Response({"status": "Too many inputs."})
 
-        if 'selection' in data and 'num' in data:
-            pass
-        else:
+        if not 'selection' in data and not 'num' in data:
             return Response({"status": "Bad inputs."})
 
         selection = data['selection'].upper()
