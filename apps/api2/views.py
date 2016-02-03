@@ -31,9 +31,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     def search(self, request):
         data = ''
         product = ''
-        found = 0
-        key = []
-
         return_dict = {"status": ""}
 
         if request.POST == {}:
@@ -45,17 +42,18 @@ class ProductViewSet(viewsets.ModelViewSet):
             data = request.POST
 
         if len(data) < 1:
-            return_dict['status'] = "Too few inputs."
+            return_dict['status'] = "Expecting data input but got none."
         elif len(data) > 1:
-            return_dict['status'] = "Too many inputs."
+            return_dict['status'] = "Expecting 1 set of data but got multiple."
         else:
+            key = []
+            filters = ''
             try:
                 id_filter = data.get('id', None)
                 name_filter = data.get('name', None)
                 sku_filter = data.get('sku', None)
                 url_filter = data.get('url', None)
             
-                filters = ''
                 if id_filter:
                     id_filter = int(id_filter)
                     key = ['ID','id']
@@ -73,15 +71,14 @@ class ProductViewSet(viewsets.ModelViewSet):
                 if url_filter:
                     key = ['URL', 'url']
                     filters = Q(url=url_filter)
-
-                product = Product.objects.get(filters)
-                return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."
-            except Product.DoesNotExist:
-                return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
             except (ValueError, TypeError):
-                return_dict['status'] = "Please enter a number."
-            except AttributeError:
-                return_dict['status'] = "Too few inputs."
+                return_dict['status'] = "Expecting a number as input, but got non-number."
+            else:
+                try:
+                    product = Product.objects.get(filters)
+                    return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."
+                except Product.DoesNotExist:
+                    return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
         
         return Response(return_dict)
 
@@ -100,7 +97,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             data = request.POST
 
         if len(data) < 2:
-            return_dict['status'] = "Too few inputs."
+            return_dict['status'] = "Expecting 2 data input but got 0 or 1."
 
         if not 'url' in data:
             return_dict['status'] = "No URL found."
@@ -179,41 +176,50 @@ class PageViewSet(viewsets.ModelViewSet):
             data = request.POST
 
         if len(data) < 2:
-            status = ["Too few inputs."]
+            status = ["Expecting 2 data input but got 0 or 1."]
         elif len(data) > 2:
-            status = ["Too many inputs."]
+            status = ["Expecting 2 data input but more than 2."]
         else:
             try:
                 selection = data.get('selection')
                 num = data.get('num')
+                if selection is None or num is None:
+                    raise MultiValueDictKeyError
+            except MultiValueDictKeyError:
+                status = ["Missing 'selection' or 'num' field from input."]
+            else:
+                try: 
+                    selection = selection.upper()
+                    status = ["Product with " + selection + ": " + str(num)]
 
-                selection = selection.upper()
-
-                status = ["Product with " + selection + ": " + str(num)]
-
-                filters = Q(store=page.store)
-                if selection == 'URL':
-                    filters = filters & Q(url=num)
-                if selection == 'SKU':
-                    num = int(num)
-                    filters = filters & Q(sku=num)
-                if selection == 'ID':
-                    num = int(num)
-                    filters = filters & Q(id=num)
-
-                product = Product.objects.get(filters)
-                
-                status.append(", Name: " + product.name)
-
-                if page.feed.tiles.filter(products=product, template="product"):
-                    status.append(", Store: " + page.store.name + " is already added. Add failed.")
+                    filters = Q(store=page.store)
+                    if selection == 'URL':
+                        filters = filters & Q(url=num)
+                    elif selection == 'SKU':
+                        num = int(num)
+                        filters = filters & Q(sku=num)
+                    elif selection == 'ID':
+                        num = int(num)
+                        filters = filters & Q(id=num)
+                    else:
+                        raise TypeError
+                except ValueError:
+                    status = ["Expecting a number as input, but got non-number."]
+                except TypeError:
+                    status = ["Expecting URL/SKU/ID as input, but got none."]
                 else:
-                    page.feed.add(product)
-                    status.append(" has been added.")
-            except (ValueError, AttributeError, TypeError, MultiValueDictKeyError):
-                status = ["Bad inputs."]
-            except Product.DoesNotExist:
-                status.append(", Store: " + page.store.name + " has not been found. Add failed.")
+                    try:
+                        product = Product.objects.get(filters)
+                    except Product.DoesNotExist:
+                        status.append(", Store: " + page.store.name + " has not been found. Add failed.")
+                    else:
+                        status.append(", Name: " + product.name)
+
+                        if page.feed.tiles.filter(products=product, template="product"):
+                            status.append(", Store: " + page.store.name + " is already added. Add failed.")
+                        else:
+                            page.feed.add(product)
+                            status.append(" has been added.")
 
         status = "".join(status)
 
@@ -242,41 +248,54 @@ class PageViewSet(viewsets.ModelViewSet):
             data = request.POST
 
         if len(data) < 2:
-            status = ["Too few inputs."]
+            status = ["Expecting 2 data input but got 0 or 1."]
         elif len(data) > 2:
-            status = ["Too many inputs."]
+            status = ["Expecting 2 data input but more than 2."]
         else:
             try:
                 selection = data.get('selection')
                 num = data.get('num')
+                if selection is None or num is None:
+                    raise MultiValueDictKeyError
+            except MultiValueDictKeyError:
+                status = ["Missing 'selection' or 'num' field from input."]
+            else:
+                try: 
+                    selection = selection.upper()
+                    status = ["Product with " + selection + ": " + str(num)]
 
-                selection = selection.upper()
-
-                status = ["Product with " + selection + ": " + str(num)]
-
-                filters = Q(store=page.store)
-                if selection == 'URL':
-                    filters = filters & Q(url=num)
-                if selection == 'SKU':
-                    num = int(num)
-                    filters = filters & Q(sku=num)
-                if selection == 'ID':
-                    num = int(num)
-                    filters = filters & Q(id=num)
-
-                product = Product.objects.get(filters)
-
-                status.append(", Name: " + product.name)
-
-                if not page.feed.tiles.filter(products=product, template="product"):
-                    status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
+                    filters = Q(store=page.store)
+                    if selection == 'URL':
+                        filters = filters & Q(url=num)
+                    elif selection == 'SKU':
+                        num = int(num)
+                        filters = filters & Q(sku=num)
+                    elif selection == 'ID':
+                        num = int(num)
+                        filters = filters & Q(id=num)
+                    else:
+                        raise TypeError
+                except ValueError:
+                    status = ["Expecting a number as input, but got non-number."]
+                except TypeError:
+                    status = ["Expecting URL/SKU/ID as input, but got none."]
                 else:
-                    page.feed.remove(product)
-                    status.append(" has been removed.")
-            except (ValueError, AttributeError, TypeError, MultiValueDictKeyError):
-                status = ["Bad inputs."]
-            except Product.DoesNotExist:
-                status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
+                    try: 
+                        product = Product.objects.get(filters)
+                    except Product.DoesNotExist:
+                        status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
+                    except Product.MultipleObjectsReturned:
+                        status = ["Multiple products with " + selection + ": " + str(num) + ", Store: " \
+                            + page.store.name + " have been found. Remove failed."]
+                    else:
+                        status.append(", Name: " + product.name)
+                        try:
+                            page.feed.tiles.filter(products=product, template="product")
+                        except Tiles.DoesNotExist:
+                            status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
+                        else:
+                            page.feed.remove(product)
+                            status.append(" has been removed.")
 
         status = "".join(status)
 

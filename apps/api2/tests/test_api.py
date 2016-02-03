@@ -147,23 +147,23 @@ class APITest(APITestCase):
 
     def product_search_sku_input_URL_test(self):
         response = self.client.post('/api2/product/search/', {'sku': "http://www.google.com"})
-        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+        self.assertEqual(response.data, {'status': 'Expecting a number as input, but got non-number.'})
 
     def product_search_sku_input_letters_test(self):
         response = self.client.post('/api2/product/search/', {'sku': "asdf123456"})
-        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+        self.assertEqual(response.data, {'status': 'Expecting a number as input, but got non-number.'})
 
     def product_search_ID_input_URL_test(self):
         response = self.client.post('/api2/product/search/', {'sku': "http://www.google.com"})
-        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+        self.assertEqual(response.data, {'status': 'Expecting a number as input, but got non-number.'})
 
     def product_search_ID_input_letters_test(self):
         response = self.client.post('/api2/product/search/', {'sku': "asdf1234"})
-        self.assertEqual(response.data, {'status': 'Please enter a number.'})
+        self.assertEqual(response.data, {'status': 'Expecting a number as input, but got non-number.'})
 
     def product_search_no_input_test(self):
         response = self.client.post('/api2/product/search/')
-        self.assertEqual(response.data, {'status': 'Too few inputs.'})
+        self.assertEqual(response.data, {'status': 'Expecting data input but got none.'})
 
     def product_bad_method_test(self):
         response = self.client.post('/api2/product/test1/')
@@ -549,27 +549,35 @@ class APITest(APITestCase):
 
     def page_add_no_input_test(self):
         response = self.client.post('/api2/page/8/add/')
-        self.assertEqual(response.data['status'], u'Too few inputs.')
+        self.assertEqual(response.data['status'], u'Expecting 2 data input but got 0 or 1.')
 
     def page_add_too_many_input_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': '6555555', 'num2': '63'})
-        self.assertEqual(response.data['status'], u'Too many inputs.')
+        self.assertEqual(response.data['status'], u'Expecting 2 data input but more than 2.')
 
     def page_add_bad_inputs_test(self):
-        response = self.client.post('/api2/page/8/add/', {'asfd': 'asdf', 'asdf': 'asdf', 'asdf': 'asdf'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        response = self.client.post('/api2/page/8/add/', {'asfd': 'asdf', 'fdfdff': 'asdf', '12345': 'asdf'})
+        self.assertEqual(response.data['status'], u'Expecting 2 data input but more than 2.')
+
+    def page_add_bad_inputs2_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': 'asdf'})
+        self.assertEqual(response.data['status'], u'Expecting a number as input, but got non-number.')
+
+    def page_add_bad_inputs3_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URLSKUID', 'num': '1234'})
+        self.assertEqual(response.data['status'], u'Expecting URL/SKU/ID as input, but got none.')
 
     def page_add_missing_inputs_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
 
     def page_add_missing_inputs2_test(self):
         response = self.client.post('/api2/page/8/add/', {'selected': 'ID', 'num': '6555555'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
 
     def page_add_missing_inputs3_test(self):
         response = self.client.post('/api2/page/8/add/', {'select': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
 
     def page_remove_successful_URL_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product'})
@@ -648,27 +656,35 @@ class APITest(APITestCase):
 
     def page_remove_no_input_test(self):
         response = self.client.post('/api2/page/8/remove/')
-        self.assertEqual(response.data['status'], u'Too few inputs.')
+        self.assertEqual(response.data['status'], u'Expecting 2 data input but got 0 or 1.')
 
     def page_remove_too_many_input_test(self):
         response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': '6555555', 'num2': '63'})
-        self.assertEqual(response.data['status'], u'Too many inputs.')
+        self.assertEqual(response.data['status'], u'Expecting 2 data input but more than 2.')
 
     def page_remove_bad_inputs_test(self):
-        response = self.client.post('/api2/page/8/remove/', {'asfd': 'asdf', 'asdf': 'asdf', 'asdf': 'asdf'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        response = self.client.post('/api2/page/8/remove/', {'asfd': 'asdf', 'ggff': 'g333', 'asdq': 'asdf'})
+        self.assertEqual(response.data['status'], u"Expecting 2 data input but more than 2.")
+
+    def page_remove_bad_inputs2_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': 'asdf'})
+        self.assertEqual(response.data['status'], u'Expecting a number as input, but got non-number.')
+
+    def page_remove_bad_inputs3_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'selection': 'URLSKUID', 'num': '1234'})
+        self.assertEqual(response.data['status'], u'Expecting URL/SKU/ID as input, but got none.')
 
     def page_remove_missing_inputs_test(self):
         response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
 
     def page_remove_missing_inputs2_test(self):
         response = self.client.post('/api2/page/8/remove/', {'selected': 'ID', 'num': '6555555'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
 
     def page_remove_missing_inputs3_test(self):
         response = self.client.post('/api2/page/8/remove/', {'select': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u'Bad inputs.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
 
     def tile_test(self):
         response = self.client.get(reverse('tile-list'))
