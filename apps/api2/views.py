@@ -1,12 +1,14 @@
 import ast
 from multiprocessing import Process
 
+from django.db.models import Q
 from django.contrib.auth.models import User
+from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import renderers
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework import generics
-from rest_framework.decorators import api_view, detail_route
+from rest_framework.decorators import api_view, detail_route, list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -25,109 +27,112 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    def post(self, request, *args, **kwargs):
-        method = kwargs.get('pk')
+    @list_route(methods=['post'])
+    def search(self, request):
+        data = ''
+        product = ''
+        found = 0
+        key = []
 
-        if method == 'search':
-            data = ''
-            product = ''
-            found = 0
-            key = []
+        return_dict = {"status": ""}
 
-            if request.POST == {}:
-                if request.body == "":
-                    return Response({"status": "Too few inputs."})
-                else:
-                    data = ast.literal_eval(request.body)
+        if request.POST == {}:
+            if request.body == "":
+                return_dict['status'] = "Too few inputs."
             else:
-                data = request.POST
-
-            if len(data) < 1:
-                return Response({"status": "Too few inputs."})
-
-            if len(data) > 1:
-                return Response({"status": "Too many inputs."})
-
-            if 'id' in data:
-                key = ['ID','id']
-                try:
-                    data['id'] = int(data['id'])
-                except ValueError:
-                    return Response({"status": "Please enter a number."})
-                product = Product.objects.filter(pk = data['id'])
-
-            if 'name' in data:
-                key = ['name','name']
-                product = Product.objects.filter(name = data['name'])
-
-            if 'sku' in data:
-                key = ['SKU','sku']
-                try:
-                    data['sku'] = int(data['sku'])
-                except ValueError:
-                    return Response({"status": "Please enter a number."})
-                product = Product.objects.filter(sku = data['sku'])
-
-            if 'url' in data:
-                key = ['URL', 'url']
-                product = Product.objects.filter(url = data['url'])
-
-            if product:
-                return Response({"status": "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."})
-            else:
-                return Response({"status": "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."})
-        elif method == 'scrape':
-            data = ''
-
-            if request.POST == {}:
-                if request.body == "":
-                    return Response({"status": "Too few inputs."})
-                else:
-                    data = ast.literal_eval(request.body)
-            else:
-                data = request.POST
-
-            if len(data) < 2:
-                return Response({"status": "Too few inputs."})
-
-            if not 'url' in data:
-                return Response({"status": "No URL found."})
-            elif not 'url_slug' in data:
-                return Response({"status": "No Page ID found."})
-            else:
-                # Scraper
-                categories = []
-                priorities = []
-
-                options = {
-                    'skip_tiles': False,
-                    'refresh_images': True
-                }
-
-                url = data['url']
-                page = ''
-                if 'url_slug' in data:
-                    page = Page.objects.get(pk=data['url_slug'])
-
-                def process(request, page, url, options, categories, priorities):
-                    maintainer = PageMaintainer(page)
-                    maintainer.add(source_urls=url, categories=categories, options=options)
-
-                p = Process(target=process, args=[request, page, url, options, categories, priorities])
-                p.start()
-                p.join()
-
-                return Response({"status": "Scraped!"})
+                data = ast.literal_eval(request.body)
         else:
-            return Response({"detail": "Method 'POST' not allowed."}, 405)
+            data = request.POST
 
-    @detail_route(methods=['post'])
-    def search(self, request, *args, **kwargs):
-        return Response("Search")
-    
-    @detail_route(methods=['post'])
-    def scrape(self, request, *args, **kwargs):
-        return Response("Scrape")
+        if len(data) < 1:
+            return_dict['status'] = "Too few inputs."
+        elif len(data) > 1:
+            return_dict['status'] = "Too many inputs."
+        else:
+            try:
+                id_filter = data.get('id', None)
+                name_filter = data.get('name', None)
+                sku_filter = data.get('sku', None)
+                url_filter = data.get('url', None)
+            
+                filters = ''
+                if id_filter:
+                    id_filter = int(id_filter)
+                    key = ['ID','id']
+                    filters = Q(id=id_filter)
+
+                if name_filter:
+                    key = ['name','name']
+                    filters = Q(name=name_filter)
+
+                if sku_filter:
+                    sku_filter = int(sku_filter)
+                    key = ['SKU','sku']
+                    filters = Q(sku=sku_filter)
+
+                if url_filter:
+                    key = ['URL', 'url']
+                    filters = Q(url=url_filter)
+
+                product = Product.objects.get(filters)
+                return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."
+            except Product.DoesNotExist:
+                return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
+            except (ValueError, TypeError):
+                return_dict['status'] = "Please enter a number."
+            except AttributeError:
+                return_dict['status'] = "Too few inputs."
+        
+        return Response(return_dict)
+
+    @list_route(methods=['post'])
+    def scrape(self, request):
+        data = ''
+
+        return_dict = {"status": ""}
+
+        if request.POST == {}:
+            if request.body == "":
+                return_dict["status"] = "Too few inputs."
+            else:
+                data = ast.literal_eval(request.body)
+        else:
+            data = request.POST
+
+        if len(data) < 2:
+            return_dict['status'] = "Too few inputs."
+
+        if not 'url' in data:
+            return_dict['status'] = "No URL found."
+        elif not 'page_id' in data:
+            return_dict['status'] = "No Page ID found."
+        else:
+            # Scraper
+            categories = []
+            priorities = []
+
+            options = {
+                'skip_tiles': False,
+                'refresh_images': True
+            }
+
+            url = data['url']
+            page = ''
+            if 'page_id' in data:
+                page = Page.objects.get(pk=data['page_id'])
+
+            def process(request, page, url, options, categories, priorities):
+                maintainer = PageMaintainer(page)
+                maintainer.add(source_urls=url, categories=categories, options=options)
+
+            p = Process(target=process, args=[request, page, url, options, categories, priorities])
+            p.start()
+            p.join()
+
+            return_dict['status'] = "Scraped!"
+
+        return Response(return_dict)
+
 
 class ContentViewSet(viewsets.ModelViewSet):
     queryset = Content.objects.all()
@@ -158,57 +163,62 @@ class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
 
-    def post(self, request, pk, *args, **kwargs):
-        return Response("Post")
-
     @detail_route(methods=['post'])
-    def add(self, request, pk, *args, **kwargs):
-        action = "Add"
+    def add(self, request, pk):
+        return_dict = {"status": ""}
+        status = []
+        selection = ''
+        num = ''
+        data = ''
+        page = Page.objects.get(pk=pk)
 
         if request.POST == {}:
-            if request.body == "":
-                return Response({"status": "Too few inputs."})
-            else:
+            if not request.body == "":
                 data = ast.literal_eval(request.body)
         else:
             data = request.POST
 
         if len(data) < 2:
-            return Response({"status": "Too few inputs."})
+            status = ["Too few inputs."]
         elif len(data) > 2:
-            return Response({"status": "Too many inputs."})
+            status = ["Too many inputs."]
+        else:
+            try:
+                selection = data.get('selection')
+                num = data.get('num')
 
-        if not 'selection' in data or not 'num' in data:
-            return Response({"status": "Bad inputs."})
-            
-        selection = data['selection'].upper()
-        num = data['num']
+                selection = selection.upper()
 
-        page = Page.objects.get(pk=pk)
-        status = ["Product with " + selection + ": " + str(num)]
+                status = ["Product with " + selection + ": " + str(num)]
 
-        product = ''
-        if selection == 'URL':
-            product = Product.objects.filter(store=page.store, url=num)
-        elif selection == 'SKU':
-            product = Product.objects.filter(store=page.store, sku=num)
-        elif selection == 'ID':
-            product = Product.objects.filter(store=page.store, id=num)
+                filters = Q(store=page.store)
+                if selection == 'URL':
+                    filters = filters & Q(url=num)
+                if selection == 'SKU':
+                    num = int(num)
+                    filters = filters & Q(sku=num)
+                if selection == 'ID':
+                    num = int(num)
+                    filters = filters & Q(id=num)
 
-        if not product:
-            status.append(", Store: " + page.store.name + " has not been found. " + action + " failed.")
-        else: 
-            status.append(", Name: " + product.first().name)
-            if page.feed.tiles.filter(products=product, template="product"):
-                status.append(", Store: " + page.store.name + " is already added. " + action + " failed.")
-            else:
-                page.feed.add(product.first())
-                status.append(" has been added.")
+                product = Product.objects.get(filters)
+                
+                status.append(", Name: " + product.name)
+
+                if page.feed.tiles.filter(products=product, template="product"):
+                    status.append(", Store: " + page.store.name + " is already added. Add failed.")
+                else:
+                    page.feed.add(product)
+                    status.append(" has been added.")
+            except (ValueError, AttributeError, TypeError, MultiValueDictKeyError):
+                status = ["Bad inputs."]
+            except Product.DoesNotExist:
+                status.append(", Store: " + page.store.name + " has not been found. Add failed.")
 
         status = "".join(status)
 
         return Response({
-            "action": action,
+            "action": "Add",
             "slug": pk,
             "store_name": page.store.name,
             "selection": selection,
@@ -217,54 +227,61 @@ class PageViewSet(viewsets.ModelViewSet):
             })
 
     @detail_route(methods=['post'])
-    def remove(self, request, pk, *args, **kwargs):
-        action = "Remove"
+    def remove(self, request, pk):
+        return_dict = {"status": ""}
+        status = []
+        selection = ''
+        num = ''
+        data = ''
+        page = Page.objects.get(pk=pk)
 
         if request.POST == {}:
-            if request.body == "":
-                return Response({"status": "Too few inputs."})
-            else:
+            if not request.body == "":
                 data = ast.literal_eval(request.body)
         else:
             data = request.POST
 
         if len(data) < 2:
-            return Response({"status": "Too few inputs."})
+            status = ["Too few inputs."]
         elif len(data) > 2:
-            return Response({"status": "Too many inputs."})
+            status = ["Too many inputs."]
+        else:
+            try:
+                selection = data.get('selection')
+                num = data.get('num')
 
-        if not 'selection' in data or not 'num' in data:
-            return Response({"status": "Bad inputs."})
+                selection = selection.upper()
 
-        selection = data['selection'].upper()
-        num = data['num']
+                status = ["Product with " + selection + ": " + str(num)]
 
-        page = Page.objects.get(pk=pk)
+                filters = Q(store=page.store)
+                if selection == 'URL':
+                    filters = filters & Q(url=num)
+                if selection == 'SKU':
+                    num = int(num)
+                    filters = filters & Q(sku=num)
+                if selection == 'ID':
+                    num = int(num)
+                    filters = filters & Q(id=num)
 
-        status = ["Product with " + selection + ": " + str(num)]
+                product = Product.objects.get(filters)
 
-        product = ''
-        if selection == 'URL':
-            product = Product.objects.filter(store=page.store, url=num)
-        elif selection == 'SKU':
-            product = Product.objects.filter(store=page.store, sku=num)
-        elif selection == 'ID':
-            product = Product.objects.filter(store=page.store, id=num)
+                status.append(", Name: " + product.name)
 
-        if not product:
-            status.append(", Store: " + page.store.name + " has not been found. " + action + " failed.")
-        else: 
-            status.append(", Name: " + product.first().name)
-            if not page.feed.tiles.filter(products=product, template="product"):
-                status.append(", Store: " + page.store.name + " has not been found. " + action + " failed.")
-            else:
-                page.feed.remove(product.first())
-                status.append(" has been removed.")
+                if not page.feed.tiles.filter(products=product, template="product"):
+                    status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
+                else:
+                    page.feed.remove(product)
+                    status.append(" has been removed.")
+            except (ValueError, AttributeError, TypeError, MultiValueDictKeyError):
+                status = ["Bad inputs."]
+            except Product.DoesNotExist:
+                status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
 
         status = "".join(status)
 
         return Response({
-            "action": action,
+            "action": "Remove",
             "slug": pk,
             "store_name": page.store.name,
             "selection": selection,
@@ -285,6 +302,7 @@ class FeedViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
 
 @api_view(('GET',))
 def api_root(request, format=None):

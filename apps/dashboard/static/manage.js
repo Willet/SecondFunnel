@@ -149,7 +149,7 @@ var formView = Backbone.View.extend({
                             $('#add-result').append(" Scraping...");
                             var scrapeURL = new Product({
                                 url: page.attributes.num,
-                                url_slug: url_slug
+                                page_id: url_slug
                             });
                             result = scrapeURL.scrape(scrapeURL);
                             result.done(function(){

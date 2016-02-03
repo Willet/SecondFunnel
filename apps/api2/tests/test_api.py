@@ -167,7 +167,7 @@ class APITest(APITestCase):
 
     def product_bad_method_test(self):
         response = self.client.post('/api2/product/test1/')
-        self.assertEqual(response.data, {'detail': "Method 'POST' not allowed."})
+        self.assertEqual(response.data, {u'detail': u'Method "POST" not allowed.'})
 
     def content_test(self):
         response = self.client.get(reverse('content-list'))
@@ -477,7 +477,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], 'Product with SKU: 1234, Name: Default has been added.')
         self.assertEqual(response.data['selection'], u'SKU')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['num'], 1234)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -486,7 +486,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
         self.assertEqual(response.data['selection'], u'ID')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['num'], 3)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -504,7 +504,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Product with SKU: 6555555, Store: MyStore has not been found. Add failed.')
         self.assertEqual(response.data['selection'], u'SKU')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'6555555')
+        self.assertEqual(response.data['num'], 6555555)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -513,7 +513,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Product with ID: 6555555, Store: MyStore has not been found. Add failed.')
         self.assertEqual(response.data['selection'], u'ID')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'6555555')
+        self.assertEqual(response.data['num'], 6555555)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -533,7 +533,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Product with SKU: 1234, Name: Default, Store: MyStore is already added. Add failed.')
         self.assertEqual(response.data['selection'], u'SKU')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['num'], 1234)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -543,7 +543,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default, Store: MyStore is already added. Add failed.')
         self.assertEqual(response.data['selection'], u'ID')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['num'], 3)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -592,14 +592,14 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], 'Product with SKU: 1234, Name: Default has been added.')
         self.assertEqual(response.data['selection'], u'SKU')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['num'], 1234)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
         response = self.client.post('/api2/page/8/remove/', {'selection': 'SKU', 'num': 1234})
         self.assertEqual(response.data['status'], 'Product with SKU: 1234, Name: Default has been removed.')
         self.assertEqual(response.data['selection'], u'SKU')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'1234')
+        self.assertEqual(response.data['num'], 1234)
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -608,14 +608,14 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
         self.assertEqual(response.data['selection'], u'ID')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['num'], 3)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
         response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': 3})
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
         self.assertEqual(response.data['selection'], u'ID')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'3')
+        self.assertEqual(response.data['num'], 3)
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -633,7 +633,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Product with SKU: 100000, Store: MyStore has not been found. Remove failed.')
         self.assertEqual(response.data['selection'], u'SKU')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'100000')
+        self.assertEqual(response.data['num'], 100000)
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -642,7 +642,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Product with ID: 100000, Store: MyStore has not been found. Remove failed.')
         self.assertEqual(response.data['selection'], u'ID')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['num'], u'100000')
+        self.assertEqual(response.data['num'], 100000)
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')
 
