@@ -547,17 +547,43 @@ class APITest(APITestCase):
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
 
+    def page_add_successful_category_priority_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product', 'category': "TestCategory", 'priority': 100})
+        self.assertEqual(response.data['status'], u'Product with URL: www.google.com/product, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'www.google.com/product')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_successful_category_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product', 'category': "TestCategory"})
+        self.assertEqual(response.data['status'], u'Product with URL: www.google.com/product, Name: Default has been added.')
+        self.assertEqual(response.data['selection'], u'URL')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['num'], u'www.google.com/product')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+
+    def page_add_bad_category_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product', 'category': "TestFaulty"})
+        self.assertEqual(response.data['status'], u'Error: Category not found.')
+
+    def page_add_bad_priority_test(self):
+        response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product', 'priority': "TestFaulty"})
+        self.assertEqual(response.data['status'], u'Errror: Priority is not a number.')
+
     def page_add_no_input_test(self):
         response = self.client.post('/api2/page/8/add/')
-        self.assertEqual(response.data['status'], u'Expecting 2 data input but got 0 or 1.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def page_add_too_many_input_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': '6555555', 'num2': '63'})
-        self.assertEqual(response.data['status'], u'Expecting 2 data input but more than 2.')
+        self.assertEqual(response.data['status'], u'Product with ID: 6555555, Store: MyStore has not been found. Add failed.')
 
     def page_add_bad_inputs_test(self):
         response = self.client.post('/api2/page/8/add/', {'asfd': 'asdf', 'fdfdff': 'asdf', '12345': 'asdf'})
-        self.assertEqual(response.data['status'], u'Expecting 2 data input but more than 2.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def page_add_bad_inputs2_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'num': 'asdf'})
@@ -569,15 +595,15 @@ class APITest(APITestCase):
 
     def page_add_missing_inputs_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
+        self.assertEqual(response.data['status'], u"Missing 'num' field from input.")
 
     def page_add_missing_inputs2_test(self):
         response = self.client.post('/api2/page/8/add/', {'selected': 'ID', 'num': '6555555'})
-        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def page_add_missing_inputs3_test(self):
         response = self.client.post('/api2/page/8/add/', {'select': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def page_remove_successful_URL_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product'})
@@ -656,15 +682,15 @@ class APITest(APITestCase):
 
     def page_remove_no_input_test(self):
         response = self.client.post('/api2/page/8/remove/')
-        self.assertEqual(response.data['status'], u'Expecting 2 data input but got 0 or 1.')
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def page_remove_too_many_input_test(self):
         response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': '6555555', 'num2': '63'})
-        self.assertEqual(response.data['status'], u'Expecting 2 data input but more than 2.')
+        self.assertEqual(response.data['status'], u'Product with ID: 6555555, Store: MyStore has not been found. Remove failed.')
 
     def page_remove_bad_inputs_test(self):
         response = self.client.post('/api2/page/8/remove/', {'asfd': 'asdf', 'ggff': 'g333', 'asdq': 'asdf'})
-        self.assertEqual(response.data['status'], u"Expecting 2 data input but more than 2.")
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def page_remove_bad_inputs2_test(self):
         response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'num': 'asdf'})
@@ -676,15 +702,15 @@ class APITest(APITestCase):
 
     def page_remove_missing_inputs_test(self):
         response = self.client.post('/api2/page/8/remove/', {'selection': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
+        self.assertEqual(response.data['status'], u"Missing 'num' field from input.")
 
     def page_remove_missing_inputs2_test(self):
         response = self.client.post('/api2/page/8/remove/', {'selected': 'ID', 'num': '6555555'})
-        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def page_remove_missing_inputs3_test(self):
         response = self.client.post('/api2/page/8/remove/', {'select': 'ID', 'number': '6555555'})
-        self.assertEqual(response.data['status'], u"Missing 'selection' or 'num' field from input.")
+        self.assertEqual(response.data['status'], u"Missing 'selection' field from input.")
 
     def tile_test(self):
         response = self.client.get(reverse('tile-list'))

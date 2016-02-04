@@ -20,7 +20,18 @@ from apps.scrapy.views import scrape
 LOGIN_URL = '/dashboard/login'
 API_URL = '/api2/'
 
-class ManageForm(forms.Form):
+class AddForm(forms.Form):
+    selection_choices = (
+        ('URL', 'URL'),
+        ('SKU', 'SKU'),
+        ('ID', 'ID')
+    )
+    selection = forms.ChoiceField(choices=selection_choices)
+    num = forms.CharField(label='Number', max_length=100)
+    priority = forms.CharField(label='Priority (Optional)', max_length=100)
+    category = forms.CharField(label='Category (Optional)', max_length=100)
+
+class RemoveForm(forms.Form):
     selection_choices = (
         ('URL', 'URL'),
         ('SKU', 'SKU'),
@@ -149,7 +160,8 @@ def overview(request):
 
 @login_required(login_url=LOGIN_URL)
 def dashboard_manage(request, dashboard_slug):
-    form = ManageForm()
+    addForm = AddForm()
+    removeForm = RemoveForm()
     profile = UserProfile.objects.get(user=request.user)
     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
 
@@ -168,7 +180,8 @@ def dashboard_manage(request, dashboard_slug):
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'manage.html', {
-                'form': form, 
+                'addForm': addForm,
+                'removeForm': removeForm, 
                 'context': context, 
                 'siteName': cur_dashboard.site_name, 
                 'status': '',

@@ -39,7 +39,9 @@
                         <!--<form role="form" action="manage" method="post" id="add-form">-->
                         <form id="add-form">
                             {% csrf_token %}
-                            {{ form.as_p }}
+                            <table>
+                                {{ addForm.as_table }}
+                            </table>
                             <!--<input type="submit" name="submit" value="Add">-->
                             <input type="submit" id="add-button" value="Add">
                         </form>
@@ -56,7 +58,9 @@
                         <!--<form role="form" action="manage" method="post" id="remove-form">-->
                         <form id="remove-form">
                             {% csrf_token %}
-                            {{ form.as_p }}
+                            <table>
+                                {{ removeForm.as_table }}
+                            </table>
                             <!--<input type="submit" name="submit" value="Remove">-->
                             <input type="submit" id="remove-button" value="Remove">
                         </form>

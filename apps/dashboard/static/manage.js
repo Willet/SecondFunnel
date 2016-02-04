@@ -100,21 +100,33 @@ var formView = Backbone.View.extend({
     submit: function(e) {
     	e.preventDefault();
         var method = '';
-        
+        var page = '';
         if (e.target.id == "add-form")
             method = 'add';
         else
             method = 'remove';
 
-        var selection = e.target.selection.value;
-        var num = e.target.id_num.value;
-
-        var page = new Page({
-            selection: selection,
-            num: num
-        });
-
         if ((method == 'add') || (method == 'remove')) {
+            var selection = e.target.selection.value;
+            var num = e.target.id_num.value;
+            
+            if (method == 'add'){
+                var priority = e.target.priority.value;
+                var category = e.target.category.value;
+                page = new Page({
+                    selection: selection,
+                    num: num,
+                    priority: priority,
+                    category: category
+                });
+            }
+            else{
+                page = new Page({
+                    selection: selection,
+                    num: num,
+                });
+            }
+
             var searchString = new Product();
             if (selection == 'URL')
                 searchString.set({url: page.attributes.num});
@@ -143,24 +155,36 @@ var formView = Backbone.View.extend({
                     }
                 }
                 else{
-                    if (method == 'add'){
-                        $('#add-result').html(JSON.parse(result.responseText).status);
-                        if (selection == 'URL'){
-                            $('#add-result').append(" Scraping...");
-                            var scrapeURL = new Product({
-                                url: page.attributes.num,
-                                page_id: url_slug
-                            });
-                            result = scrapeURL.scrape(scrapeURL);
-                            result.done(function(){
-                                $('#add-result').append(" " + JSON.parse(result.responseText).status);
-                            })
+                    if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
+                        if (method == 'add') {
+                            $('#add-result').html("Error: " + JSON.parse(result.responseText).status);
+                            $('#remove-result').html("");
                         }
-                        $('#remove-result').html("");
+                        else {
+                            $('#add-result').html("");
+                            $('#remove-result').html("Error: " + JSON.parse(result.responseText).status);
+                        }
                     }
                     else{
-                        $('#add-result').html("");
-                        $('#remove-result').html(JSON.parse(result.responseText).status);
+                        if (method == 'add'){
+                            $('#add-result').html(JSON.parse(result.responseText).status);
+                            if (selection == 'URL'){
+                                $('#add-result').append(" Scraping...");
+                                var scrapeURL = new Product({
+                                    url: page.attributes.num,
+                                    page_id: url_slug
+                                });
+                                result = scrapeURL.scrape(scrapeURL);
+                                result.done(function(){
+                                    $('#add-result').append(" " + JSON.parse(result.responseText).status);
+                                })
+                            }
+                            $('#remove-result').html("");
+                        }
+                        else{
+                            $('#add-result').html("");
+                            $('#remove-result').html(JSON.parse(result.responseText).status);
+                        }
                     }
                 }
             })
