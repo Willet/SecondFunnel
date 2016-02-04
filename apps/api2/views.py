@@ -30,7 +30,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def search(self, request):
         data = None
-        product = None
         return_dict = {"status": None}
 
         if request.POST:
@@ -87,8 +86,6 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def scrape(self, request):
-        data = None
-
         return_dict = {"status": ""}
 
         if request.POST:
@@ -122,13 +119,13 @@ class ProductViewSet(viewsets.ModelViewSet):
             if 'page_id' in data:
                 page = Page.objects.get(pk=data['page_id'])
 
-            # def process(request, page, url, options, categories, priorities):
-            #     maintainer = PageMaintainer(page)
-            #     maintainer.add(source_urls=url, categories=categories, options=options)
+            def process(request, page, url, options, categories, priorities):
+                maintainer = PageMaintainer(page)
+                maintainer.add(source_urls=url, categories=categories, options=options)
 
-            # p = Process(target=process, args=[request, page, url, options, categories, priorities])
-            # p.start()
-            # p.join()
+            p = Process(target=process, args=[request, page, url, options, categories, priorities])
+            p.start()
+            p.join()
 
             return_dict['status'] = "Scraped!"
 
@@ -138,6 +135,86 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ContentViewSet(viewsets.ModelViewSet):
     queryset = Content.objects.all()
     serializer_class = ContentSerializer
+
+    @list_route(methods=['post'])
+    def search(self, request):
+        product = None
+        return_dict = {"status": None}
+
+        if request.POST:
+            data = request.POST
+        elif request.body:
+            data = ast.literal_eval(request.body) 
+        else:
+            return_dict['status'] = "Too few inputs."
+
+        if data is None:
+            data = ''
+
+        if len(data) < 1:
+            return_dict['status'] = "Expecting data input but got none."
+        elif len(data) > 1:
+            return_dict['status'] = "Expecting 1 set of data but got multiple."
+        else:
+            key = None
+            filters = None
+            id_filter = data.get('id', None)
+            name_filter = data.get('name', None)
+            url_filter = data.get('url', None)
+            try:
+                if id_filter:
+                    id_filter = int(id_filter)
+                    key = ('ID','id')
+                    filters = Q(id=id_filter)
+
+                if name_filter:
+                    key = ('name','name')
+                    filters = Q(name=name_filter)
+
+                if url_filter:
+                    key = ('URL', 'url')
+                    filters = Q(url=url_filter)
+            except (ValueError, TypeError):
+                return_dict['status'] = "Expecting a number as input, but got non-number."
+            else:
+                try:
+                    content = Content.objects.get(filters)
+                    return_dict['status'] = "Content with " + key[0] + ": " + str(data[key[1]]) + " has been found."
+                except Content.DoesNotExist:
+                    return_dict['status'] = "Content with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
+                except Content.MultipleObjectsReturned:
+                    return_dict['status'] = "Multiple contents with " + key[0] + ": " + str(data[key[1]]) + " have been found."
+        
+        return Response(return_dict)
+
+    @list_route(methods=['post'])
+    def upload_cloudinary(self, request):
+        data = None
+
+        return_dict = {"status": ""}
+
+        if request.POST:
+            data = request.POST
+        elif request.body:
+            data = ast.literal_eval(request.body) 
+        else:
+            return_dict['status'] = "Too few inputs."
+
+        if data is None:
+            data = ''
+
+        if len(data) < 2:
+            return_dict['status'] = "Expecting 2 data input but got 0 or 1."
+
+        if not 'url' in data:
+            return_dict['status'] = "No URL found."
+        elif not 'page_id' in data:
+            return_dict['status'] = "No Page ID found."
+        else:
+            #Uploading happens here
+            return_dict['status'] = "Uploaded!"
+
+        return Response(return_dict)
 
 
 class ImageViewSet(viewsets.ModelViewSet):
@@ -166,12 +243,9 @@ class PageViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def add(self, request, pk):
-        return_dict = {"status": None}
-        status = None
-        selection = None
-        num = None
-        data = None
+        add_type = None
         error = False
+        data = None
         page = Page.objects.get(pk=pk)
 
         if request.POST:
@@ -192,24 +266,24 @@ class PageViewSet(viewsets.ModelViewSet):
         elif not num:
             status = ["Missing 'num' field from input."]
         else:
-            if priority == '' or not priority:
+            if not priority:
                 priority = 0
             else:
                 try:
                     priority = int(priority)
                 except ValueError:
-                    status = ["Errror: Priority is not a number."]
+                    status = ["Error: Priority '{}' is not a number.".format(priority)]
                     error = True
                 else:
                     error = False
 
-            if category == '' or not category:
+            if not category:
                 category = None
             else:
                 try:
                     category = Category.objects.get(name=category)
                 except Category.DoesNotExist:
-                    status = ["Error: Category not found."]
+                    status = ["Error: Category '{0}' not found.".format(category)]
                     error = True
                 else:
                     error = False
@@ -238,6 +312,9 @@ class PageViewSet(viewsets.ModelViewSet):
                         product = Product.objects.get(filters)
                     except Product.DoesNotExist:
                         status.append(", Store: " + page.store.name + " has not been found. Add failed.")
+                    except Product.MultipleObjectsReturned:
+                        status = ["Multiple products with " + selection + ": " + str(num) + ", Store: " \
+                            + page.store.name + " have been found. Remove failed."]
                     else:
                         status.append(", Name: " + product.name)
 
@@ -260,10 +337,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def remove(self, request, pk):
-        return_dict = {"status": None}
         status = None
-        selection = None
-        num = None
         data = None
         page = Page.objects.get(pk=pk)
 
@@ -310,10 +384,7 @@ class PageViewSet(viewsets.ModelViewSet):
                         + page.store.name + " have been found. Remove failed."]
                 else:
                     status.append(", Name: " + product.name)
-                    try:
-                        if not page.feed.tiles.filter(products=product, template="product"):
-                            raise Tile.DoesNotExist
-                    except Tile.DoesNotExist:
+                    if not page.feed.tiles.filter(products=product, template="product"):
                         status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
                     else:
                         page.feed.remove(product)

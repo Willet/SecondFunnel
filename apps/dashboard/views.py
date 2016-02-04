@@ -20,7 +20,8 @@ from apps.scrapy.views import scrape
 LOGIN_URL = '/dashboard/login'
 API_URL = '/api2/'
 
-class AddForm(forms.Form):
+
+class ProductAddForm(forms.Form):
     selection_choices = (
         ('URL', 'URL'),
         ('SKU', 'SKU'),
@@ -31,7 +32,8 @@ class AddForm(forms.Form):
     priority = forms.CharField(label='Priority (Optional)', max_length=100)
     category = forms.CharField(label='Category (Optional)', max_length=100)
 
-class RemoveForm(forms.Form):
+
+class ProductRemoveForm(forms.Form):
     selection_choices = (
         ('URL', 'URL'),
         ('SKU', 'SKU'),
@@ -39,6 +41,26 @@ class RemoveForm(forms.Form):
     )
     selection = forms.ChoiceField(choices=selection_choices)
     num = forms.CharField(label='Number', max_length=100)
+
+
+class ContentAddForm(forms.Form):
+    selection_choices = (
+        ('URL', 'URL'),
+        ('ID', 'ID')
+    )
+    selection = forms.ChoiceField(choices=selection_choices)
+    num = forms.CharField(label='Number', max_length=100)
+    category = forms.CharField(label='Category (Optional)', max_length=100)
+
+
+class ContentRemoveForm(forms.Form):
+    selection_choices = (
+        ('URL', 'URL'),
+        ('ID', 'ID')
+    )
+    selection = forms.ChoiceField(choices=selection_choices)
+    num = forms.CharField(label='Number', max_length=100)
+
 
 def error(error_message):
     print error_message
@@ -160,8 +182,11 @@ def overview(request):
 
 @login_required(login_url=LOGIN_URL)
 def dashboard_manage(request, dashboard_slug):
-    addForm = AddForm()
-    removeForm = RemoveForm()
+    productAddForm = ProductAddForm()
+    productRemoveForm = ProductRemoveForm()
+    contentAddForm = ContentAddForm()
+    contentRemoveForm = ContentRemoveForm()
+
     profile = UserProfile.objects.get(user=request.user)
     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
 
@@ -180,8 +205,10 @@ def dashboard_manage(request, dashboard_slug):
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'manage.html', {
-                'addForm': addForm,
-                'removeForm': removeForm, 
+                'productAddForm': productAddForm,
+                'productRemoveForm': productRemoveForm, 
+                'contentAddForm': contentAddForm,
+                'contentRemoveForm': contentRemoveForm,
                 'context': context, 
                 'siteName': cur_dashboard.site_name, 
                 'status': '',

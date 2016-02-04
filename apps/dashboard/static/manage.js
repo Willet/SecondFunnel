@@ -44,6 +44,46 @@ var Product = Backbone.Model.extend({
     }
 })
 
+var Content = Backbone.Model.extend({
+    defaults: {},
+
+    urlRoot: api_URL,
+
+    initialize: function () {
+    },
+
+    getCustomURL: function (method) {
+        switch (method) {
+            case 'read':
+                return api_URL + 'page/' + url_slug + '/';
+            case 'search':
+                return api_URL + 'content/' + method + '/'; 
+            case 'upload_cloudinary':
+                return api_URL + 'content/' + method + '/'; 
+        }
+    },
+
+    sync: function (method, model, options) {
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.sync.call(this, method, model, options);
+    },
+
+    search: function(searchString) {
+        var options = {
+            'url': this.getCustomURL('search')
+        };
+        return Backbone.sync.call(this, 'create', searchString, options);
+    },
+
+    upload_cloudinary: function (URL) {
+        var options = {
+            'url': this.getCustomURL('upload_cloudinary')
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
+    }
+})
+
 var Page = Backbone.Model.extend({
     defaults: {
         selection: '' ,
@@ -101,93 +141,123 @@ var formView = Backbone.View.extend({
     	e.preventDefault();
         var method = '';
         var page = '';
-        if (e.target.id == "add-form")
-            method = 'add';
-        else
-            method = 'remove';
+        if (e.target.id == "product-add-form")
+            method = 'product-add';
+        if (e.target.id == "product-remove-form")
+            method = 'product-remove';
+        if (e.target.id == "content-add-form")
+            method = 'content-add';
+        if (e.target.id == "content-remove-form")
+            method = 'content-remove';
 
-        if ((method == 'add') || (method == 'remove')) {
+        if ((method == 'product-add') || (method == 'product-remove') || 
+            (method == 'content-add') || (method == 'content-remove')) {
             var selection = e.target.selection.value;
             var num = e.target.id_num.value;
-            
-            if (method == 'add'){
+
+            if (method == 'product-add'){
                 var priority = e.target.priority.value;
                 var category = e.target.category.value;
                 page = new Page({
+                    type: "product",
                     selection: selection,
                     num: num,
                     priority: priority,
                     category: category
                 });
             }
-            else{
+            if (method == 'product-remove'){
                 page = new Page({
+                    type: "product",
+                    selection: selection,
+                    num: num,
+                });
+            }
+            if (method == 'content-add'){
+                var category = e.target.category.value;
+                page = new Page({
+                    type: "content",
+                    selection: selection,
+                    num: num,
+                    category: category,
+                })
+            }
+            if (method == 'content-remove'){
+                page = new Page({
+                    type: "content",
                     selection: selection,
                     num: num,
                 });
             }
 
-            var searchString = new Product();
-            if (selection == 'URL')
-                searchString.set({url: page.attributes.num});
-            if (selection == 'ID')
-                searchString.set({id: page.attributes.num});
-            if (selection == 'SKU')
-                searchString.set({sku: page.attributes.num});
+            if (method.indexOf("content") >= 0){
+                
 
-            result = searchString.search(searchString);
 
-            result.done(function(){
-                if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
-                    if (method == 'add') {
-                        result = page.add(page);
-                        result.done(function() {
-                            $('#add-result').html(JSON.parse(result.responseText).status);
-                            $('#remove-result').html("");
-                        })
-                    }
-                    else {
-                        result = page.remove(page);
-                        result.done(function(){
-                            $('#add-result').html("");
-                            $('#remove-result').html(JSON.parse(result.responseText).status);
-                        })       
-                    }
-                }
-                else{
-                    if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
-                        if (method == 'add') {
-                            $('#add-result').html("Error: " + JSON.parse(result.responseText).status);
-                            $('#remove-result').html("");
+            }
+            if (method.indexOf("product") >= 0){              
+                var searchString = new Product();
+                if (selection == 'URL')
+                    searchString.set({url: page.attributes.num});
+                if (selection == 'ID')
+                    searchString.set({id: page.attributes.num});
+                if (selection == 'SKU')
+                    searchString.set({sku: page.attributes.num});
+
+                result = searchString.search(searchString);
+
+                result.done(function(){
+                    if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
+                        if (method == 'product-add') {
+                            result = page.add(page);
+                            result.done(function() {
+                                $('#product-add-result').html(JSON.parse(result.responseText).status);
+                                $('#product-remove-result').html("");
+                            })
                         }
-                        else {
-                            $('#add-result').html("");
-                            $('#remove-result').html("Error: " + JSON.parse(result.responseText).status);
+                        if (method == 'product-remove') {
+                            result = page.remove(page);
+                            result.done(function(){
+                                $('#product-add-result').html("");
+                                $('#product-remove-result').html(JSON.parse(result.responseText).status);
+                            })       
                         }
                     }
                     else{
-                        if (method == 'add'){
-                            $('#add-result').html(JSON.parse(result.responseText).status);
-                            if (selection == 'URL'){
-                                $('#add-result').append(" Scraping...");
-                                var scrapeURL = new Product({
-                                    url: page.attributes.num,
-                                    page_id: url_slug
-                                });
-                                result = scrapeURL.scrape(scrapeURL);
-                                result.done(function(){
-                                    $('#add-result').append(" " + JSON.parse(result.responseText).status);
-                                })
+                        if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
+                            if (method == 'product-add') {
+                                $('#product-add-result').html("Error: " + JSON.parse(result.responseText).status);
+                                $('#product-remove-result').html("");
                             }
-                            $('#remove-result').html("");
+                            if (method == 'product-remove') {
+                                $('#product-add-result').html("");
+                                $('#product-remove-result').html("Error: " + JSON.parse(result.responseText).status);
+                            }
                         }
                         else{
-                            $('#add-result').html("");
-                            $('#remove-result').html(JSON.parse(result.responseText).status);
+                            if (method == 'product-add'){
+                                $('#product-add-result').html(JSON.parse(result.responseText).status);
+                                if (selection == 'URL'){
+                                    $('#product-add-result').append(" Scraping...");
+                                    var scrapeURL = new Product({
+                                        url: page.attributes.num,
+                                        page_id: url_slug
+                                    });
+                                    result = scrapeURL.scrape(scrapeURL);
+                                    result.done(function(){
+                                        $('#product-add-result').append(" " + JSON.parse(result.responseText).status);
+                                    })
+                                }
+                                $('#product-remove-result').html("");
+                            }
+                            if (method == 'product-remove') {
+                                $('#product-add-result').html("");
+                                $('#product-remove-result').html(JSON.parse(result.responseText).status);
+                            }
                         }
                     }
-                }
-            })
+                })
+            }
         }
     },
 });

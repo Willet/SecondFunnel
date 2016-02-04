@@ -567,11 +567,11 @@ class APITest(APITestCase):
 
     def page_add_bad_category_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product', 'category': "TestFaulty"})
-        self.assertEqual(response.data['status'], u'Error: Category not found.')
+        self.assertEqual(response.data['status'], u"Error: Category 'TestFaulty' not found.")
 
     def page_add_bad_priority_test(self):
         response = self.client.post('/api2/page/8/add/', {'selection': 'URL', 'num': 'www.google.com/product', 'priority': "TestFaulty"})
-        self.assertEqual(response.data['status'], u'Errror: Priority is not a number.')
+        self.assertEqual(response.data['status'], u"Error: Priority 'TestFaulty' is not a number.")
 
     def page_add_no_input_test(self):
         response = self.client.post('/api2/page/8/add/')
