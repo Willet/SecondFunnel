@@ -31,24 +31,23 @@ class ProductViewSet(viewsets.ModelViewSet):
     def search(self, request):
         data = None
         return_dict = {"status": None}
+        case = 0
 
         if request.POST:
             data = request.POST
         elif request.body:
             data = ast.literal_eval(request.body) 
-        else:
-            return_dict['status'] = "Too few inputs."
 
         if data is None:
             data = ''
 
-        if len(data) < 1:
-            return_dict['status'] = "Expecting data input but got none."
-        elif len(data) > 1:
-            return_dict['status'] = "Expecting 1 set of data but got multiple."
+        filter_keys_in_data = set(['id','name','url','sku']) & set(data)
+        if len(filter_keys_in_data) < 1:
+            case = 1
+        elif len(filter_keys_in_data) > 1:
+            case = 2
         else:
-            key = None
-            filters = None
+            # Setting up filters to query for product
             id_filter = data.get('id', None)
             name_filter = data.get('name', None)
             sku_filter = data.get('sku', None)
@@ -72,39 +71,51 @@ class ProductViewSet(viewsets.ModelViewSet):
                     key = ('URL', 'url')
                     filters = Q(url=url_filter)
             except (ValueError, TypeError):
-                return_dict['status'] = "Expecting a number as input, but got non-number."
+                case = 3
             else:
                 try:
                     product = Product.objects.get(filters)
-                    return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."
+                    case = 4
                 except Product.DoesNotExist:
-                    return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
+                    case = 5
                 except Product.MultipleObjectsReturned:
-                    return_dict['status'] = "Multiple products with " + key[0] + ": " + str(data[key[1]]) + " have been found."
+                    case = 6
         
+        if case == 1:
+            return_dict['status'] = "Expecting one of id, name, or url for search, got none."
+        if case == 2:
+            return_dict['status'] = "Expecting one of id, name, or url for search, but got multiple: {}.".format("".join(list(filter_keys_in_data)))
+        if case == 3:
+            return_dict['status'] = "Expecting a number as input, but got non-number."
+        if case == 4:
+            return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " has been found."
+        if case == 5:
+            return_dict['status'] = "Product with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
+        if case == 6:
+            return_dict['status'] = "Multiple products with " + key[0] + ": " + str(data[key[1]]) + " have been found."
+
         return Response(return_dict)
 
     @list_route(methods=['post'])
     def scrape(self, request):
         return_dict = {"status": ""}
+        case = 1
 
         if request.POST:
             data = request.POST
         elif request.body:
             data = ast.literal_eval(request.body) 
-        else:
-            return_dict['status'] = "Too few inputs."
 
         if data is None:
             data = ''
 
         if len(data) < 2:
-            return_dict['status'] = "Expecting 2 data input but got 0 or 1."
+            case = 1
 
         if not 'url' in data:
-            return_dict['status'] = "No URL found."
+            case = 2
         elif not 'page_id' in data:
-            return_dict['status'] = "No Page ID found."
+            case = 3  
         else:
             categories = None
             priorities = None
@@ -127,6 +138,15 @@ class ProductViewSet(viewsets.ModelViewSet):
             p.start()
             p.join()
 
+            case = 4
+
+        if case == 1:
+            return_dict['status'] = "Expecting 2 data input but got 0 or 1."
+        if case == 2:
+            return_dict['status'] = "No URL found."
+        if case == 3:
+            return_dict['status'] = "No Page ID found."
+        if case == 4:
             return_dict['status'] = "Scraped!"
 
         return Response(return_dict)
@@ -140,24 +160,23 @@ class ContentViewSet(viewsets.ModelViewSet):
     def search(self, request):
         product = None
         return_dict = {"status": None}
+        data = None
 
         if request.POST:
             data = request.POST
         elif request.body:
             data = ast.literal_eval(request.body) 
-        else:
-            return_dict['status'] = "Too few inputs."
 
         if data is None:
             data = ''
 
-        if len(data) < 1:
-            return_dict['status'] = "Expecting data input but got none."
-        elif len(data) > 1:
-            return_dict['status'] = "Expecting 1 set of data but got multiple."
+        filter_keys_in_data = set(['id','name','url']) & set(data) # intersection
+        if len(filter_keys_in_data) < 1:
+            case = 1
+        elif len(filter_keys_in_data) > 1:
+            case = 2
         else:
-            key = None
-            filters = None
+            # Setting up filters to query for content
             id_filter = data.get('id', None)
             name_filter = data.get('name', None)
             url_filter = data.get('url', None)
@@ -175,16 +194,30 @@ class ContentViewSet(viewsets.ModelViewSet):
                     key = ('URL', 'url')
                     filters = Q(url=url_filter)
             except (ValueError, TypeError):
-                return_dict['status'] = "Expecting a number as input, but got non-number."
+                case = 3
             else:
                 try:
                     content = Content.objects.get(filters)
-                    return_dict['status'] = "Content with " + key[0] + ": " + str(data[key[1]]) + " has been found."
                 except Content.DoesNotExist:
-                    return_dict['status'] = "Content with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
+                    case = 4
                 except Content.MultipleObjectsReturned:
-                    return_dict['status'] = "Multiple contents with " + key[0] + ": " + str(data[key[1]]) + " have been found."
-        
+                    case = 5
+                else:
+                    case = 6
+                    
+        if case == 1:
+            return_dict['status'] = "Expecting one of id, name, or url for search, got none."
+        if case == 2:
+            return_dict['status'] = "Expecting one of id, name, or url for search, but got multiple: {}.".format("".join(list(filter_keys_in_data)))
+        if case == 3:
+            return_dict['status'] = "Expecting a number as input, but got non-number."
+        if case == 4:
+            return_dict['status'] = "Content with " + key[0] + ": " + str(data[key[1]]) + " could not be found."
+        if case == 5:
+            return_dict['status'] = "Multiple contents with " + key[0] + ": " + str(data[key[1]]) + " have been found."
+        if case == 6:
+            return_dict['status'] = "Content with " + key[0] + ": " + str(data[key[1]]) + " has been found."
+
         return Response(return_dict)
 
     @list_route(methods=['post'])
@@ -197,21 +230,28 @@ class ContentViewSet(viewsets.ModelViewSet):
             data = request.POST
         elif request.body:
             data = ast.literal_eval(request.body) 
-        else:
-            return_dict['status'] = "Too few inputs."
 
         if data is None:
             data = ''
 
         if len(data) < 2:
-            return_dict['status'] = "Expecting 2 data input but got 0 or 1."
+            case = 1
 
         if not 'url' in data:
-            return_dict['status'] = "No URL found."
+            case = 2
         elif not 'page_id' in data:
-            return_dict['status'] = "No Page ID found."
+            case = 3
         else:
             #Uploading happens here
+            case = 4
+
+        if case == 1:
+            return_dict['status'] = "Expecting 2 data input but got 0 or 1."
+        if case == 2:
+            return_dict['status'] = "No URL found."
+        if case == 3:
+            return_dict['status'] = "No Page ID found."
+        if case == 4:
             return_dict['status'] = "Uploaded!"
 
         return Response(return_dict)
@@ -243,7 +283,6 @@ class PageViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def add(self, request, pk):
-        add_type = None
         error = False
         data = None
         page = Page.objects.get(pk=pk)
@@ -260,71 +299,142 @@ class PageViewSet(viewsets.ModelViewSet):
         num = data.get('num')
         category = data.get('category')
         priority = data.get('priority')
+        add_type = data.get('type')
 
         if not selection:
-            status = ["Missing 'selection' field from input."]
+            case = 1
         elif not num:
-            status = ["Missing 'num' field from input."]
+            case = 2
+        elif not add_type:
+            case = 3
         else:
+            # Priority checking (Check to see if priority exists & priority is a number)
             if not priority:
                 priority = 0
             else:
                 try:
                     priority = int(priority)
                 except ValueError:
-                    status = ["Error: Priority '{}' is not a number.".format(priority)]
+                    case = 4
                     error = True
                 else:
                     error = False
-
+            
+            # Category checking (Check to see if category exists)
             if not category:
                 category = None
             else:
                 try:
                     category = Category.objects.get(name=category)
                 except Category.DoesNotExist:
-                    status = ["Error: Category '{0}' not found.".format(category)]
+                    case = 5
                     error = True
                 else:
                     error = False
 
             if not error:
+                # Setting up filters to query for product
                 selection = selection.upper()
-                status = ["Product with " + selection + ": " + str(num)]
                 filters = Q(store=page.store)
                 try: 
                     if selection == 'URL':
                         filters = filters & Q(url=num)
                     elif selection == 'SKU':
-                        num = int(num)
-                        filters = filters & Q(sku=num)
+                        if add_type == 'product':
+                            num = int(num)
+                            filters = filters & Q(sku=num)
+                        else:
+                            raise AttributeError
                     elif selection == 'ID':
                         num = int(num)
                         filters = filters & Q(id=num)
                     else:
                         raise TypeError
                 except ValueError:
-                    status = ["Expecting a number as input, but got non-number."]
+                    case = 6
                 except TypeError:
-                    status = ["Expecting URL/SKU/ID as input, but got none."]
+                    case = 7
+                except AttributeError:
+                    case = 8
                 else:
-                    try:
-                        product = Product.objects.get(filters)
-                    except Product.DoesNotExist:
-                        status.append(", Store: " + page.store.name + " has not been found. Add failed.")
-                    except Product.MultipleObjectsReturned:
-                        status = ["Multiple products with " + selection + ": " + str(num) + ", Store: " \
-                            + page.store.name + " have been found. Remove failed."]
-                    else:
-                        status.append(", Name: " + product.name)
-
-                        if page.feed.tiles.filter(products=product, template="product"):
-                            status.append(", Store: " + page.store.name + " is already added. Add failed.")
+                    if add_type == 'product':
+                        try:
+                            product = Product.objects.get(filters)
+                        except Product.DoesNotExist:
+                            case = 9
+                        except Product.MultipleObjectsReturned:
+                            case = 10
                         else:
-                            page.feed.add(product,priority=priority,category=category)
-                            status.append(" has been added.")
+                            if page.feed.tiles.filter(products=product, template="product"):
+                                case = 11
+                            else:
+                                page.feed.add(product,priority=priority,category=category)
+                                # Additional check to make sure adding succeeded
+                                if page.feed.tiles.filter(products=product, template="product"):
+                                    case = 12
+                                else:
+                                    case = 13
+                    elif add_type == 'content':
+                        try:
+                            content = Content.objects.get(filters)
+                        except Content.DoesNotExist:
+                            case = 14
+                        except Content.MultipleObjectsReturned:
+                            case = 15
+                        else:
+                            #Content adding
+                            if page.feed.tiles.filter(content=content):
+                                case = 16
+                            else:
+                                page.feed.add(content,category=category) 
+                                # Additional check to make sure adding succeeded
+                                if page.feed.tiles.filter(content=content):
+                                    case = 17
+                                else:
+                                    case = 18
+                    else:
+                        case = 19
 
-        status = "".join(status)
+        if case == 1:
+            status = "Missing 'selection' field from input."
+        if case == 2:
+            status = "Missing 'num' field from input."
+        if case == 3:
+            status = "Missing 'type' field from input."
+        if case == 4:
+            status = "Error: Priority '{}' is not a number.".format(priority)
+        if case == 5:
+            status = "Error: Category '{0}' not found.".format(category)
+        if case == 6:
+            status = "Expecting a number as input, but got non-number."
+        if case == 7:
+            status = "Expecting URL/SKU/ID as input, but got none."
+        if case == 8:
+            status = "Adding content using SKU is not allowed."
+        
+        if case == 9:
+            status = "Product with " + selection + ": " + str(num) + ", Store: " + page.store.name + " has not been found. Add failed."
+        if case == 10:
+            status = "Multiple products with " + selection + ": " + str(num) + ", Store: " + page.store.name + " have been found. Add failed."
+        if case == 11:
+            status = "Product with " + selection + ": " + str(num) + ", Name: " + product.name + ", Store: " + page.store.name + " is already added. Add failed."
+        if case == 12:
+            status = "Product with " + selection + ": " + str(num) + ", Name: " + product.name + " has been added."
+        if case == 13:
+            status = "Adding of product with " + selection + ": " + str(num) + ", Name: " + product.name + " has failed for an unknown error."
+        
+        if case == 14:
+            status = "Content with " + selection + ": " + str(num) + ", Store: " + page.store.name + " has not been found. Add failed."
+        if case == 15:
+            status = "Multiple contents with " + selection + ": " + str(num) + ", Store: " + page.store.name + " have been found. Add failed."
+        if case == 16:
+            status = "Content with " + selection + ": " + str(num) + ", Store: " + page.store.name + " is already added. Add failed."
+        if case == 17:
+            status = "Content with " + selection + ": " + str(num) + " has been added."
+        if case == 18:
+            status = "Adding of content with " + selection + ": " + str(num) + " has failed for an unknown error."
+        if case == 19:
+            status = "Error: Type '{}' is not a valid type (content/product only).".format(add_type)
 
         return Response({
             "action": "Add",
@@ -351,13 +461,15 @@ class PageViewSet(viewsets.ModelViewSet):
 
         selection = data.get('selection')
         num = data.get('num')
+        remove_type = data.get('type')
+
         if not selection:
-            status = ["Missing 'selection' field from input."]
+            case = 1
         elif not num:
-            status = ["Missing 'num' field from input."]
+            case = 2
         else:
+            # Setting up filters to query for product
             selection = selection.upper()
-            status = ["Product with " + selection + ": " + str(num)]
             filters = Q(store=page.store)
             try: 
                 if selection == 'URL':
@@ -371,26 +483,87 @@ class PageViewSet(viewsets.ModelViewSet):
                 else:
                     raise TypeError
             except ValueError:
-                status = ["Expecting a number as input, but got non-number."]
+                case = 3
             except TypeError:
-                status = ["Expecting URL/SKU/ID as input, but got none."]
+                case = 4
             else:
-                try: 
-                    product = Product.objects.get(filters)
-                except Product.DoesNotExist:
-                    status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
-                except Product.MultipleObjectsReturned:
-                    status = ["Multiple products with " + selection + ": " + str(num) + ", Store: " \
-                        + page.store.name + " have been found. Remove failed."]
-                else:
-                    status.append(", Name: " + product.name)
-                    if not page.feed.tiles.filter(products=product, template="product"):
-                        status.append(", Store: " + page.store.name + " has not been found. Remove failed.")
+                if remove_type == 'product':
+                    try: 
+                        product = Product.objects.get(filters)
+                    except Product.DoesNotExist:
+                        case = 5
+                    except Product.MultipleObjectsReturned:
+                        case = 6
                     else:
-                        page.feed.remove(product)
-                        status.append(" has been removed.")
+                        if not page.feed.tiles.filter(products=product, template="product"):
+                            case = 7
+                        else:
+                            page.feed.remove(product)
+                            # Additional check to make sure removing succeeded
+                            if not page.feed.tiles.filter(products=product, template="product"):
+                                case = 8
+                            else:
+                                case = 9
+                elif remove_type == 'content':
+                    try:
+                        content = Content.objects.get(filters)
+                    except Content.DoesNotExist:
+                        case = 10
+                    except Content.MultipleObjectsReturned:
+                        case = 11
+                    else:
+                        #Content removing
+                        if not page.feed.tiles.filter(content=content):
+                            case = 12
+                        else:
+                            page.feed.remove(content)
+                            # Additional check to make sure removing succeeded
+                            if not page.feed.tiles.filter(content=content):
+                                case = 13
+                            else:
+                                case = 14
+                else:
+                    case = 15
 
-        status = "".join(status)
+        if case == 1:
+            status = "Missing 'selection' field from input."
+        if case == 2:
+            status = "Missing 'num' field from input."
+        if case == 3:
+            status = "Expecting a number as input, but got non-number."
+        if case == 4:
+            status = "Expecting URL/SKU/ID as input, but got none."
+        
+        if case == 5:
+            status = "Product with " + selection + ": " + str(num) + ", Store: " \
+                        + page.store.name + " has not been found. Remove failed."
+        if case == 6:
+            status = "Multiple products with " + selection + ": " + str(num) + ", Store: " \
+                        + page.store.name + " have been found. Remove failed."
+        if case == 7:
+            status = "Product with " + selection + ": " + str(num) + ", Name: " + product.name \
+                        + ", Store: " + page.store.name + " has not been found. Remove failed."
+        if case == 8:
+            status = "Product with " + selection + ": " + str(num) + ", Name: " + product.name \
+                        + " has been removed."
+        if case == 9:
+            status = "Product with " + selection + ": " + str(num) + ", Name: " + product.name \
+                        + " could not be removed for an unknown reason."
+        
+        if case == 10:
+            status = "Content with " + selection + ": " + str(num) + ", Store: " \
+                        + page.store.name + " has not been found. Remove failed."
+        if case == 11:
+            status = "Multiple contents with " + selection + ": " + str(num) + ", Store: " \
+                        + page.store.name + " have been found. Remove failed."
+        if case == 12:
+            status = "Content with " + selection + ": " + str(num) + ", Store: " + page.store.name + " is already removed. Removal failed."
+        if case == 13:
+            status = "Content with " + selection + ": " + str(num) + " has been removed."
+        if case == 14:
+            status = "Removal of content with " + selection + ": " + str(num) + " has failed for an unknown error."
+        if case == 15:
+            status = "Error: Type '{}' is not a valid type (content/product only).".format(remove_type)
 
         return Response({
             "action": "Remove",

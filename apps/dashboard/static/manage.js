@@ -76,7 +76,7 @@ var Content = Backbone.Model.extend({
         return Backbone.sync.call(this, 'create', searchString, options);
     },
 
-    upload_cloudinary: function (URL) {
+    uploadCloudinary: function (URL) {
         var options = {
             'url': this.getCustomURL('upload_cloudinary')
         };
@@ -191,76 +191,142 @@ var formView = Backbone.View.extend({
             }
 
             if (method.indexOf("content") >= 0){
-                
-
-
+                contentManage(page, method, selection);
             }
             if (method.indexOf("product") >= 0){              
-                var searchString = new Product();
-                if (selection == 'URL')
-                    searchString.set({url: page.attributes.num});
-                if (selection == 'ID')
-                    searchString.set({id: page.attributes.num});
-                if (selection == 'SKU')
-                    searchString.set({sku: page.attributes.num});
-
-                result = searchString.search(searchString);
-
-                result.done(function(){
-                    if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
-                        if (method == 'product-add') {
-                            result = page.add(page);
-                            result.done(function() {
-                                $('#product-add-result').html(JSON.parse(result.responseText).status);
-                                $('#product-remove-result').html("");
-                            })
-                        }
-                        if (method == 'product-remove') {
-                            result = page.remove(page);
-                            result.done(function(){
-                                $('#product-add-result').html("");
-                                $('#product-remove-result').html(JSON.parse(result.responseText).status);
-                            })       
-                        }
-                    }
-                    else{
-                        if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
-                            if (method == 'product-add') {
-                                $('#product-add-result').html("Error: " + JSON.parse(result.responseText).status);
-                                $('#product-remove-result').html("");
-                            }
-                            if (method == 'product-remove') {
-                                $('#product-add-result').html("");
-                                $('#product-remove-result').html("Error: " + JSON.parse(result.responseText).status);
-                            }
-                        }
-                        else{
-                            if (method == 'product-add'){
-                                $('#product-add-result').html(JSON.parse(result.responseText).status);
-                                if (selection == 'URL'){
-                                    $('#product-add-result').append(" Scraping...");
-                                    var scrapeURL = new Product({
-                                        url: page.attributes.num,
-                                        page_id: url_slug
-                                    });
-                                    result = scrapeURL.scrape(scrapeURL);
-                                    result.done(function(){
-                                        $('#product-add-result').append(" " + JSON.parse(result.responseText).status);
-                                    })
-                                }
-                                $('#product-remove-result').html("");
-                            }
-                            if (method == 'product-remove') {
-                                $('#product-add-result').html("");
-                                $('#product-remove-result').html(JSON.parse(result.responseText).status);
-                            }
-                        }
-                    }
-                })
+                productManage(page,method, selection);
             }
         }
     },
 });
+
+function productManage(page, method, selection){
+    var searchString = new Product();
+    if (selection == 'URL')
+        searchString.set({url: page.attributes.num});
+    if (selection == 'ID')
+        searchString.set({id: page.attributes.num});
+    if (selection == 'SKU')
+        searchString.set({sku: page.attributes.num});
+
+    result = searchString.search(searchString);
+
+    result.done(function(){
+        if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
+            if (method == 'product-add') {
+                result = page.add(page);
+                result.done(function() {
+                    $('#product-add-result').html(JSON.parse(result.responseText).status);
+                    $('#product-remove-result').html("");
+                })
+            }
+            if (method == 'product-remove') {
+                result = page.remove(page);
+                result.done(function(){
+                    $('#product-add-result').html("");
+                    $('#product-remove-result').html(JSON.parse(result.responseText).status);
+                })       
+            }
+        }
+        else{
+            if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
+                if (method == 'product-add') {
+                    $('#product-add-result').html("Error: " + JSON.parse(result.responseText).status);
+                    $('#product-remove-result').html("");
+                }
+                if (method == 'product-remove') {
+                    $('#product-add-result').html("");
+                    $('#product-remove-result').html("Error: " + JSON.parse(result.responseText).status);
+                }
+            }
+            else{
+                if (method == 'product-add'){
+                    $('#product-add-result').html(JSON.parse(result.responseText).status);
+                    if (selection == 'URL'){
+                        $('#product-add-result').append(" Scraping...");
+                        var scrapeURL = new Product({
+                            url: page.attributes.num,
+                            page_id: url_slug
+                        });
+                        result = scrapeURL.scrape(scrapeURL);
+                        result.done(function(){
+                            $('#product-add-result').append(" " + JSON.parse(result.responseText).status);
+                        })
+                    }
+                    $('#product-remove-result').html("");
+                }
+                if (method == 'product-remove') {
+                    $('#product-add-result').html("");
+                    $('#product-remove-result').html(JSON.parse(result.responseText).status);
+                }
+            }
+        }
+    })
+    return 1;
+}
+
+function contentManage(page, method, selection){
+    var searchString = new Content();
+
+    if (selection == 'URL')
+        searchString.set({url: page.attributes.num});
+    if (selection == 'ID')
+        searchString.set({id: page.attributes.num});
+
+    result = searchString.search(searchString);
+    result.done(function(){
+        if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
+            if (method == 'content-add') {
+                result = page.add(page);
+                result.done(function() {
+                    $('#content-add-result').html(JSON.parse(result.responseText).status);
+                    $('#content-remove-result').html("");
+                })
+            }
+            if (method == 'content-remove') {
+                result = page.remove(page);
+                result.done(function(){
+                    $('#content-add-result').html("");
+                    $('#content-remove-result').html(JSON.parse(result.responseText).status);
+                })       
+            }        
+        }
+        else{
+            if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
+                if (method == 'content-add') {
+                    $('#content-add-result').html("Error: " + JSON.parse(result.responseText).status);
+                    $('#content-remove-result').html("");
+                }
+                if (method == 'content-remove') {
+                    $('#content-add-result').html("");
+                    $('#content-remove-result').html("Error: " + JSON.parse(result.responseText).status);
+                }
+            }
+            else{
+                if (method == 'content-add'){
+                    $('#content-add-result').html(JSON.parse(result.responseText).status);
+                    if (selection == 'URL'){
+                        $('#content-add-result').append(" Uploading to cloudinary...");
+                        // var uploadURL = new Product({
+                        //     url: page.attributes.num,
+                        //     page_id: url_slug
+                        // });
+                        // result = uploadURL.uploadCloudinary(scrapeURL);
+                        // result.done(function(){
+                        //     $('#content-add-result').append(" " + JSON.parse(result.responseText).status);
+                        // })
+                    }
+                    $('#content-remove-result').html("");
+                }
+                if (method == 'content-remove') {
+                    $('#content-add-result').html("");
+                    $('#content-remove-result').html(JSON.parse(result.responseText).status);
+                }
+            }
+        }
+    })
+    return 1;
+}
 
 function getCookie(name) {
     var cookieValue = null;
