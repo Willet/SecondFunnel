@@ -139,8 +139,8 @@ var formView = Backbone.View.extend({
 
     submit: function(e) {
     	e.preventDefault();
-        var method = '';
-        var page = '';
+        var method = '',
+            page = '';
         if (e.target.id == "product-add-form")
             method = 'product-add';
         if (e.target.id == "product-remove-form")
@@ -152,8 +152,8 @@ var formView = Backbone.View.extend({
 
         if ((method == 'product-add') || (method == 'product-remove') || 
             (method == 'content-add') || (method == 'content-remove')) {
-            var selection = e.target.selection.value;
-            var num = e.target.id_num.value;
+            var selection = e.target.selection.value,
+                num = e.target.id_num.value;
 
             if (method == 'product-add'){
                 var priority = e.target.priority.value;
@@ -202,6 +202,7 @@ var formView = Backbone.View.extend({
 
 function productManage(page, method, selection){
     var searchString = new Product();
+    
     if (selection == 'URL')
         searchString.set({url: page.attributes.num});
     if (selection == 'ID')
@@ -307,14 +308,14 @@ function contentManage(page, method, selection){
                     $('#content-add-result').html(JSON.parse(result.responseText).status);
                     if (selection == 'URL'){
                         $('#content-add-result').append(" Uploading to cloudinary...");
-                        // var uploadURL = new Product({
-                        //     url: page.attributes.num,
-                        //     page_id: url_slug
-                        // });
-                        // result = uploadURL.uploadCloudinary(scrapeURL);
-                        // result.done(function(){
-                        //     $('#content-add-result').append(" " + JSON.parse(result.responseText).status);
-                        // })
+                        var uploadURL = new Content({
+                            url: page.attributes.num,
+                            page_id: url_slug
+                        });
+                        result = uploadURL.uploadCloudinary(uploadURL);
+                        result.done(function(){
+                            $('#content-add-result').append(" " + JSON.parse(result.responseText).status);
+                        })
                     }
                     $('#content-remove-result').html("");
                 }

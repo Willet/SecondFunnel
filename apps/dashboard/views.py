@@ -1,4 +1,5 @@
 import json
+import collections
 import requests
 from time import sleep
 
@@ -13,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 
-from apps.assets.models import Category, Page, Product, Store
+from apps.assets.models import Category, Page, Product, Store, ProductImage
 from apps.dashboard.models import DashBoard, UserProfile, Query
 from apps.scrapy.views import scrape
 
@@ -193,6 +194,7 @@ def dashboard_manage(request, dashboard_slug):
     if not dashboard:
         return HttpResponseRedirect('/dashboard')
     dashboard_id = dashboard.first().id
+    page_id = dashboard.first().page_id
 
     if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
         return HttpResponseRedirect('/dashboard/')
@@ -201,6 +203,7 @@ def dashboard_manage(request, dashboard_slug):
             cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
         except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
+        
         context = RequestContext(request)
         cur_dashboard_page = cur_dashboard.page
 
@@ -211,8 +214,58 @@ def dashboard_manage(request, dashboard_slug):
                 'contentRemoveForm': contentRemoveForm,
                 'context': context, 
                 'siteName': cur_dashboard.site_name, 
-                'status': '',
-                'url_slug': dashboard.first().page_id,
+                'url_slug': page_id,
+                'page': cur_dashboard_page
+            })
+
+@login_required(login_url=LOGIN_URL)
+def dashboard_tiles(request, dashboard_slug):
+    profile = UserProfile.objects.get(user=request.user)
+    dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
+
+    if not dashboard:
+        return HttpResponseRedirect('/dashboard')
+    dashboard_id = dashboard.first().id
+    page_id = dashboard.first().page_id
+
+    if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
+        return HttpResponseRedirect('/dashboard/')
+    else:
+        try:
+            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
+        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            return HttpResponseRedirect('/dashboard/')
+
+        page = Page.objects.get(pk=page_id)
+        tileList = page.feed.tiles.all()
+
+        allProducts = []
+        for tile in tileList:
+            tile = json.loads(tile.ir_cache)
+            tile_id = tile['tile-id']
+            tile_prio = tile['priority']
+            if 'default-image' in tile:
+                try:
+                    tile_img = ProductImage.objects.get(id=tile['default-image']).url
+                except ProductImage.DoesNotExist:
+                    tile_img = "Does not exist"
+            else:
+                tile_img = tile['url']
+
+            allProducts.append({
+                'id': tile_id, 
+                'img': tile_img,
+                'priority': tile_prio
+            })
+
+        context = RequestContext(request)
+        cur_dashboard_page = cur_dashboard.page
+
+        return render(request, 'tiles.html', {
+                'productsList': allProducts,
+                'context': context, 
+                'siteName': cur_dashboard.site_name, 
+                'url_slug': page_id,
                 'page': cur_dashboard_page
             })
 

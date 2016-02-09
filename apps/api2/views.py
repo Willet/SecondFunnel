@@ -14,6 +14,7 @@ from rest_framework.reverse import reverse
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 from apps.scrapy.controllers import PageMaintainer
+from apps.imageservice.utils import upload_to_cloudinary
 from serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
     ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer
 
@@ -242,7 +243,9 @@ class ContentViewSet(viewsets.ModelViewSet):
         elif not 'page_id' in data:
             case = 3
         else:
-            #Uploading happens here
+            url = data['url']
+            page_id = data['page_id']
+            upload_to_cloudinary(url)
             case = 4
 
         if case == 1:

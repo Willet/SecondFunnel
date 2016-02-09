@@ -168,11 +168,10 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'PAGINATE_BY': 50,
     'PAGINATE_BY_PARAM': 'page_size',
-    'MAX_PAGINATE_BY': 100,
+    'MAX_PAGINATE_BY': 50,
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    #'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
 
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/

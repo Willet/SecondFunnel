@@ -1,0 +1,32 @@
+{% extends 'console_base.html' %}
+{% load static %}
+{% if user.is_authenticated %}
+    {% block head %} {{ user.first_name }} {% endblock %}
+{% endif %}
+
+{% block scripts %}
+    <script>
+        var url_slug = {{ url_slug }};
+    </script>
+    <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
+    <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
+    <script type="text/javascript" src="{% static "tiles.js" %}"></script>
+{% endblock %}
+
+{% block main %}
+    <div id="main-content">
+        <div class="page-content">
+		    <!-- Prioritize/Re-order tiles -->
+		    <div class="block-web">
+		        <h3 class="content-header">
+		            List of current tiles
+		        </h3>
+	            <!-- List of current tiles goes here -->
+	            {% for product in productsList %}
+	            <li> {{  product.id }} - {{ product.priority }} - {{ product.img }}</li>
+	            {% endfor %}
+		    </div>
+		</div>
+	</div>
+
+{% endblock %}
