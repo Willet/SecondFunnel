@@ -212,7 +212,12 @@ function productManage(page, method, selection){
     result = searchString.search(searchString);
 
     result.done(function(){
-        if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
+        var idLength = JSON.parse(result.responseText).id.length;
+        if ((idLength > 0) && (idLength < 2)) {
+            page = new Page({
+                type: "product",
+                ID: JSON.parse(result.responseText).id[0],
+            })
             if (method == 'product-add') {
                 result = page.add(page);
                 result.done(function() {
@@ -229,7 +234,7 @@ function productManage(page, method, selection){
             }
         }
         else{
-            if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
+            if (idLength > 1) {
                 if (method == 'product-add') {
                     $('#product-add-result').html("Error: " + JSON.parse(result.responseText).status);
                     $('#product-remove-result').html("");
@@ -239,10 +244,10 @@ function productManage(page, method, selection){
                     $('#product-remove-result').html("Error: " + JSON.parse(result.responseText).status);
                 }
             }
-            else{
+            if (idLength < 1) {
                 if (method == 'product-add'){
                     $('#product-add-result').html(JSON.parse(result.responseText).status);
-                    if (selection == 'URL'){
+                    if ((selection == 'URL') && (JSON.parse(result.responseText).status.indexOf("could not be found") >= 0)) {
                         $('#product-add-result').append(" Scraping...");
                         var scrapeURL = new Product({
                             url: page.attributes.num,
@@ -275,7 +280,12 @@ function contentManage(page, method, selection){
 
     result = searchString.search(searchString);
     result.done(function(){
-        if (JSON.parse(result.responseText).status.indexOf("has been found") >= 0) {
+        var idLength = JSON.parse(result.responseText).id.length;
+        if ((idLength > 0) && (idLength < 2))  {
+            page = new Page({
+                type: "content",
+                ID: JSON.parse(result.responseText).id[0],
+            })
             if (method == 'content-add') {
                 result = page.add(page);
                 result.done(function() {
@@ -292,7 +302,7 @@ function contentManage(page, method, selection){
             }        
         }
         else{
-            if (JSON.parse(result.responseText).status.indexOf("Multiple") >= 0) {
+            if (idLength > 1) {
                 if (method == 'content-add') {
                     $('#content-add-result').html("Error: " + JSON.parse(result.responseText).status);
                     $('#content-remove-result').html("");
@@ -302,19 +312,19 @@ function contentManage(page, method, selection){
                     $('#content-remove-result').html("Error: " + JSON.parse(result.responseText).status);
                 }
             }
-            else{
+            if (idLength < 1) {
                 if (method == 'content-add'){
                     $('#content-add-result').html(JSON.parse(result.responseText).status);
-                    if (selection == 'URL'){
+                    if ((selection == 'URL') && (JSON.parse(result.responseText).status.indexOf("could not be found") >= 0)) {
                         $('#content-add-result').append(" Uploading to cloudinary...");
-                        // var uploadURL = new Product({
-                        //     url: page.attributes.num,
-                        //     page_id: url_slug
-                        // });
-                        // result = uploadURL.uploadCloudinary(scrapeURL);
-                        // result.done(function(){
-                        //     $('#content-add-result').append(" " + JSON.parse(result.responseText).status);
-                        // })
+                        var uploadURL = new Product({
+                            url: page.attributes.num,
+                            page_id: url_slug
+                        });
+                        result = uploadURL.uploadCloudinary(uploadURL);
+                        result.done(function(){
+                            $('#content-add-result').append(" " + JSON.parse(result.responseText).status);
+                        })
                     }
                     $('#content-remove-result').html("");
                 }
