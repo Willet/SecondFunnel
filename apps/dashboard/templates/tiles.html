@@ -21,10 +21,22 @@
 		        <h3 class="content-header">
 		            List of current tiles
 		        </h3>
-	            <!-- List of current tiles goes here -->
-	            {% for product in productsList %}
-	            <li> {{  product.id }} - {{ product.priority }} - {{ product.img }}</li>
+	            {% for tile in tileList %}
+	        	<div class='tile-list'>
+			        <img src={{ tile.img }} alt={{ tile.id }} onclick="editTile( {{ tile.id }} )">
+	            	<div class='tile-info'>
+	            		{{ tile.template }} </br> 
+	            		{% if tile.priority == 0 %}
+	            			<font color="red">Priority: {{ tile.priority }} </br></font>
+	            		{% else %}
+	            			Priority: {{ tile.priority }} </br>
+	            		{% endif %}
+	            		ID: {{ tile.id }} </br>
+	            		{{ tile.name }}
+	            	</div>
+		        </div>
 	            {% endfor %}
+        	
 		    </div>
 		</div>
 	</div>

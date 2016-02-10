@@ -244,25 +244,43 @@ def dashboard_tiles(request, dashboard_slug):
             tile = json.loads(tile.ir_cache)
             tile_id = tile['tile-id']
             tile_prio = tile['priority']
+
             if 'default-image' in tile:
                 try:
-                    tile_img = ProductImage.objects.get(id=tile['default-image']).url
+                    if type(tile['default-image']) is dict:
+                        tile_img = ProductImage.objects.get(id=tile['default-image']['id']).url
+                    else:
+                        tile_img = ProductImage.objects.get(id=tile['default-image']).url
                 except ProductImage.DoesNotExist:
-                    tile_img = "Does not exist"
+                    tile_img = "Default image not found"
             else:
                 tile_img = tile['url']
+
+            if 'name' in tile:
+                tile_name = tile['name']
+            else:
+                tile_name = "No name"
+
+            if 'template' in tile:
+                tile_template = tile['template'].title()
+            else:
+                tile_template = "No template"
 
             allProducts.append({
                 'id': tile_id, 
                 'img': tile_img,
+                'name': tile_name,
+                'template': tile_template,
                 'priority': tile_prio
             })
+
+        count = len(allProducts)
 
         context = RequestContext(request)
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {
-                'productsList': allProducts,
+                'tileList': allProducts,
                 'context': context, 
                 'siteName': cur_dashboard.site_name, 
                 'url_slug': page_id,
