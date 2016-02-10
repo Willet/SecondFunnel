@@ -319,7 +319,6 @@ function contentManage(page, method, selection){
                         $('#content-add-result').append(" Uploading to cloudinary...");
                         var uploadURL = new Product({
                             url: page.attributes.num,
-                            page_id: url_slug
                         });
                         result = uploadURL.uploadCloudinary(uploadURL);
                         result.done(function(){
