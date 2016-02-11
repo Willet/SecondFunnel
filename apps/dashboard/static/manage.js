@@ -58,7 +58,7 @@ var Content = Backbone.Model.extend({
                 return api_URL + 'page/' + url_slug + '/';
             case 'search':
                 return api_URL + 'content/' + method + '/'; 
-            case 'upload_cloudinary':
+            case 'scrape':
                 return api_URL + 'content/' + method + '/'; 
         }
     },
@@ -76,9 +76,9 @@ var Content = Backbone.Model.extend({
         return Backbone.sync.call(this, 'create', searchString, options);
     },
 
-    uploadCloudinary: function (URL) {
+    scrape: function (URL) {
         var options = {
-            'url': this.getCustomURL('upload_cloudinary')
+            'url': this.getCustomURL('scrape')
         };
         return Backbone.sync.call(this, 'create', URL, options);
     }
@@ -316,11 +316,11 @@ function contentManage(page, method, selection){
                 if (method == 'content-add'){
                     $('#content-add-result').html(JSON.parse(result.responseText).status);
                     if ((selection == 'URL') && (JSON.parse(result.responseText).status.indexOf("could not be found") >= 0)) {
-                        $('#content-add-result').append(" Uploading to cloudinary...");
+                        $('#content-add-result').append(" Scraping...");
                         var uploadURL = new Product({
                             url: page.attributes.num,
                         });
-                        result = uploadURL.uploadCloudinary(uploadURL);
+                        result = uploadURL.scrape(uploadURL);
                         result.done(function(){
                             $('#content-add-result').append(" " + JSON.parse(result.responseText).status);
                         })

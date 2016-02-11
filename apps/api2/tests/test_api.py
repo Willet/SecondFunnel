@@ -530,84 +530,89 @@ class APITest(APITestCase):
     def page_add_product_successful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 3})
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['ID'], 3)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
 
     def page_add_product_successful_category_priority_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 3, 'category': "TestCategory", 'priority': 100})
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['ID'], 3)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
 
     def page_add_product_successful_category_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 3, 'category': "TestCategory"})
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['ID'], 3)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
 
     def page_add_product_successful_priority_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 3, 'priority': 1000})
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['ID'], 3)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
 
     def page_add_content_successful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'ID': 6})
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['ID'], 6)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
 
     def page_add_content_successful_category_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'ID': 6, 'category': "TestCategory"})
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['ID'], 6)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
 
     def page_add_product_unsuccessful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 1000})
         self.assertEqual(response.data['status'], u'Product with ID: 1000, Store: MyStore has not been found. Add failed.')
-        self.assertEqual(response.data['ID'], 1000)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], None)
 
     def page_add_product_already_added_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 3})
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 3})
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default, Store: MyStore is already added. Add failed.')
-        self.assertEqual(response.data['ID'], 3)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], None)
 
     def page_add_content_unsuccessful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'ID': 1000})
         self.assertEqual(response.data['status'], u'Content with ID: 1000, Store: MyStore has not been found. Add failed.')
-        self.assertEqual(response.data['ID'], 1000)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], None)
 
     def page_add_content_already_added_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'ID': 6})
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'ID': 6})
-        self.assertEqual(response.data['status'], u'Content with ID: 6, Store: MyStore is already added. Add failed.')
-        self.assertEqual(response.data['ID'], 6)
+        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
+        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'ID': 6})
+        self.assertEqual(response.data['status'], u'Content with ID: 6, Store: MyStore is already added. Add failed.')
+        self.assertEqual(response.data['store_name'], u'MyStore')
+        self.assertEqual(response.data['action'], u'Add')
+        self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], None)
 
     def page_add_no_input_test(self):
         response = self.client.post('/api2/page/8/add/')
@@ -640,13 +645,12 @@ class APITest(APITestCase):
     def page_remove_product_successful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'ID': 3})
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['ID'], 3)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'ID': 3})
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
-        self.assertEqual(response.data['ID'], 3)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')
@@ -655,7 +659,6 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'ID': 100000})
         self.assertEqual(response.data['status'], u'Product with ID: 100000, Store: MyStore has not been found. Remove failed.')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['ID'], 100000)
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')
 
@@ -663,20 +666,18 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'ID': 6})
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['ID'], 6)
         self.assertEqual(response.data['action'], u'Add')
         self.assertEqual(response.data['slug'], u'8')
+        self.assertEqual(response.data['id'], 14)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'ID': 6})
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
         self.assertEqual(response.data['store_name'], u'MyStore')
-        self.assertEqual(response.data['ID'], 6)
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')
 
     def page_remove_content_unsuccessful_test(self):
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'ID': 100000})
         self.assertEqual(response.data['status'], u'Content with ID: 100000, Store: MyStore has not been found. Remove failed.')
-        self.assertEqual(response.data['ID'], 100000)
         self.assertEqual(response.data['store_name'], u'MyStore')
         self.assertEqual(response.data['action'], u'Remove')
         self.assertEqual(response.data['slug'], u'8')

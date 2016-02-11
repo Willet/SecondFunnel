@@ -29,19 +29,33 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def search(self, request):
-        return_dict = {"status": None}
-        data = ''
+        """
+        Search for product
 
+        inputs:
+            id/url/name/sku: any of the 4 as an input to search from
+
+        returns:
+            status: status message containing result of search task
+            id: id of product found
+        """
+
+        return_dict = {'status': None, 'id': []}
+        data = ''
+        
         if request.POST:
             data = request.POST
         elif request.body:
             data = ast.literal_eval(request.body) 
 
+        # Compare the data keys with approved keys list and put found keys in a new array
         filter_keys_in_data = set(['id','name','url','sku']) & set(data)
+        print filter_keys_in_data
         if len(filter_keys_in_data) < 1:
             return_dict['status'] = "Expecting one of id, name, sku or url for search, got none."
         elif len(filter_keys_in_data) > 1:
-            return_dict['status'] = "Expecting one of id, name, sku or url for search, but got multiple: {}.".format(" ".join(list(filter_keys_in_data)))
+            return_dict['status'] = ("Expecting one of id, name, sku or url for search, but got "
+                                    "multiple: {}.").format(" ".join(list(filter_keys_in_data)))
         else:
             # Setting up filters to query for product
             id_filter = data.get('id', None)
@@ -74,25 +88,32 @@ class ProductViewSet(viewsets.ModelViewSet):
                 except Product.DoesNotExist:
                     return_dict['status'] = "Product with {0}: {1} could not be found.".format(key[0],str(data[key[1]]))
                 except Product.MultipleObjectsReturned:
-                    product = Product.objects.filter(filters)
+                    products = Product.objects.filter(filters)
                     return_dict['status'] = ["Multiple products have been found. IDs:"]
-                    return_dict['id'] = []
-                    for ob in product:
-                        return_dict['status'].append(str(ob['id']))
-                        return_dict['id'].append(ob['id'])
+                    for p in products:
+                        return_dict['status'].append(str(p['id']))
+                        return_dict['id'].append(p['id'])
                     return_dict['status'] = " ".join(return_dict['status'])
                 else:
                     return_dict['status'] = "Product found: ID {0}.".format(str(product.id))
-                    return_dict['id'] = [product.id]
-        
-        if not 'id' in return_dict:
-            return_dict['id'] = []
+                    return_dict['id'].append(product.id)
         
         return Response(return_dict)
 
     @list_route(methods=['post'])
     def scrape(self, request):
-        return_dict = {"status": ""}
+        """
+        Scrape for product from URL provided
+
+        inputs:
+            url: url from which the product scrape is performed
+
+        returns:
+            status: status message containing result of scrape
+            id: id of resultant product
+        """
+
+        return_dict = {'status': "", 'id': None}
         data = ''
         
         if request.POST:
@@ -114,7 +135,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             }
 
             url = [data['url']]
-            page = None
             page = Page.objects.get(pk=data['page_id'])
 
             def process(request, page, url, options, categories, priorities):
@@ -125,7 +145,10 @@ class ProductViewSet(viewsets.ModelViewSet):
             p.start()
             p.join()
 
+            product = Product.objects.get(url=url)
+
             return_dict['status'] = "Scraped!"
+            return_dict['id'] = product.id
 
         return Response(return_dict)
 
@@ -136,7 +159,18 @@ class ContentViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def search(self, request):
-        return_dict = {"status": None}
+        """
+        Search for content
+
+        inputs:
+            id/url/name: any of the 3 as an input to search from
+
+        returns:
+            status: status message containing result of search task
+            id: id of content found
+        """
+
+        return_dict = {'status': None, 'id': []}
         data = ''
 
         if request.POST:
@@ -144,11 +178,13 @@ class ContentViewSet(viewsets.ModelViewSet):
         elif request.body:
             data = ast.literal_eval(request.body) 
 
+        # Compare the data keys with approved keys list and put found keys in a new array
         filter_keys_in_data = set(['id','name','url']) & set(data) # intersection
         if len(filter_keys_in_data) < 1:
             return_dict['status'] = "Expecting one of id, name, or url for search, got none."
         elif len(filter_keys_in_data) > 1:
-            return_dict['status'] = "Expecting one of id, name, or url for search, but got multiple: {}.".format(" ".join(list(filter_keys_in_data)))
+            return_dict['status'] = ("Expecting one of id, name, or url for search, but got "
+                                    "multiple: {}.").format(" ".join(list(filter_keys_in_data)))
         else:
             # Setting up filters to query for content
             id_filter = data.get('id', None)
@@ -175,27 +211,33 @@ class ContentViewSet(viewsets.ModelViewSet):
                 except Content.DoesNotExist:
                     return_dict['status'] = "Content with {0}: {1} could not be found.".format(key[0],str(data[key[1]]))
                 except Content.MultipleObjectsReturned:
-                    content = Content.objects.filter(filters)
+                    contents = Content.objects.filter(filters)
                     return_dict['status'] = ["Multiple contents have been found. IDs:"]
-                    return_dict['id'] = []
-                    for ob in content:
-                        return_dict['status'].append(str(ob['id']))
-                        return_dict['id'].append(ob['id'])
+                    for c in contents:
+                        return_dict['status'].append(str(c['id']))
+                        return_dict['id'].append(c['id'])
                     return_dict['status'] = " ".join(return_dict['status'])
                 else:
                     return_dict['status'] = "Content with {0}: {1} has been found.".format(key[0], str(data[key[1]]))
-                    return_dict['id'] = [content.id]
-
-        if not 'id' in return_dict:
-            return_dict['id'] = []
+                    return_dict['id'].append(content.id)       
         
         return Response(return_dict)
 
     @list_route(methods=['post'])
-    def upload_cloudinary(self, request):
-        data = ''
+    def scrape(self, request):
+        """
+        Upload content to cloudinary
 
-        return_dict = {"status": ""}
+        inputs:
+            url: url from which image is uploaded
+
+        returns:
+            status: status message containing result of upload
+            id: id of resultant image
+        """
+
+        return_dict = {'status': "", 'id': []}
+        data = ''
 
         if request.POST:
             data = request.POST
@@ -208,8 +250,9 @@ class ContentViewSet(viewsets.ModelViewSet):
         if not 'url' in data:
             return_dict['status'] = "No URL found."
         else:
-            upload_to_cloudinary(data['url'])
-            return_dict['status'] = "Uploaded!"
+            imgObj = upload_to_cloudinary(data['url'])
+            return_dict['status'] = "Uploaded. Image ID: {}".format(imgObj.id)
+            return_dict['id'].append(imgObj.id)
 
         return Response(return_dict)
 
@@ -238,89 +281,180 @@ class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
 
-    def add_product(self, filters, productID, page, category=None, priority=None):
+    def add_product(self, filters, productID, page, category=None, priority=None):  
+        """
+        Adds product to page, with optional category and/or priority
+
+        inputs:
+            filters: filters corresponding to product query requirements
+            productID: product ID
+            page: page on which to add product
+            category: (optional) category name
+            priority: (optional) priority number to assign to new tile
+
+        returns:
+            status: status message containing result of add task
+            tileID: id of newly created tile
+        """
+
+        tileID = None
         try:
             product = Product.objects.get(filters)
         except Product.DoesNotExist:
-            status = "Product with ID: {0}, Store: {1} has not been found. Add failed.".format(str(productID), page.store.name)
+            status = ("Product with ID: {0}, Store: {1} has not been found. Add failed."
+                      "").format(str(productID), page.store.name)
         except Product.MultipleObjectsReturned:
-            status = "Multiple products with ID: {0}, Store: {1} have been found. Add failed.".format(str(productID), page.store.name)
+            status = ("Multiple products with ID: {0}, Store: {1} have been found. Add "
+                      "failed.").format(str(productID), page.store.name)
         else:
             if page.feed.tiles.filter(products=product, template="product"):
-                status = "Product with ID: {0}, Name: {1}, Store: {2} is already added. Add failed.".format(str(productID),product.name,page.store.name)
+                status = ("Product with ID: {0}, Name: {1}, Store: {2} is already added. "
+                          "Add failed.").format(str(productID),product.name,page.store.name)
             else:
-                page.feed.add(product,priority=priority,category=category)
+                tile = page.feed.add(product,priority=priority,category=category)
                 # Additional check to make sure adding succeeded
                 if page.feed.tiles.filter(products=product, template="product"):
+                    tileID = tile[0].id
                     status = "Product with ID: {0}, Name: {1} has been added.".format(str(productID), product.name)
                 else:
-                    status = "Adding of product with ID: {0}, Name: {1} has failed due to an unknown error.".format(str(productID), product.name)
-        return status
+                    status = ("Adding of product with ID: {0}, Name: {1} has failed due to "
+                              "an unknown error.").format(str(productID), product.name)
+        return [status,tileID]
 
     def remove_product(self, filters, productID, page):
+        """
+        Remove product from page
+
+        inputs:
+            filters: filters corresponding to product query requirements
+            productID: product ID
+            page: page on which to add product
+
+        returns:
+            status: status message containing result of remove task
+        """
+
         try: 
             product = Product.objects.get(filters)
         except Product.DoesNotExist:
-            status = "Product with ID: {0}, Store: {1} has not been found. Remove failed.".format(str(productID), page.store.name)
+            status = ("Product with ID: {0}, Store: {1} has not been found. Remove "
+                      "failed.").format(str(productID), page.store.name)
         except Product.MultipleObjectsReturned:
-            status = "Multiple products with ID: {0}, Store: {1} have been found. Remove failed.".format(str(productID), page.store.name)
+            status = ("Multiple products with ID: {0}, Store: {1} have been found. "
+                      "Remove failed.").format(str(productID), page.store.name)
         else:
             if not page.feed.tiles.filter(products=product, template="product"):
-                status = "Product with ID: {0}, Name: {1}, Store: {2} has not been found. Remove failed.".format(str(productID), product.name, page.store.name)
+                status = ("Product with ID: {0}, Name: {1}, Store: {2} has not been "
+                          "found. Remove failed.").format(str(productID), product.name, page.store.name)
             else:
                 page.feed.remove(product)
                 # Additional check to make sure removing succeeded
                 if not page.feed.tiles.filter(products=product, template="product"):
                     status = "Product with ID: {0}, Name: {1} has been removed.".format(str(productID), product.name)
                 else:
-                    status = "Product with ID: {0}, Name: {1} could not be removed due to an unknown reason.".format(str(productID), product.name)
+                    status = ("Product with ID: {0}, Name: {1} could not be removed due to "
+                              "an unknown reason.").format(str(productID), product.name)
         return status
 
     def add_content(self, filters, contentID, page, category=None):
+        """
+        Adds content to page, with optional category
+
+        inputs:
+            filters: filters corresponding to content query requirements
+            contentID: content ID
+            page: page on which to add content
+            category: (optional) category name
+
+        returns:
+            status: status message
+            tileID: id of newly created tile
+        """
+
+        tileID = None
         try:
             content = Content.objects.get(filters)
         except Content.DoesNotExist:
-            status = "Content with ID: {0}, Store: {1} has not been found. Add failed.".format(str(contentID), page.store.name)
+            status = ("Content with ID: {0}, Store: {1} has not been found. Add "
+                      "failed.").format(str(contentID), page.store.name)
         except Content.MultipleObjectsReturned:
-            status = "Multiple contents with ID: {0}, Store: {1} have been found. Add failed.".format(str(contentID), page.store.name)
+            status = ("Multiple contents with ID: {0}, Store: {1} have been found. "
+                      "Add failed.").format(str(contentID), page.store.name)
         else:
             #Content adding
             if page.feed.tiles.filter(content=content):
-                status = "Content with ID: {0}, Store: {1} is already added. Add failed.".format(str(contentID), page.store.name)
+                status = ("Content with ID: {0}, Store: {1} is already added. Add "
+                          "failed.").format(str(contentID), page.store.name)
             else:
-                page.feed.add(content,category=category) 
+                tile = page.feed.add(content,category=category) 
                 # Additional check to make sure adding succeeded
                 if page.feed.tiles.filter(content=content):
+                    tileID = tile[0].id
                     status = "Content with ID: {0} has been added.".format(str(contentID))
                 else:
-                    status = "Adding of content with ID: has failed due to an unknown error.".format(str(contentID)) 
-        return status
+                    status = ("Adding of content with ID: has failed due to an unknown "
+                              "error.").format(str(contentID)) 
+        return [status, tileID]
 
-    def remove_content(self, filters, productID, page):
+    def remove_content(self, filters, contentID, page):
+        """
+        Remove content from page
+
+        inputs:
+            filters: filters corresponding to content query requirements
+            contentID: content ID
+            page: page on which to add product
+
+        returns:
+            status: status message
+        """
+
         try:
             content = Content.objects.get(filters)
         except Content.DoesNotExist:
-            status = "Content with ID: {0}, Store: {1} has not been found. Remove failed.".format(str(productID), page.store.name)
+            status = ("Content with ID: {0}, Store: {1} has not been found. Remove "
+                      "failed.").format(str(contentID), page.store.name)
         except Content.MultipleObjectsReturned:
-            status = "Multiple contents with ID: {0}, Store: {1} have been found. Remove failed.".format(str(productID), page.store.name)
+            status = ("Multiple contents with ID: {0}, Store: {1} have been found. "
+                      "Remove failed.").format(str(contentID), page.store.name)
         else:
             #Content removing
             if not page.feed.tiles.filter(content=content):
-                status = "Content with ID: {0}, Store: {1} is already removed. Removal failed.".format(str(productID), page.store.name)
+                status = ("Content with ID: {0}, Store: {1} is already removed. "
+                          "Removal failed.").format(str(contentID), page.store.name)
             else:
                 page.feed.remove(content)
                 # Additional check to make sure removing succeeded
                 if not page.feed.tiles.filter(content=content):
-                    status = "Content with ID: {0} has been removed.".format(str(productID))
+                    status = "Content with ID: {0} has been removed.".format(str(contentID))
                 else:
-                    status = "Removal of content with ID: {0} has failed due to an unknown error.".format(str(productID))
+                    status = ("Removal of content with ID: {0} has failed due to "
+                              "an unknown error.").format(str(contentID))
         return status
 
     # Take in only ID
     @detail_route(methods=['post'])
     def add(self, request, pk):
+        """
+        Adds product or content to page, with optional category and/or priority
+
+        inputs:
+            ID: product or content ID
+            category: (optional) category name
+            priority: (optional) priority number to assign to new tile
+            type: add type, one of 'product' or 'content'
+
+        returns:
+            action: action performed (Add)
+            store_name: name of store
+            slug: page ID
+            status: status message
+            id: ID of newly created tile
+        """
+
         page = Page.objects.get(pk=pk)
         data = {}
+        tileID = None
 
         if request.POST:
             data = request.POST
@@ -363,9 +497,13 @@ class PageViewSet(viewsets.ModelViewSet):
                 else:
                     # Use add_product if the type's product, else use add_content
                     if add_type == 'product':
-                        status = self.add_product(filters, productID, page, category, priority)
+                        results = self.add_product(filters, productID, page, category, priority)
+                        status = results[0]
+                        tileID = results[1]
                     elif add_type == 'content':
-                        status = self.add_content(filters, productID, page, category)
+                        results = self.add_content(filters, productID, page, category)
+                        status = results[0]
+                        tileID = results[1]
                     else:
                         status = "Type '{}' is not a valid type (content/product only).".format(add_type)
 
@@ -373,13 +511,27 @@ class PageViewSet(viewsets.ModelViewSet):
             "action": "Add",
             "slug": pk,
             "store_name": page.store.name,
-            "ID": productID,
             "status": status,
+            "id": tileID
             })
     
     # Take in only ID
     @detail_route(methods=['post'])
     def remove(self, request, pk):
+        """
+        Remove product or content from page
+
+        inputs:
+            ID: product or content ID
+            type: removal type, one of 'product' or 'content'
+
+        returns:
+            action: action performed (Remove)
+            store_name: name of store
+            slug: page ID
+            status: status message
+        """
+
         page = Page.objects.get(pk=pk)
         data = {}
 
@@ -416,7 +568,6 @@ class PageViewSet(viewsets.ModelViewSet):
             "action": "Remove",
             "slug": pk,
             "store_name": page.store.name,
-            "ID": productID,
             "status": status,
             })
 
@@ -438,6 +589,16 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 @api_view(('GET',))
 def api_root(request, format=None):
+    """
+    Displays the Root API webpage
+
+    inputs:
+        No inputs
+
+    returns:
+        A dict containing all the models you can view through API
+    """
+
     return Response({
         'store': reverse('store-list', request=request, format=format),
         'product': reverse('product-list', request=request, format=format),
