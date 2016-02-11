@@ -208,3 +208,45 @@ def remove_product_tiles_from_page(page_slug, prod_url_id_list, category=False, 
                 print "{}Deleting {} tiles containing {}".format(fake_str, tiles.count(), prod)
                 if not fake:
                     tiles.delete()
+
+def remove_duplicate_product_tiles_from_page(page_slug, category=False, fake=False):
+    """
+    Deletes duplicate product tiles in each category of a page, leaving highest priority tile
+
+    page_slug: page to remove duplicate product tiles from
+    category: (optional) <str> or <Category> - remove product tiles from this category only
+    fake: (optional) <bool> if True, nothing is deleted
+
+    Ex: remove_duplicate_product_tiles_from_page("giftideas", category="all-gifts")
+    """
+    fake_str = "FAKE: " if fake else ''
+    page = Page.objects.get(url_slug=page_slug)
+
+    if category:
+        if isinstance(category, basestring):
+            category = Category.objects.get(store=page.store, name=category)
+        categories = [category]
+    else:
+        categories = page.feed.categories
+
+    for c in categories:
+        tiles = page.feed.tiles.filter(categories=c, template="product")
+        products = Product.objects.filter(tiles__in=tiles)
+        # Remove duplicates
+        product_count = []
+        tiles_delete = []
+        for p in products:
+            product_tiles = p.tiles.filter(id__in=tiles).distinct().order_by("-priority")
+            if product_tiles.count() > 1:
+                product_count.append(p)
+                for t in product_tiles[1:]:
+                    tiles_delete.append(t)
+
+        std = set(tiles_delete)
+        spc = set(product_count)
+
+        print "{}Deleting {} tiles for {} products in category {}".format(fake_str, len(std),len(spc), c.name)
+
+        if not fake:
+            for t in std:
+                t.delete()
