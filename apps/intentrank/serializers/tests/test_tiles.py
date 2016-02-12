@@ -1,13 +1,11 @@
 from django.test import TestCase
 import mock
-import logging
 
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                ProductImage, Feed, Tile, Content
 from apps.intentrank.serializers.tiles import TileSerializer, DefaultTileSerializer, \
-  ProductTileSerializer, ImageTileSerializer, GifTileSerializer, VideoTileSerializer, \
-  BannerTileSerializer, CollectionTileSerializer, HeroTileSerializer, HerovideoTileSerializer
-
+        ProductTileSerializer, ImageTileSerializer, GifTileSerializer, VideoTileSerializer, \
+        BannerTileSerializer, CollectionTileSerializer, HeroTileSerializer, HerovideoTileSerializer
 from apps.intentrank.serializers.utils import SerializerError
 
 class TileSerializerTest(TestCase):
@@ -46,10 +44,6 @@ class TileSerializerTest(TestCase):
         i = Image.objects.get(pk=6)
         t.content.add(i)
         data = s.get_dump_separated_content(t)
-        logging.debug("actual call: {}".format(t.separated_content['images'][0].to_json()))
-        logging.debug(data['default-image'])
-        logging.debug(i.to_json())
-        # these aren't equal and I don't know why
         self.assertEqual(data['default-image'], i.to_json())
 
 class DefaultTileSerializerTest(TestCase):

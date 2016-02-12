@@ -17,7 +17,7 @@ class IRSerializer(JSONSerializer):
 
     @classmethod
     def dump(cls, obj, skip_cache=False):
-        """obj be <Model>"""
+        """ Shortcut for dumping json dict repr of a single object """
         return cls().to_json([obj], skip_cache=skip_cache)
 
     def start_serialization(self):
@@ -34,42 +34,56 @@ class IRSerializer(JSONSerializer):
         pass
 
     def to_json(self, queryset, **options):
-        """Contrary to what the method name suggests, this
+        """ get json dict repr of obj(s)
 
-        :returns a dict.
+        queryset - either <QuerySet> or <list> of <Model>'s
+
+        :returns <dict> json-esque key:value repr of obj
         """
         return json.loads(self.to_str(queryset=queryset, **options))
 
     def to_str(self, queryset, **options):
-        # single object serialization cache
-        # for when an object was done more than once per request
-        skip_cache = options.pop('skip_cache', False)
-        if skip_cache:
-            return self.serialize(queryset=queryset, **options)
+        """ get string of json respresentation of object
 
-        if len(queryset) == 1:
+        For single objects, checks pre-generated ir_cache, then memcache, finally serializes
+        For multiple objects, serializes immediately into a list
+
+        queryset - either <QuerySet> or <list> of <Model>'s
+        options - 'skip_cache' - serialize single obj
+                ...other options passed through to serialize
+
+        :return <str> json-encoded dump of obj(s)
+        """
+        if len(queryset) == 0:
+            obj_str = ''
+        elif len(queryset) > 1:
+            # Serializing multiple objects, need containing brackets
+            obj_str = super(IRSerializer, self).serialize(queryset=queryset, **options)
+        elif options.pop('skip_cache', False):
+            # Force skip caching layers
+            obj_str = self.serialize(queryset=queryset, **options)
+        else:
+            # lookup single object in cache
             obj = queryset[0]
 
-            # representation already made
-            if self.MEMCACHE_PREFIX == 'ir' and getattr(obj, 'ir_cache', ''):
-                return getattr(obj, 'ir_cache', '')
+            # get pre-generated cache
+            obj_str = getattr(obj, 'ir_cache', '')
 
-            obj_key = "{0}-{1}-{2}".format(self.MEMCACHE_PREFIX,
-                                           obj.__class__.__name__, obj.id)
+            if not obj_str:
+                # lookup memcache, only cached if same obj is serialized
+                # multiple times in same operation.
+                obj_key = "{0}-{1}-{2}".format(self.MEMCACHE_PREFIX,
+                                               obj.__class__.__name__, obj.id)
+                obj_str = MemcacheSetting.get(obj_key, False)
 
-            # if you have a memcache, that is
-            obj_str_cache = MemcacheSetting.get(obj_key, False)
-            if obj_str_cache:  # in cache, return it
-                return obj_str_cache
-            else:  # not in cache, save it
-                obj_str = self.serialize(queryset=queryset, **options)
-                MemcacheSetting.set(obj_key, obj_str,
-                                    timeout=self.MEMCACHE_TIMEOUT)  # save
-                return obj_str
-
-        return self.serialize(queryset=queryset, **options)
+                if not obj_str:
+                    # not in cache, generate & save it
+                    obj_str = self.serialize(queryset=queryset, **options)
+                    MemcacheSetting.set(obj_key, obj_str,
+                                        timeout=self.MEMCACHE_TIMEOUT) # save
+        return obj_str
 
 
 def camelize_JSON(attributes):
     """ camelize JSON attributes """
-    return { inflection.camelize(attr, False):attributes[attr] for attr in attributes }
+    return { inflection.camelize(key, False):val for key, val in attributes.items() }

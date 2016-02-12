@@ -27,7 +27,7 @@ from .utils import delay_tile_serialization
 
 
 class SerializableMixin(object):
-    """Provides to_json() and to_cg_json() methods for model instances.
+    """Provides to_json() and to_str() methods for model instances.
 
     To implement specific json formats, override these methods.
     """
@@ -36,9 +36,10 @@ class SerializableMixin(object):
 
     def to_json(self, skip_cache=False):
         """default method for all models to have a json representation."""
-        if hasattr(self.serializer, 'dump'):
+        try:
             return self.serializer.dump(self, skip_cache=skip_cache)
-        return self.serializer().serialize(iter([self]))
+        except AttributeError:
+            return self.serializer().to_json([self], skip_cache=skip_cache)
 
     def to_str(self, skip_cache=False):
         return self.serializer().to_str([self], skip_cache=skip_cache)
@@ -54,13 +55,6 @@ class BaseModel(models.Model, SerializableMixin):
     placeholder = models.BooleanField(default=False)
     # used by IR to bypass frequent re/deserialization to shave off CPU time
     ir_cache = models.TextField(blank=True, null=True)
-
-    # @override
-    _attribute_map = (
-        # (cg attribute name, python attribute name)
-        ('created', 'created_at'),
-        ('last-modified', 'updated_at'),
-    )
 
     class Meta(object):
         abstract = True
@@ -211,32 +205,6 @@ class BaseModel(models.Model, SerializableMixin):
         else:
             return new_ir_cache, True
 
-    def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
-        """(method name can be shorter, but something about PEP 20)
-
-        reads the model's key conversion map and returns whichever model
-        attribute name it is that matches the given cg_attribute_name.
-
-        :returns str
-        """
-        for cg_py in self._attribute_map:
-            if cg_py[0] == cg_attribute_name:
-                return cg_py[1]
-        return cg_attribute_name  # not found, assume identical
-
-    def _python_attribute_name_to_cg_attribute_name(self, python_attribute_name):
-        """(method name can be shorter, but something about PEP 20)
-
-        reads the model's key conversion map and returns whichever model
-        attribute name it is that matches the given python_attribute_name.
-
-        :returns str
-        """
-        for cg_py in reversed(self._attribute_map):
-            if cg_py[1] == python_attribute_name:
-                return cg_py[0]
-        return python_attribute_name  # not found, assume identical
-
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
         """Like Model.objects.get_or_create, either gets, updates, or creates
@@ -285,58 +253,12 @@ class BaseModel(models.Model, SerializableMixin):
 
         return (obj, created, updated)
 
-    def get(self, key, default=None):
-        """Duck-type a <dict>'s get() method to make CG transition easier.
-
-        Also looks into the attributes JSONField if present.
-        """
-        attr = getattr(self, key, None)
-        if attr:
-            return attr
-        if hasattr(self, 'attributes'):
-            if key in self.attributes:
-                return self.attributes.get(key, default)
-        return default
-
-    def update_cg(self, other=None, **kwargs):
-        """This is not <dict>.update().
-
-        Setting attributes of non-model fields does not raise exceptions..
-
-        :param {dict} other    overwrites matching attributes in self.
-        :param {dict} kwargs   only if other is not supplied, use kwargs
-                               as other.
-
-        :returns self (<dict>.update() does not return anything)
-        """
-        if not other:
-            other = kwargs
-
-        if not other:
-            return self
-
-        for key in other:
-            if key == 'created':
-                self.created_at = datetime.datetime.fromtimestamp(
-                    int(other[key]) / 1000)
-            elif key in ['last-modified', 'modified']:
-                self.updated_at = datetime.datetime.fromtimestamp(
-                    int(other[key]) / 1000)
-            else:
-                setattr(self,
-                        self._cg_attribute_name_to_python_attribute_name(key),
-                        other[key])
-            logging.info(u"updated {0}.{1} to {2}".format(
-                self, self._cg_attribute_name_to_python_attribute_name(key),
-                other[key]))
-
-        return self
-
     def save(self, *args, **kwargs):
+        # full clean every model on save
         self.full_clean()
 
         if hasattr(self, 'pk') and self.pk:
-            obj_key = "cg-{0}-{1}".format(self.__class__.__name__, self.id)
+            obj_key = "{0}-{1}-{2}".format(self.serializer.MEMCACHE_PREFIX, self.__class__.__name__, self.id)
             MemcacheSetting.set(obj_key, None)  # save
 
         super(BaseModel, self).save(*args, **kwargs)
@@ -353,16 +275,6 @@ class BaseModel(models.Model, SerializableMixin):
         except serializers.SerializerError:
             # ignore errors on serialization of incomplete model
             pass
-
-    @property
-    def cg_created_at(self):
-        """(readonly) representation of the content graph timestamp"""
-        return unicode(calendar.timegm(self.created_at.utctimetuple()) * 1000)
-
-    @property
-    def cg_updated_at(self):
-        """(readonly) representation of the content graph timestamp"""
-        return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
 
 
 class Store(BaseModel):
@@ -388,18 +300,6 @@ class Store(BaseModel):
         blank=True, null=True)
 
     serializer = serializers.StoreSerializer
-
-    @classmethod
-    def from_json(cls, json_data):
-        """@deprecated for replacing the Campaign Model. Use something else.
-        """
-        if 'theme' in json_data:
-            json_data['theme'] = Theme(template=json_data['theme'])
-
-        instance = cls()
-        for field in json_data:
-            setattr(instance, field, json_data[field])
-        return instance
 
 
 class Product(BaseModel):
@@ -659,11 +559,6 @@ class Content(BaseModel):
                               default="needs-review",
                               validators=[_validate_status])
 
-    _attribute_map = BaseModel._attribute_map + (
-        # (cg attribute name, python attribute name)
-        ('tagged-products', 'tagged_products'),
-    )
-
     serializer = serializers.ContentSerializer
 
     def __init__(self, *args, **kwargs):
@@ -844,18 +739,6 @@ class Page(BaseModel):
     feed = models.ForeignKey('Feed', related_name='page', blank=True, null=True) 
     # is_finite @property
 
-    _attribute_map = BaseModel._attribute_map + (
-        # (cg attribute name, python attribute name)
-        ('social-buttons', 'social_buttons'),
-        ('column-width', 'column_width'),
-        ('intentrank-id', 'intentrank_id'),
-        ('heroImageDesktop', 'desktop_hero_image'),
-        ('heroImageMobile', 'mobile_hero_image'),
-        ('legalCopy', 'legal_copy'),  # ordered for cg -> sf
-        ('description', 'description'),  # ordered for cg -> sf
-        ('shareText', 'description'),  # ordered for cg <- sf
-    )
-
     serializer = serializers.PageSerializer
 
     def __init__(self, *args, **kwargs):
@@ -941,37 +824,10 @@ class Page(BaseModel):
             return False
         self.save()
 
-    def get(self, key, default=None):
-        """Duck-type a <dict>'s get() method to make CG transition easier.
-
-        Also looks into the theme_settings JSONField if present.
-        """
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            pass
-
-        if hasattr(self, 'theme_settings') and self.theme_settings:
-            if key in self.theme_settings:
-                return self.theme_settings.get(key, default)
-        return default
-
     @property
     def is_finite(self):
-        return bool(self.feed.is_finite and
-            not self.theme_settings.get('override_finite_feed', False))
-
-    @classmethod
-    def from_json(cls, json_data):
-        """@deprecated for replacing the Campaign Model. Use something else.
-        """
-        if 'theme' in json_data:
-            json_data['theme'] = Theme(template=json_data['theme'])
-
-        instance = cls()
-        for field in json_data:
-            setattr(instance, field, json_data[field])
-        return instance
+        """Alias for Page.feed.is_finite """
+        return self.feed.is_finite
 
     def _get_incremented_url_slug(self):
         """Returns the url_slug with an incremented number. Guaranteed unique url_slug
@@ -1534,12 +1390,6 @@ class Tile(BaseModel):
         return serializer().to_str([self], skip_cache=skip_cache)
 
     @property
-    def tile_config(self):
-        """(read-only) representation of the tile as its content graph
-        tileconfig."""
-        raise NotImplementedError
-
-    @property
     def product(self):
         """Returns the tile's first product, or the first tagged product from
         the tile's first piece of content that has tagged products.
@@ -1564,8 +1414,8 @@ class Tile(BaseModel):
 
     def get_first_content_of(self, cls):
         """
-        returns first content of type cls in tile 
-        raises LookupError if no content of type cls is found
+        returns: first content of type cls in tile 
+        raises: LookupError if no content of type cls is found
         """
         contents = self.content.select_subclasses()
         try:

@@ -1,8 +1,7 @@
-from django.test import TestCase
-import mock
-import logging
 from datetime import datetime
 from django.conf import settings
+from django.test import TestCase
+import mock
 
 from apps.utils.functional import may_be_json
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \

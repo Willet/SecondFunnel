@@ -64,12 +64,6 @@ class BaseModelTest(TestCase):
         self.assertEqual(created, False)
         self.assertEqual(updated, False)
 
-    def get_test(self):
-        b = Store.objects.get(pk=1)
-        self.assertEqual(b.get("name"), "MyStore")
-        self.assertIsNone(b.get("nothing"))
-        # raise Exception()
-
 
 class StoreTest(TestCase):
     # Store has no methods
@@ -79,8 +73,6 @@ class StoreTest(TestCase):
         self.store = Store.objects.get(pk=1)
         self.assertEqual(self.store.slug, "store_slug")
         self.assertEqual(self.store.name, "MyStore")
-        self.assertIsNot(self.store.cg_created_at, None)
-        self.assertIsNot(self.store.cg_updated_at, None)
         self.assertTrue(self.store.id > 0)
 
 
@@ -90,8 +82,6 @@ class ThemeTest(TestCase):
 
     def properties_test(self):
         t = Theme.objects.get(pk=2)
-        self.assertIsNot(t.cg_created_at, None)
-        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
         self.assertEqual(t.name, "Default")
@@ -111,8 +101,6 @@ class ProductTest(TestCase):
         pprice = 19.99
         store_id = 1
         p = Product.objects.get(pk=3)
-        self.assertIsNot(p.cg_created_at, None)
-        self.assertIsNot(p.cg_updated_at, None)
         self.assertEqual(p.store_id, store_id)
         self.assertEqual(float(p.price), pprice)
         self.assertTrue(p.id > 0)
@@ -181,8 +169,6 @@ class ProductImageTest(TestCase):
         url = "/image.jpg"
         original_url = "test.com/image.jpg"
         product_image = ProductImage.objects.get(pk=4)
-        self.assertIsNot(product_image.cg_created_at, None)
-        self.assertIsNot(product_image.cg_updated_at, None)
         self.assertTrue(product_image.id > 0)
         self.assertIsNone(product_image.ir_cache)
         self.assertTrue(product_image.pk > 0)
@@ -287,8 +273,6 @@ class TagTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         t = Tag.objects.get(name="TestTag")
-        self.assertIsNot(t.cg_created_at, None)
-        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
         self.assertEqual(t.name, "TestTag")
@@ -305,8 +289,6 @@ class ContentTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         t = Content.objects.get(pk=6)
-        self.assertIsNot(t.cg_created_at, None)
-        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
         self.assertTrue(t.pk > 0)
@@ -321,8 +303,6 @@ class ImageTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         t = Image.objects.get(pk=6)
-        self.assertIsNot(t.cg_created_at, None)
-        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertIsNone(t.ir_cache)
         self.assertTrue(t.pk > 0)
@@ -372,8 +352,6 @@ class CategoryTest(TestCase):
         name = "TestCategory"
         store = Store.objects.get(pk=1)
         c = Category.objects.get(name=name)
-        self.assertIsNot(c.cg_created_at, None)
-        self.assertIsNot(c.cg_updated_at, None)
         self.assertTrue(c.id > 0)
         self.assertIsNone(c.ir_cache)
         self.assertEqual(c.name, name)
@@ -404,8 +382,6 @@ class PageTest(TestCase):
         p = Page.objects.get(url_slug=url_slug)
         self.assertIsNone(p.campaign)
         self.assertIsNone(p.campaign_id)
-        self.assertIsNot(p.cg_created_at, None)
-        self.assertIsNot(p.cg_updated_at, None)
         self.assertTrue(p.id > 0)
         self.assertIsNone(p.ir_cache)
         self.assertIsNone(p.last_published_at)
@@ -430,8 +406,6 @@ class PageTest(TestCase):
         pp = p.deepcopy()
         self.assertIsNone(pp.campaign)
         self.assertIsNone(pp.campaign_id)
-        self.assertIsNot(pp.cg_created_at, None)
-        self.assertIsNot(pp.cg_updated_at, None)
         self.assertTrue(pp.id > 0)
         self.assertIsNone(pp.ir_cache)
         self.assertIsNone(pp.last_published_at)
@@ -457,8 +431,6 @@ class PageTest(TestCase):
         pp = p.copy()
         self.assertIsNone(pp.campaign)
         self.assertIsNone(pp.campaign_id)
-        self.assertIsNot(pp.cg_created_at, None)
-        self.assertIsNot(pp.cg_updated_at, None)
         self.assertTrue(pp.id > 0)
         self.assertIsNone(pp.ir_cache)
         self.assertIsNone(pp.last_published_at)
@@ -526,8 +498,6 @@ class FeedTest(TestCase):
     def properties_test(self):
         store = Store.objects.get(pk=1)
         f = Feed.objects.get(pk=9)
-        self.assertIsNot(f.cg_created_at, None)
-        self.assertIsNot(f.cg_updated_at, None)
         self.assertTrue(f.id > 0)
         self.assertIsNone(f.ir_cache)
         self.assertEqual(f.store, store)
@@ -1337,8 +1307,6 @@ class TileTest(TestCase):
         store = Store.objects.get(pk=1)
         feed = Feed.objects.get(pk=9)
         t = Tile.objects.get(pk=10)
-        self.assertIsNot(t.cg_created_at, None)
-        self.assertIsNot(t.cg_updated_at, None)
         self.assertTrue(t.id > 0)
         self.assertEqual(t.ir_cache, ir_cache)
         self.assertEqual(t.feed, feed)
