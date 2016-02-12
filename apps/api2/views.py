@@ -4,10 +4,7 @@ from multiprocessing import Process
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import renderers
-from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework import generics
+from rest_framework import renderers, viewsets, permissions, generics
 from rest_framework.decorators import api_view, detail_route, list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -82,7 +79,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             except (ValueError, TypeError):
                 return_dict['status'] = "Expecting a number as input, but got non-number."
             else:
-                return_dict['product'] = []
                 try:
                     product = Product.objects.get(filters)
                 except Product.DoesNotExist:
@@ -92,15 +88,22 @@ class ProductViewSet(viewsets.ModelViewSet):
                     return_dict['status'] = ["Multiple products have been found. IDs:"]
                     for p in products:
                         return_dict['status'].append(str(p['id']))
-                        return_dict['product'].append(ProductSerializer(p).data)
                         return_dict['ids'].append(p['id'])
                     return_dict['status'] = " ".join(return_dict['status'])
                 else:
                     return_dict['status'] = "Product found: ID {0}.".format(str(product.id))
-                    return_dict['product'].append(ProductSerializer(product).data)
                     return_dict['ids'].append(product.id)
 
-        return Response(return_dict)
+        # If ['ids'] is empty, that means none found/bad input
+        if return_dict['ids'] == []:
+            if "not be found" in return_dict['status']:
+                status_code = 404
+            else:
+                status_code = 400
+        else:
+            status_code = 200
+
+        return Response(return_dict, status=status_code)
 
     @list_route(methods=['post'])
     def scrape(self, request):
@@ -115,7 +118,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             id: id of resultant product
         """
 
-        return_dict = {'status': "", 'id': None}
+        return_dict = {'action': 'scrape', 'status': "", 'id': None, 'product': []}
         data = ''
         
         if request.POST:
@@ -149,10 +152,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
             product = Product.objects.get(url=url)
 
-            return_dict['status'] = "Scraped!"
+            return_dict['status'] = "Scraped! Product ID: {}".format(product.id)
             return_dict['id'] = product.id
+            return_dict['product'].append(ProductSerializer(product).data)
 
-        return Response(return_dict)
+        # If ['id'] is None, that means bad input
+        if return_dict['id'] == None:
+            status_code = 400
+        else:
+            status_code = 200
+
+        return Response(return_dict, status_code)
 
 
 class ContentViewSet(viewsets.ModelViewSet):
@@ -172,7 +182,7 @@ class ContentViewSet(viewsets.ModelViewSet):
             ids: list of id/ids of content/contents found
         """
 
-        return_dict = {'status': None, 'ids': []}
+        return_dict = {'status': None, 'ids': [], 'content': []}
         data = ''
 
         if request.POST:
@@ -208,7 +218,6 @@ class ContentViewSet(viewsets.ModelViewSet):
             except (ValueError, TypeError):
                 return_dict['status'] = "Expecting a number as input, but got non-number."
             else:
-                return_dict['content'] = []
                 try:
                     content = Content.objects.get(filters)
                 except Content.DoesNotExist:
@@ -226,7 +235,16 @@ class ContentViewSet(viewsets.ModelViewSet):
                     return_dict['ids'].append(content.id)       
                     return_dict['content'].append(ContentSerializer(content).data)
         
-        return Response(return_dict)
+        # If ['ids'] is empty, that means none found/bad input
+        if return_dict['ids'] == []:
+            if "not be found" in return_dict['status']:
+                status_code = 404
+            else:
+                status_code = 400
+        else:
+            status_code = 200
+
+        return Response(return_dict, status_code)
 
     @list_route(methods=['post'])
     def scrape(self, request):
@@ -241,7 +259,7 @@ class ContentViewSet(viewsets.ModelViewSet):
             id: id of resultant image
         """
 
-        return_dict = {'status': "", 'id': []}
+        return_dict = {'action': 'scrape', 'status': "", 'id': None, 'image': []}
         data = ''
 
         if request.POST:
@@ -258,8 +276,16 @@ class ContentViewSet(viewsets.ModelViewSet):
             img_obj = upload_to_cloudinary(data['url'])
             return_dict['status'] = "Uploaded. Image ID: {}".format(img_obj.id)
             return_dict['id'].append(img_obj.id)
+            return_dict['image'].append(ImageSerializer(img_ob).data)
 
-        return Response(return_dict)
+        # If ['id'] is None, that means bad input
+        if return_dict['id'] == None:
+            status_code = 400
+        else:
+            status_code = 200
+
+        return Response(return_dict, status_code)
+
 
 
 class ImageViewSet(viewsets.ModelViewSet):
@@ -325,6 +351,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 else:
                     status = ("Adding of product with ID: {0}, Name: {1} has failed due to "
                               "an unknown error.").format(str(product_id), product.name)
+
         return (status, tile_id, tile[0])
 
     def remove_product(self, filters, product_id, page):
@@ -360,6 +387,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 else:
                     status = ("Product with ID: {0}, Name: {1} could not be removed due to "
                               "an unknown reason.").format(str(product_id), product.name)
+
         return status
 
     def add_content(self, filters, content_id, page, category=None):
@@ -401,6 +429,8 @@ class PageViewSet(viewsets.ModelViewSet):
                 else:
                     status = ("Adding of content with ID: has failed due to an unknown "
                               "error.").format(str(content_id)) 
+
+            
         return (status, tile_id, tile[0])
 
     def remove_content(self, filters, content_id, page):
@@ -437,9 +467,9 @@ class PageViewSet(viewsets.ModelViewSet):
                 else:
                     status = ("Removal of content with ID: {0} has failed due to "
                               "an unknown error.").format(str(content_id))
+
         return status
 
-    # Take in only ID
     @detail_route(methods=['post'])
     def add(self, request, pk):
         """
@@ -460,6 +490,7 @@ class PageViewSet(viewsets.ModelViewSet):
         page = Page.objects.get(pk=pk)
         data = {}
         tile_id = None
+        status_code = 400
 
         if request.POST:
             data = request.POST
@@ -482,7 +513,6 @@ class PageViewSet(viewsets.ModelViewSet):
                     priority = int(priority)
                 except ValueError:
                     raise RuntimeError("Priority '{}' is not a number.".format(priority))
-
                 # Check if category exists
                 if category:
                     try:
@@ -508,6 +538,11 @@ class PageViewSet(viewsets.ModelViewSet):
                     else:
                         status = "Type '{}' is not a valid type (content/product only).".format(add_type)
 
+        if "has not been found" in status:
+            status_code = 404
+        elif "has been added" in status:
+            status_code = 200
+
         response = {
             "action": "Add",
             "status": status
@@ -517,9 +552,8 @@ class PageViewSet(viewsets.ModelViewSet):
             response['id'] = tile_id
             response['tile'] = TileSerializer(obj).data
 
-        return Response(response)
+        return Response(response, status=status_code)
     
-    # Take in only ID
     @detail_route(methods=['post'])
     def remove(self, request, pk):
         """
@@ -536,6 +570,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         page = Page.objects.get(pk=pk)
         data = {}
+        status_code = 400
 
         if request.POST:
             data = request.POST
@@ -566,10 +601,15 @@ class PageViewSet(viewsets.ModelViewSet):
                 else:
                     status = "Type '{}' is not a valid type (content/product only).".format(remove_type)
 
+        if "has not been found" in status:
+            status_code = 404
+        elif "has been removed" in status:
+            status_code = 200
+
         return Response({
             "action": "Remove",
             "status": status,
-        })
+        }, status=status_code)
 
 
 class TileViewSet(viewsets.ModelViewSet):
