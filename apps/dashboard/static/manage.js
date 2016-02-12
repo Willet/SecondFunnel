@@ -42,7 +42,7 @@ var Product = Backbone.Model.extend({
         };
         return Backbone.sync.call(this, 'create', URL, options);
     }
-})
+});
 
 var Content = Backbone.Model.extend({
     defaults: {},
@@ -82,7 +82,7 @@ var Content = Backbone.Model.extend({
         };
         return Backbone.sync.call(this, 'create', URL, options);
     }
-})
+});
 
 var Page = Backbone.Model.extend({
     defaults: {
@@ -127,79 +127,6 @@ var Page = Backbone.Model.extend({
     }
 });
 
-var formView = Backbone.View.extend({
-    el: $('#allforms'),
-
-    events: {
-    	'submit': 'submit'
-    },
-
-    initialize: function () {
-    },
-
-    submit: function(e) {
-    	e.preventDefault();
-        var method = '';
-        var page = '';
-        if (e.target.id == "product-add-form")
-            method = 'product-add';
-        if (e.target.id == "product-remove-form")
-            method = 'product-remove';
-        if (e.target.id == "content-add-form")
-            method = 'content-add';
-        if (e.target.id == "content-remove-form")
-            method = 'content-remove';
-
-        if ((method == 'product-add') || (method == 'product-remove') || 
-            (method == 'content-add') || (method == 'content-remove')) {
-            var selection = e.target.selection.value;
-            var num = e.target.id_num.value;
-
-            if (method == 'product-add'){
-                var priority = e.target.priority.value;
-                var category = e.target.category.value;
-                page = new Page({
-                    type: "product",
-                    selection: selection,
-                    num: num,
-                    priority: priority,
-                    category: category
-                });
-            }
-            if (method == 'product-remove'){
-                page = new Page({
-                    type: "product",
-                    selection: selection,
-                    num: num,
-                });
-            }
-            if (method == 'content-add'){
-                var category = e.target.category.value;
-                page = new Page({
-                    type: "content",
-                    selection: selection,
-                    num: num,
-                    category: category,
-                })
-            }
-            if (method == 'content-remove'){
-                page = new Page({
-                    type: "content",
-                    selection: selection,
-                    num: num,
-                });
-            }
-
-            if (method.indexOf("content") >= 0){
-                contentManage(page, method, selection);
-            }
-            if (method.indexOf("product") >= 0){              
-                productManage(page,method, selection);
-            }
-        }
-    },
-});
-
 function productManage(page, method, selection){
     var searchString = new Product();
     if (selection == 'URL')
@@ -210,24 +137,23 @@ function productManage(page, method, selection){
         searchString.set({sku: page.attributes.num});
 
     result = searchString.search(searchString);
-
-    result.done(function(){
-        var idLength = JSON.parse(result.responseText).id.length;
-        if ((idLength > 0) && (idLength < 2)) {
+    result.always(function(){
+        var idLength = JSON.parse(result.responseText).ids.length;
+        if (idLength == 1) {
             page = new Page({
                 type: "product",
-                ID: JSON.parse(result.responseText).id[0],
+                id: JSON.parse(result.responseText).ids[0],
             })
             if (method == 'product-add') {
                 result = page.add(page);
-                result.done(function() {
+                result.always(function() {
                     $('#product-add-result').html(JSON.parse(result.responseText).status);
                     $('#product-remove-result').html("");
                 })
             }
             if (method == 'product-remove') {
                 result = page.remove(page);
-                result.done(function(){
+                result.always(function(){
                     $('#product-add-result').html("");
                     $('#product-remove-result').html(JSON.parse(result.responseText).status);
                 })       
@@ -254,7 +180,7 @@ function productManage(page, method, selection){
                             page_id: url_slug
                         });
                         result = scrapeURL.scrape(scrapeURL);
-                        result.done(function(){
+                        result.always(function(){
                             $('#product-add-result').append(" " + JSON.parse(result.responseText).status);
                         })
                     }
@@ -279,23 +205,23 @@ function contentManage(page, method, selection){
         searchString.set({id: page.attributes.num});
 
     result = searchString.search(searchString);
-    result.done(function(){
-        var idLength = JSON.parse(result.responseText).id.length;
-        if ((idLength > 0) && (idLength < 2))  {
+    result.always(function(){
+        var idLength = JSON.parse(result.responseText).ids.length;
+        if (idLength == 1) {
             page = new Page({
                 type: "content",
-                ID: JSON.parse(result.responseText).id[0],
+                id: JSON.parse(result.responseText).ids[0],
             })
             if (method == 'content-add') {
                 result = page.add(page);
-                result.done(function() {
+                result.always(function() {
                     $('#content-add-result').html(JSON.parse(result.responseText).status);
                     $('#content-remove-result').html("");
                 })
             }
             if (method == 'content-remove') {
                 result = page.remove(page);
-                result.done(function(){
+                result.always(function(){
                     $('#content-add-result').html("");
                     $('#content-remove-result').html(JSON.parse(result.responseText).status);
                 })       
@@ -321,7 +247,7 @@ function contentManage(page, method, selection){
                             url: page.attributes.num,
                         });
                         result = uploadURL.scrape(uploadURL);
-                        result.done(function(){
+                        result.always(function(){
                             $('#content-add-result').append(" " + JSON.parse(result.responseText).status);
                         })
                     }
@@ -337,6 +263,129 @@ function contentManage(page, method, selection){
     return 1;
 }
 
+var addProductModel = Backbone.Model.extend({
+    schema: {
+        selection: { title: 'Selection', type: 'Select', options: ['URL', 'SKU', 'ID'] },
+        num:       { title: 'Number', type: 'Text' },
+        priority:  { title: 'Priority', type: 'Text' },
+        category:  { title: 'Category', type: 'Text' },
+    },
+});
+
+var removeProductModel = Backbone.Model.extend({
+    schema: {
+        selection: { title: 'Selection', type: 'Select', options: ['URL', 'SKU', 'ID'] },
+        num:       { title: 'Number', type: 'Text' },
+    },
+});
+
+var addContentModel = Backbone.Model.extend({
+    schema: {
+        selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+        num:       { title: 'Number', type: 'Text' },
+        category:  { title: 'Category', type: 'Text' },
+    },
+});
+
+var removeContentModel = Backbone.Model.extend({
+    schema: {
+        selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+        num:       { title: 'Number', type: 'Text' },
+    },
+});
+
+var addProduct = new addProductModel();
+var removeProduct = new removeProductModel();
+var addContent = new addContentModel();
+var removeContent = new removeContentModel();
+
+var addProductForm = new Backbone.Form({
+    model: addProduct,
+}).render();
+
+var removeProductForm = new Backbone.Form({
+    model: removeProduct,
+}).render();
+
+var addContentForm = new Backbone.Form({
+    model: addContent,
+}).render();
+
+var removeContentForm = new Backbone.Form({
+    model: removeContent,
+}).render();
+
+$('#addProductDiv').append(addProductForm.el);
+$('#removeProductDiv').append(removeProductForm.el);
+$('#addContentDiv').append(addContentForm.el);
+$('#removeContentDiv').append(removeContentForm.el);
+
+$('#product-add-button').click(function(){
+    addProductForm.commit();
+    
+    var selection = addProduct.attributes.selection;
+    var num = addProduct.attributes.num;
+    var priority = addProduct.attributes.priority;
+    var category = addProduct.attributes.category;
+
+    var page = new Page({
+        type: "product",
+        selection: selection,
+        num: num,
+        priority: priority,
+        category: category
+    });
+    productManage(page,'product-add', selection);
+})
+
+$('#product-remove-button').click(function(){
+    removeProductForm.commit();
+
+    var selection = removeProduct.attributes.selection;
+    var num = removeProduct.attributes.num;
+
+    var page = new Page({
+        type: "product",
+        selection: selection,
+        num: num,
+    });
+
+    productManage(page,'product-remove', selection);
+})
+
+$('#content-add-button').click(function(){
+    addContentForm.commit();
+
+    var selection = addContent.attributes.selection;
+    var num = addContent.attributes.num;
+    var category = addContent.attributes.category;
+
+    var page = new Page({
+        type: "content",
+        selection: selection,
+        num: num,
+        category: category
+    });
+
+    contentManage(page,'content-add', selection);
+})
+
+$('#content-remove-button').click(function(){
+    removeContentForm.commit();
+
+    var selection = removeContent.attributes.selection;
+    var num = removeContent.attributes.num;
+
+    var page = new Page({
+        type: "content",
+        selection: selection,
+        num: num,
+    });
+
+    contentManage(page,'content-remove', selection);
+})
+
+// Used to get CSRF Token Cookie so django will allow us to use do API calls
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie != '') {
@@ -353,7 +402,7 @@ function getCookie(name) {
 }
 
 $(document).ready(function(){
-    var Forms = new formView();
+    //var Forms = new formView();
     $.ajaxSetup({
         headers: { "X-CSRFToken": getCookie("csrftoken")}
     });
