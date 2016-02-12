@@ -33,9 +33,6 @@ urlpatterns = patterns('',
     url(r'^dashboard/', include('apps.dashboard.urls')),
     url(r'^api2/', include('apps.api2.urls')),
 
-    # APIs
-    url(r'^contentgraph/', include('apps.contentgraph.urls')),
-    url(r'^graph/', include('apps.api.urls')),
 
     url(r'^(?P<page_slug>[^/\.]+)/?$',
         'apps.light.views.landing_page'),

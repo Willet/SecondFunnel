@@ -1,6 +1,5 @@
 from django.test import TestCase
 import mock
-import logging
 
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                Gif, ProductImage, Feed, Tile, Content, Video
