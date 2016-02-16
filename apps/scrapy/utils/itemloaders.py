@@ -50,7 +50,7 @@ class ScraperProductLoader(ItemLoader):
     """
     default_output_processor = TakeFirst()
 
-    name_in = Compose(TakeFirst(), unicode.strip)
+    name_in = Compose(Join(), unicode.strip)
 
     description_in = Compose(Join(), unicode.strip, sanitize_html)
 
