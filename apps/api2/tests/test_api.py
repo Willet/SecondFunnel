@@ -887,6 +887,11 @@ class APITest(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u"Missing 'id' field from input.")
 
+    def page_add_bad_page_ID_test(self):
+        response = self.client.post('/api2/page/10000/add/', {'type': 'product', 'id': 6})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['status'], u"Page with ID: 10000 not found.")
+
     def page_remove_product_successful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
@@ -958,6 +963,11 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id2': 'ID'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u"Missing 'id' field from input.")
+
+    def page_remove_bad_page_ID_test(self):
+        response = self.client.post('/api2/page/10000/remove/', {'type': 'product', 'id': 6})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['status'], u"Page with ID: 10000 not found.")
 
     def tile_test(self):
         response = self.client.get(reverse('tile-list'))

@@ -111,6 +111,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         inputs:
             url: url from which the product scrape is performed
+            page_id: page id from which the product scrape is performed
 
         returns:
             status: status message containing result of scrape
@@ -138,25 +139,30 @@ class ProductViewSet(viewsets.ModelViewSet):
             }
 
             url = data['url']
-            page = Page.objects.get(id=data['page_id'])
-
-            def process(request, page, url, options):
-                PageMaintainer(page).add(source_urls=[url], options=options)
-
-            p = Process(target=process, args=[page, url, options])
-            p.start()
-            p.join()
 
             try:
-                product = Product.objects.get(url=url)
-            except Product.DoesNotExist:
-                return_dict['status'] = "Scraping has failed. Product Not Found."
+                page = Page.objects.get(id=data['page_id'])
+            except Page.DoesNotExist:
+                return_dict['status'] = "Scraping has failed. Page with ID: {} not found.".format(data['page_id'])
                 status_code = 404
             else:
-                return_dict['status'] = "Scraping has succeeded. Product ID: {}".format(product.id)
-                return_dict['id'] = product.id
-                return_dict['product'].append(ProductSerializer(product).data)
-                status_code = 200
+                def process(request, page, url, options):
+                    PageMaintainer(page).add(source_urls=[url], options=options)
+
+                p = Process(target=process, args=[page, url, options])
+                p.start()
+                p.join()
+
+                try:
+                    product = Product.objects.get(url=url)
+                except Product.DoesNotExist:
+                    return_dict['status'] = "Scraping has failed. Product Not Found."
+                    status_code = 404
+                else:
+                    return_dict['status'] = "Scraping has succeeded. Product ID: {}".format(product.id)
+                    return_dict['id'] = product.id
+                    return_dict['product'].append(ProductSerializer(product).data)
+                    status_code = 200
 
         return Response(return_dict, status=status_code)
 
@@ -367,7 +373,6 @@ class PageViewSet(viewsets.ModelViewSet):
             success: True if remove succeeded, False if product not found
         """
 
-
         try: 
             product = Product.objects.get(filters)
         except Product.DoesNotExist:
@@ -470,9 +475,6 @@ class PageViewSet(viewsets.ModelViewSet):
                 page.feed.remove(content)
                 status = "Content with ID: {0} has been removed.".format(str(content_id))
                 success = True
-
-        if success is None:
-            raise AttributeError(status)
         
         return (status, success)
 
@@ -492,74 +494,81 @@ class PageViewSet(viewsets.ModelViewSet):
             id: ID of newly created tile
         """
 
-        page = Page.objects.get(pk=pk)
-        tile = success = None
-        status_code = 400
+        tile = None
         
         try:
-            data = request.POST or ast.literal_eval(request.body)
-        except SyntaxError:
-            data = {}
-
-        obj_id = data.get('id', None)
-        category = data.get('category', None)
-        priority = data.get('priority', 0)
-        add_type = data.get('type', None)
-    
-        if not obj_id:
-            status = "Missing 'id' field from input."
-        elif not add_type:
-            status = "Missing 'type' field from input."
+            page = Page.objects.get(pk=pk)
+        except Page.DoesNotExist:
+            status = "Page with ID: {} not found.".format(pk)
+            status_code = 404
         else:
+            success = None
+            status_code = 400
+            
             try:
-                # Priority checking (Check to see if priority exists & priority is a number)
-                try:
-                    priority = int(priority)
-                except ValueError:
-                    raise RuntimeError("Priority '{}' is not a number.".format(priority))
-                # Check if category exists
-                if category:
-                    try:
-                        category = Category.objects.get(name=category, store=page.store)
-                    except Category.DoesNotExist:
-                        raise RuntimeError("Category '{0}' not found.".format(category))
-            except RuntimeError as e:
-                status = str(e)
+                data = request.POST or ast.literal_eval(request.body)
+            except SyntaxError:
+                data = {}
+
+            obj_id = data.get('id', None)
+            category = data.get('category', None)
+            priority = data.get('priority', 0)
+            add_type = data.get('type', None)
+        
+            if not obj_id:
+                status = "Missing 'id' field from input."
+            elif not add_type:
+                status = "Missing 'type' field from input."
             else:
-                # Setting up filters to query for product
-                filters = Q(store=page.store)
-                try: 
-                    obj_id = int(obj_id)
-                    filters = filters & Q(id=obj_id)
-                except ValueError:
-                    status = "Expecting a number as input, but got non-number."
-                else:
-                    # Use add_product if the type's product, else use add_content
+                try:
+                    # Priority checking (Check to see if priority exists & priority is a number)
                     try:
-                        if add_type == 'product':
-                            (status, tile, success) = self.add_product(filters, obj_id, page, category, priority)
-                        elif add_type == 'content':
-                            (status, tile, success) = self.add_content(filters, obj_id, page, category, priority)
-                        else:
-                            status = "Type '{}' is not a valid type (content/product only).".format(add_type)
-                    except AttributeError as e:
-                        status = str(e)
+                        priority = int(priority)
+                    except ValueError:
+                        raise RuntimeError("Priority '{}' is not a number.".format(priority))
+                    # Check if category exists
+                    if category:
+                        try:
+                            category = Category.objects.get(name=category, store=page.store)
+                        except Category.DoesNotExist:
+                            raise RuntimeError("Category '{0}' not found.".format(category))
+                except RuntimeError as e:
+                    status = str(e)
+                else:
+                    # Setting up filters to query for product
+                    filters = Q(store=page.store)
+                    try: 
+                        obj_id = int(obj_id)
+                        filters = filters & Q(id=obj_id)
+                    except ValueError:
+                        status = "Expecting a number as input, but got non-number."
                     else:
-                        if success is None:
-                            status_code = 400
-                        elif success:
-                            status_code = 200
+                        # Use add_product if the type's product, else use add_content
+                        try:
+                            if add_type == 'product':
+                                (status, tile, success) = self.add_product(filters, obj_id, page, category, priority)
+                            elif add_type == 'content':
+                                (status, tile, success) = self.add_content(filters, obj_id, page, category, priority)
+                            else:
+                                status = "Type '{}' is not a valid type (content/product only).".format(add_type)
+                        except AttributeError as e:
+                            status = str(e)
                         else:
-                            status_code = 404    
-                    
+                            if success is None:
+                                status_code = 400
+                            elif success:
+                                status_code = 200
+                            else:
+                                status_code = 404   
+   
         response = {
             "status": status
         }
 
         if tile:
             response['id'] = tile.id
-            response['tile'] = TileSerializer(tile).data
-
+            response['tile'] = TileSerializer(tile).data 
+                 
         return Response(response, status=status_code)
     
     @detail_route(methods=['post'])
@@ -575,48 +584,53 @@ class PageViewSet(viewsets.ModelViewSet):
             status: status message
         """
 
-        page = Page.objects.get(pk=pk)
-        success = None
-        status_code = 400
-
         try:
-            data = request.POST or ast.literal_eval(request.body)
-        except SyntaxError:
-            data = {}
-
-        obj_id = data.get('id', None)
-        remove_type = data.get('type', None)
-
-        if not obj_id:
-            status = "Missing 'id' field from input."
-        elif not remove_type:
-            status = "Missing 'type' field from input."
+            page = Page.objects.get(pk=pk)
+        except Page.DoesNotExist:
+            status = "Page with ID: {} not found.".format(pk)
+            status_code = 404
         else:
-            # Setting up filters to query for product
-            filters = Q(store=page.store)
-            try: 
-                obj_id = int(obj_id)
-                filters = filters & Q(id=obj_id)
-            except ValueError:
-                status = "Expecting a number as input, but got non-number."
-            else:                   
-                # Use remove_product if the type's product, else use remove_content
-                try:
-                    if remove_type == 'product':
-                        (status, success) = self.remove_product(filters, obj_id, page)
-                    elif remove_type == 'content':
-                        (status, success) = self.remove_content(filters, obj_id, page)
+            success = None
+            status_code = 400
+
+            try:
+                data = request.POST or ast.literal_eval(request.body)
+            except SyntaxError:
+                data = {}
+
+            obj_id = data.get('id', None)
+            remove_type = data.get('type', None)
+
+            if not obj_id:
+                status = "Missing 'id' field from input."
+            elif not remove_type:
+                status = "Missing 'type' field from input."
+            else:
+                # Setting up filters to query for product
+                filters = Q(store=page.store)
+                try: 
+                    obj_id = int(obj_id)
+                    filters = filters & Q(id=obj_id)
+                except ValueError:
+                    status = "Expecting a number as input, but got non-number."
+                else:                   
+                    # Use remove_product if the type's product, else use remove_content
+                    try:
+                        if remove_type == 'product':
+                            (status, success) = self.remove_product(filters, obj_id, page)
+                        elif remove_type == 'content':
+                            (status, success) = self.remove_content(filters, obj_id, page)
+                        else:
+                            status = "Type '{}' is not a valid type (content/product only).".format(remove_type)
+                    except AttributeError as e:
+                        status = str(e)
                     else:
-                        status = "Type '{}' is not a valid type (content/product only).".format(remove_type)
-                except AttributeError as e:
-                    status = str(e)
-                else:
-                    if success is None:
-                        status_code = 400
-                    elif success:
-                        status_code = 200
-                    else:
-                        status_code = 404   
+                        if success is None:
+                            status_code = 400
+                        elif success:
+                            status_code = 200
+                        else:
+                            status_code = 404   
 
         return Response({
             "status": status,
