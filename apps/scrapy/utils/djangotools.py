@@ -3,7 +3,6 @@
 from django.core.exceptions import MultipleObjectsReturned
 
 from apps.assets.models import Product, Category, Content
-from apps.assets.utils import disable_tile_serialization
 
 
 def django_item_values(item):
@@ -48,13 +47,9 @@ def get_or_create(model):
         try:
             (product, created) = get_or_return(model, query)
         except MultipleObjectsReturned:
-            # If this Product model is incomplete (ex: no images yet), then merging
-            # with existing Products that are already on tiles can trigger serialization
-            # errors. Be careful, possible source of bad tiles!
-            with disable_tile_serialization():
-                qs = Product.objects.filter(**query)
-                product = Product.merge_products(qs)
-                created = False
+            qs = Product.objects.filter(**query)
+            product = Product.merge_products(qs)
+            created = False
         return (product, created)
     
     if isinstance(model, Product):
@@ -74,8 +69,8 @@ def update_model(destination, source_item, commit=True):
     pk = destination.pk
     
     # Persist exisitng attributes (arbitrary data field)
-    attrs = destination.get('attributes', {}).copy()
-    attrs.update(source_item.get('attributes', {}))
+    attrs = getattr(destination, 'attributes', {}).copy()
+    attrs.update(getattr(source_item,'attributes', {}))
     source_item['attributes'] = attrs
     for (key, value) in django_item_values(source_item):
         setattr(destination, key, value)

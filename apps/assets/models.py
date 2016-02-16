@@ -14,46 +14,35 @@ from django_extensions.db.fields import CreationDateTimeField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 
-import apps.api.serializers as cg_serializers
 from apps.imageservice.fields import ImageSizesField
 from apps.imageservice.models import ImageSizes
 from apps.imageservice.utils import delete_resource, is_hex_color
-import apps.intentrank.serializers as ir_serializers
+from apps.intentrank import serializers
 from apps.utils.decorators import returns_unicode
 from apps.utils.fields import ListField
+from apps.utils.functional import get_image_file_type
 from apps.utils.classes import MemcacheSetting
 
-from .utils import disable_tile_serialization
-
-
-default_master_size = {
-    'master': {
-        'width': '100%',
-        'height': '100%',
-    }
-}
+from .utils import delay_tile_serialization
 
 
 class SerializableMixin(object):
-    """Provides to_json() and to_cg_json() methods for model instances.
+    """Provides to_json() and to_str() methods for model instances.
 
     To implement specific json formats, override these methods.
     """
 
-    serializer = cg_serializer = cg_serializers.RawSerializer
+    serializer = serializers.IRSerializer
 
     def to_json(self, skip_cache=False):
         """default method for all models to have a json representation."""
-        if hasattr(self.serializer, 'dump'):
+        try:
             return self.serializer.dump(self, skip_cache=skip_cache)
-        return self.serializer().serialize(iter([self]))
+        except AttributeError:
+            return self.serializer().to_json([self], skip_cache=skip_cache)
 
     def to_str(self, skip_cache=False):
         return self.serializer().to_str([self], skip_cache=skip_cache)
-
-    def to_cg_json(self):
-        """serialize into CG model. This is an instance shorthand."""
-        return self.cg_serializer.dump(self)
 
 
 class BaseModel(models.Model, SerializableMixin):
@@ -62,16 +51,10 @@ class BaseModel(models.Model, SerializableMixin):
 
     # To change this value, use model.save(skip_updated_at=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    # Denotes the item is meant to exist but is currently incomplete (unserializable)
+    placeholder = models.BooleanField(default=False)
     # used by IR to bypass frequent re/deserialization to shave off CPU time
     ir_cache = models.TextField(blank=True, null=True)
-
-    # @override
-    _attribute_map = (
-        # (cg attribute name, python attribute name)
-        ('created', 'created_at'),
-        ('last-modified', 'updated_at'),
-    )
 
     class Meta(object):
         abstract = True
@@ -144,9 +127,10 @@ class BaseModel(models.Model, SerializableMixin):
         m2m_kwargs.update(m2m_update)
 
         new_obj = cls(**local_kwargs)
+        # raise Exception("{}, class: {}".format(new_obj, type(new_obj)))
 
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_obj.get_pk()
 
                 for (k,v) in m2m_kwargs.iteritems():
@@ -159,7 +143,7 @@ class BaseModel(models.Model, SerializableMixin):
                         raise TypeError("Value '{}' can't be assigned to \
                                          ManyToManyField '{}'".format(v, k))
 
-            new_obj.save() # run full_clean to validate
+                new_obj.save() # run full_clean to validate
         return new_obj
 
     def _replace_relations(self, others, exclude_fields=None):
@@ -205,44 +189,21 @@ class BaseModel(models.Model, SerializableMixin):
         """
         old_ir_cache = self.ir_cache
         self.ir_cache = ''  # force tile to regenerate itself
-        if getattr(self, 'placeholder', False):
-            # if placeholder, leave ir_cache empty
-            new_ir_cache = ''
-        else:
+
+        try:
             new_ir_cache = self.to_str(skip_cache=True)
-            
+        except serializers.SerializerError:
+            new_ir_cache = ''
+        
+        if hasattr(self, 'placeholder'):
+            self.placeholder = True if (len(new_ir_cache) == 0) else False
+
         self.ir_cache = new_ir_cache
 
         if new_ir_cache == old_ir_cache:
             return new_ir_cache, False
         else:
             return new_ir_cache, True
-
-    def _cg_attribute_name_to_python_attribute_name(self, cg_attribute_name):
-        """(method name can be shorter, but something about PEP 20)
-
-        reads the model's key conversion map and returns whichever model
-        attribute name it is that matches the given cg_attribute_name.
-
-        :returns str
-        """
-        for cg_py in self._attribute_map:
-            if cg_py[0] == cg_attribute_name:
-                return cg_py[1]
-        return cg_attribute_name  # not found, assume identical
-
-    def _python_attribute_name_to_cg_attribute_name(self, python_attribute_name):
-        """(method name can be shorter, but something about PEP 20)
-
-        reads the model's key conversion map and returns whichever model
-        attribute name it is that matches the given python_attribute_name.
-
-        :returns str
-        """
-        for cg_py in reversed(self._attribute_map):
-            if cg_py[1] == python_attribute_name:
-                return cg_py[0]
-        return python_attribute_name  # not found, assume identical
 
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
@@ -260,6 +221,7 @@ class BaseModel(models.Model, SerializableMixin):
         :raises <AllSortsOfException>s, depending on input
         :returns tuple  (object, updated, created)
         """
+        logging.debug(cls)
         updated = created = False
 
         if not defaults:
@@ -291,58 +253,12 @@ class BaseModel(models.Model, SerializableMixin):
 
         return (obj, created, updated)
 
-    def get(self, key, default=None):
-        """Duck-type a <dict>'s get() method to make CG transition easier.
-
-        Also looks into the attributes JSONField if present.
-        """
-        attr = getattr(self, key, None)
-        if attr:
-            return attr
-        if hasattr(self, 'attributes'):
-            if key in self.attributes:
-                return self.attributes.get(key, default)
-        return default
-
-    def update_cg(self, other=None, **kwargs):
-        """This is not <dict>.update().
-
-        Setting attributes of non-model fields does not raise exceptions..
-
-        :param {dict} other    overwrites matching attributes in self.
-        :param {dict} kwargs   only if other is not supplied, use kwargs
-                               as other.
-
-        :returns self (<dict>.update() does not return anything)
-        """
-        if not other:
-            other = kwargs
-
-        if not other:
-            return self
-
-        for key in other:
-            if key == 'created':
-                self.created_at = datetime.datetime.fromtimestamp(
-                    int(other[key]) / 1000)
-            elif key in ['last-modified', 'modified']:
-                self.updated_at = datetime.datetime.fromtimestamp(
-                    int(other[key]) / 1000)
-            else:
-                setattr(self,
-                        self._cg_attribute_name_to_python_attribute_name(key),
-                        other[key])
-            logging.info(u"updated {0}.{1} to {2}".format(
-                self, self._cg_attribute_name_to_python_attribute_name(key),
-                other[key]))
-
-        return self
-
     def save(self, *args, **kwargs):
+        # full clean every model on save
         self.full_clean()
 
         if hasattr(self, 'pk') and self.pk:
-            obj_key = "cg-{0}-{1}".format(self.__class__.__name__, self.id)
+            obj_key = "{0}-{1}-{2}".format(self.serializer.MEMCACHE_PREFIX, self.__class__.__name__, self.id)
             MemcacheSetting.set(obj_key, None)  # save
 
         super(BaseModel, self).save(*args, **kwargs)
@@ -356,19 +272,9 @@ class BaseModel(models.Model, SerializableMixin):
         """
         try:
             super(BaseModel, self).save(*args, **kwargs)
-        except ir_serializers.SerializerError:
+        except serializers.SerializerError:
             # ignore errors on serialization of incomplete model
             pass
-
-    @property
-    def cg_created_at(self):
-        """(readonly) representation of the content graph timestamp"""
-        return unicode(calendar.timegm(self.created_at.utctimetuple()) * 1000)
-
-    @property
-    def cg_updated_at(self):
-        """(readonly) representation of the content graph timestamp"""
-        return unicode(calendar.timegm(self.updated_at.utctimetuple()) * 1000)
 
 
 class Store(BaseModel):
@@ -393,20 +299,7 @@ class Store(BaseModel):
         help_text="e.g. http://explore.nativeshoes.com, used for store detection",
         blank=True, null=True)
 
-    serializer = ir_serializers.StoreSerializer
-    cg_serializer = cg_serializers.StoreSerializer
-
-    @classmethod
-    def from_json(cls, json_data):
-        """@deprecated for replacing the Campaign Model. Use something else.
-        """
-        if 'theme' in json_data:
-            json_data['theme'] = Theme(template=json_data['theme'])
-
-        instance = cls()
-        for field in json_data:
-            setattr(instance, field, json_data[field])
-        return instance
+    serializer = serializers.StoreSerializer
 
 
 class Product(BaseModel):
@@ -435,14 +328,13 @@ class Product(BaseModel):
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
     # currently known used attrs:
-    # - product_set
+    # - product_images_order: list(<ProductImage> id's in order they should appear) TODO add validation
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
     similar_products = models.ManyToManyField('self', related_name='reverse_similar_products',
                                               symmetrical=False, null=True, blank=True)
 
-    serializer = ir_serializers.ProductSerializer
-    cg_serializer = cg_serializers.ProductSerializer
+    serializer = serializers.ProductSerializer
 
     def __init__(self, *args, **kwargs):
         super(Product, self).__init__(*args, **kwargs)
@@ -493,12 +385,6 @@ class Product(BaseModel):
         self.default_image = self.product_images.first()
         self.save()
 
-    @property
-    def is_placeholder(self):
-        # A placeholder product is created by the scraper, starts with name 'placeholder'
-        # and sku 'placeholder-{ semi-random hash }'
-        return bool(self.name == 'placeholder' or 'placeholder' in self.sku)
-
     def merge(self, other_products):
         """
         Handles trickiness of replacing references to old products to the new one
@@ -530,7 +416,7 @@ class Product(BaseModel):
         if len(products) < 2:
             return products[0] if len(products) else None
 
-        not_placeholders = [p for p in products if not p.is_placeholder]
+        not_placeholders = [p for p in products if not p.placeholder]
         # merge into the most recent not placehoder, or the first placeholder
         if not_placeholders:
             not_placeholders.sort(key=lambda p: p.created_at, reverse=True)
@@ -566,8 +452,7 @@ class ProductImage(BaseModel):
     image_sizes = ImageSizesField(blank=True, null=True)
     attributes = JSONField(blank=True, null=True, default=lambda:{})
 
-    serializer = ir_serializers.ProductImageSerializer
-    cg_serializer = cg_serializers.ProductImageSerializer
+    serializer = serializers.ProductImageSerializer
 
     class Meta(BaseModel.Meta):
         ordering = ('id', )
@@ -658,10 +543,10 @@ class Content(BaseModel):
     url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
-    author = models.CharField(max_length=255, blank=True, null=True)
-
     tagged_products = models.ManyToManyField('Product', null=True, blank=True,
                                              related_name='content')
+    name = models.CharField(max_length=1024, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     # tiles = <RelatedManager> Tiles (many-to-many relationship)
 
     ## all other fields of proxied models will be store in this field
@@ -674,13 +559,7 @@ class Content(BaseModel):
                               default="needs-review",
                               validators=[_validate_status])
 
-    _attribute_map = BaseModel._attribute_map + (
-        # (cg attribute name, python attribute name)
-        ('tagged-products', 'tagged_products'),
-    )
-
-    serializer = ir_serializers.ContentSerializer
-    cg_serializer = cg_serializers.ContentSerializer
+    serializer = serializers.ContentSerializer
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
@@ -692,30 +571,8 @@ class Content(BaseModel):
     class Meta(object):
         verbose_name_plural = 'Content'
 
-    def update(self, other=None, **kwargs):
-        """Additional operations for converting tagged-products: [123] into
-        actual tagged_products: [<Product>]s
-        """
-        if not other:
-            other = kwargs
-
-        if not other:
-            return self
-
-        if 'tagged-products' in other:
-            other['tagged-products'] = [Product.objects.get(id=x) for x in
-                                        other['tagged-products']]
-
-        # WARNING THIS METHOD DOESN'T EXIST IN THE SUPERCLASS
-        # Error: AttributeError: 'super' object has no attribute 'update'
-        return super(Content, self).update(other=other)
-
 
 class Image(Content):
-    name = models.CharField(max_length=1024, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-
-    original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
 
@@ -724,8 +581,7 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    serializer = ir_serializers.ImageSerializer
-    cg_serializer = cg_serializers.ImageSerializer
+    serializer = serializers.ImageSerializer
 
     @property
     def orientation(self):
@@ -733,7 +589,15 @@ class Image(Content):
 
     def save(self, *args, **kwargs):
         """attributes.sizes.master is populated by cloudinary
+
+            TODO: move attributes['sizes'] to Image.sizes & make ImageSizesField
+            TODO: if sizes.master is not populated, should use PIL to determine width/height
         """
+        default_master_size = {
+            'url': self.url,
+            'width': 0,
+            'height': 0,
+        }
         master_size = default_master_size
         try:
             master_size = self.attributes['sizes']['master']
@@ -741,15 +605,19 @@ class Image(Content):
             pass
         except TypeError:
             if isinstance(self.attributes, list):
-                self.attributes = { "sizes": default_master_size }
+                self.attributes = { "sizes": { 'master': default_master_size, } }
 
         if master_size:
-            self.width = master_size.get('width', 0)
-            self.height = master_size.get('height', 0)
+            self.width = master_size.get('width', None)
+            self.height = master_size.get('height', None)
             logging.info(u"Setting {} width and height to {}x{}".format(self, self.width, self.height))
 
         return super(Image, self).save(*args, **kwargs)
 
+    def clean(self):
+        file_type = get_image_file_type(self.url)
+        if file_type:
+            self.file_type = file_type
 
     def delete(self, *args, **kwargs):
         if settings.ENVIRONMENT == "production":
@@ -758,19 +626,21 @@ class Image(Content):
 
 
 class Gif(Image):
+    """
+    A Gif is an Image that *also* has a .gif url.  Allows for progressive loading of the .gif
+    """
     gif_url = models.TextField() # location of gif image
 
-    serializer = ir_serializers.GifSerializer
-    cg_serializer = cg_serializers.GifSerializer
+    serializer = serializers.GifSerializer
+
+    def delete(self, *args, **kwargs):
+        if settings.ENVIRONMENT == "production":
+            delete_resource(self.url)
+            delete_resource(self.gif_url)
+        super(Image, self).delete(*args, **kwargs)
 
 
 class Video(Content):
-    name = models.CharField(max_length=1024, blank=True, null=True)
-
-    caption = models.CharField(max_length=255, blank=True, default="")
-    username = models.CharField(max_length=255, blank=True, default="")
-    description = models.TextField(blank=True, null=True)
-
     player = models.CharField(max_length=255)
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
@@ -778,8 +648,12 @@ class Video(Content):
     # e.g. oHg5SJYRHA0
     original_id = models.CharField(max_length=255, blank=True, null=True)
 
-    serializer = ir_serializers.VideoSerializer
-    cg_serializer = cg_serializers.VideoSerializer
+    serializer = serializers.VideoSerializer
+
+    def clean(self):
+        file_type = get_image_file_type(self.url)
+        if file_type:
+            self.file_type = file_type
 
 
 class Review(Content):
@@ -865,20 +739,7 @@ class Page(BaseModel):
     feed = models.ForeignKey('Feed', related_name='page', blank=True, null=True) 
     # is_finite @property
 
-    _attribute_map = BaseModel._attribute_map + (
-        # (cg attribute name, python attribute name)
-        ('social-buttons', 'social_buttons'),
-        ('column-width', 'column_width'),
-        ('intentrank-id', 'intentrank_id'),
-        ('heroImageDesktop', 'desktop_hero_image'),
-        ('heroImageMobile', 'mobile_hero_image'),
-        ('legalCopy', 'legal_copy'),  # ordered for cg -> sf
-        ('description', 'description'),  # ordered for cg -> sf
-        ('shareText', 'description'),  # ordered for cg <- sf
-    )
-
-    serializer = ir_serializers.PageSerializer
-    cg_serializer = cg_serializers.PageSerializer
+    serializer = serializers.PageSerializer
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
@@ -963,37 +824,10 @@ class Page(BaseModel):
             return False
         self.save()
 
-    def get(self, key, default=None):
-        """Duck-type a <dict>'s get() method to make CG transition easier.
-
-        Also looks into the theme_settings JSONField if present.
-        """
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            pass
-
-        if hasattr(self, 'theme_settings') and self.theme_settings:
-            if key in self.theme_settings:
-                return self.theme_settings.get(key, default)
-        return default
-
     @property
     def is_finite(self):
-        return bool(self.feed.is_finite and
-            not self.theme_settings.get('override_finite_feed', False))
-
-    @classmethod
-    def from_json(cls, json_data):
-        """@deprecated for replacing the Campaign Model. Use something else.
-        """
-        if 'theme' in json_data:
-            json_data['theme'] = Theme(template=json_data['theme'])
-
-        instance = cls()
-        for field in json_data:
-            setattr(instance, field, json_data[field])
-        return instance
+        """Alias for Page.feed.is_finite """
+        return self.feed.is_finite
 
     def _get_incremented_url_slug(self):
         """Returns the url_slug with an incremented number. Guaranteed unique url_slug
@@ -1077,7 +911,7 @@ class Feed(BaseModel):
     source_urls = ListField(blank=True, type=unicode) # List of urls feed is generated from, allowed to be empty
     spider_name = models.CharField(max_length=64, blank=True) # Spider defines behavior to update / regenerate page, '' valid
 
-    serializer = ir_serializers.FeedSerializer
+    serializer = serializers.FeedSerializer
 
     def __unicode__(self):
         try:
@@ -1269,12 +1103,11 @@ class Feed(BaseModel):
         
         # create new tile
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=self, template='product', priority=priority)
-                new_tile.placeholder = product.is_placeholder
                 new_tile.get_pk()
                 new_tile.products.add(product)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
 
         if category:
             category.tiles.add(new_tile)
@@ -1319,13 +1152,13 @@ class Feed(BaseModel):
         else:
             template = 'image'
         with transaction.atomic():
-            with disable_tile_serialization():
+            with delay_tile_serialization():
                 new_tile = Tile(feed=self, template=template, priority=priority)
                 new_tile.get_pk()
                 new_tile.content.add(content)
                 product_qs = content.tagged_products.all()
                 new_tile.products.add(*product_qs)
-            new_tile.save() # full clean & generate ir_cache
+                new_tile.save() # full clean & generate ir_cache
         if category:
             category.tiles.add(new_tile)
         logging.info(u"<Content {0}> added to the feed. Created \
@@ -1353,6 +1186,52 @@ class Feed(BaseModel):
         """
         tiles = self.tiles.filter(content__id=content.id)
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
+
+    def healthcheck(self):
+        num_tiles_total = self.tiles.count()
+        num_tiles_in_stock = self.tiles.filter(in_stock=True, placeholder=False).count()
+        num_tiles_out_stock = self.tiles.filter(in_stock=False, placeholder=False).count()
+        
+        percent = num_tiles_in_stock/float(num_tiles_total)
+
+        status = ""
+        status_message = []
+
+        if num_tiles_in_stock < 10:
+            status = "ERROR"
+            status_message.append("In-stock count < 10")
+        if percent < 0.1:
+            if status != "ERROR":
+                status = "ERROR"
+            status_message.append("In-stock count < 10%")
+        elif status != "ERROR":
+            if percent <= 0.3: 
+                status = "WARNING"
+                status_message.append("In-stock count is between 10% and 30%")
+            else:
+                status = "OK"
+                status_message.append("In-stock count is greater than 30%")
+
+        for cat in self.categories:
+            num_tiles_total = cat.tiles.filter(in_stock=True, placeholder=False).count()
+            if (num_tiles_total < 10):
+                if status != "ERROR":
+                    status = "ERROR"
+                    status_message = []
+                status_message.append(u"Category '{}' only has {} in-stock tiles".format(cat.name, num_tiles_total))
+        
+        status_message = "\n".join(status_message)
+        # Results output
+        results_message = {
+            "in_stock": num_tiles_in_stock,
+            "out_of_stock": num_tiles_out_stock,
+            "placeholder": self.tiles.filter(placeholder=True).count()
+        }
+
+        return {
+            "status": (status, status_message),
+            "results": results_message
+        }
 
 
 class Category(BaseModel):
@@ -1401,9 +1280,11 @@ class Tile(BaseModel):
     """
     A unit in a feed, defined by a template, product(s) and content(s)
 
-    In general, tiles should be created by the feed (add, copy)
-
-    ir_cache is updated with every tile save.  See tile_saved task
+    - In general, tiles should be created by the feed (add, copy)
+    - ir_cache is updated with every tile save.  See tile_saved signal
+    - A placeholder tile is failing serialization (usually b/c its content and product are
+      failing serialization, or its missing necessary product/content for its tile template)
+    - Placeholder tiles are hidden by IntentRank default
 
     Feed -> Tile -> Products / Content
     """
@@ -1425,16 +1306,12 @@ class Tile(BaseModel):
     priority = models.IntegerField(null=True, default=0)
     clicks = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
-    # A placeholder tile is for products or content that we are going to
-    # continue trying to add to the feed.  Placeholders are hidden by default
-    placeholder = models.BooleanField(default=False)
+    
     # Clean toggles in / out of stock
     in_stock = models.BooleanField(default=True)
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default=lambda:{})
-
-    cg_serializer = cg_serializers.TileSerializer
 
     def _copy(self, *args, **kwargs):
         update_fields = kwargs.pop('update_fields', {})
@@ -1467,10 +1344,10 @@ class Tile(BaseModel):
 
     def clean(self):
         if self.pk:
-            products_stock_status = [bool(p.in_stock and not p.is_placeholder) \
+            products_stock_status = [bool(p.in_stock and not p.placeholder) \
                                      for p in self.products.all()]
             for content in self.content.all():
-                products_stock_status += [bool(p.in_stock and not p.is_placeholder) \
+                products_stock_status += [bool(p.in_stock and not p.placeholder) \
                                           for p in content.tagged_products.all()]
             if not len(products_stock_status):
                 # This tile has no tagged products, default to in_stock = True
@@ -1504,19 +1381,13 @@ class Tile(BaseModel):
         serializer = None
         try:
             target_class = self.template.capitalize()
-            serializer = getattr(ir_serializers,
+            serializer = getattr(serializers,
                                  '{}TileSerializer'.format(target_class))
         except AttributeError:
             # cannot find e.g. 'Youtube'TileSerializer -- use default
-            serializer = ir_serializers.DefaultTileSerializer
+            serializer = serializers.DefaultTileSerializer
         
         return serializer().to_str([self], skip_cache=skip_cache)
-
-    @property
-    def tile_config(self):
-        """(read-only) representation of the tile as its content graph
-        tileconfig."""
-        return cg_serializers.TileConfigSerializer.dump(self)
 
     @property
     def product(self):
@@ -1543,12 +1414,11 @@ class Tile(BaseModel):
 
     def get_first_content_of(self, cls):
         """
-        returns first content of type cls in tile 
-        raises LookupError if no content of type cls is found
+        returns: first content of type cls in tile 
+        raises: LookupError if no content of type cls is found
         """
         contents = self.content.select_subclasses()
         try:
             return next(c for c in contents if isinstance(c, cls))
         except StopIteration:
             raise LookupError
-

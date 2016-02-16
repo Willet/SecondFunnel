@@ -15,8 +15,7 @@ from django.conf import settings
 
 from apps.assets.models import Category, Feed, Page, Product, ProductImage, Tile
 from apps.assets.signals import productimage_saved
-from apps.assets.utils import disable_tile_serialization
-from apps.intentrank.serializers import SerializerError
+from apps.assets.utils import delay_tile_serialization
 from apps.imageservice.utils import get_public_id
 
 
@@ -100,9 +99,6 @@ def generate_tiles_from_urls(feed, category, urls):
         else:
             try:
                 tile, created = feed.add(p, category=category)
-                if p.is_placeholder:
-                    t.placeholder = True
-                    t.save()
             except Exception as e:
                 results['error'].append({
                     'exception': repr(e),
@@ -142,10 +138,9 @@ def update_dominant_color(tiles):
     def get_resource_url(public_id):
         return "https:{}/resources/image/upload/{}?colors=1".format(settings.CLOUDINARY_API_URL, public_id)
 
-    post_save.disconnect(productimage_saved, sender=ProductImage)
     rescrape = [] # list of product urls that must be re-scraped
 
-    with disable_tile_serialization():
+    with delay_tile_serialization():
         with requests.Session() as s:
             s.auth = requests.auth.HTTPBasicAuth(settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET)
             for i, t in enumerate(tiles):
@@ -179,35 +174,10 @@ def update_dominant_color(tiles):
                     t.attributes['colspan'] = 1
                     t.save()
 
-    post_save.connect(productimage_saved, sender=ProductImage)
-    update_tiles_ir_cache(tiles)
     if len(rescrape):
         print "Rescrape these product urls with {'refresh-images': True}:"
         pprint(rescrape)
     return rescrape
-
-@disable_tile_serialization()
-def update_tiles_ir_cache(tiles):
-    """
-    Updates the ir_cache of tiles. Does not run full clean!
-
-    Returns: <list> of <tuple>(Tile, Error) for failed updates
-    """
-    dts = []
-    for t in tiles:
-        try:
-            # "manually" update tile ir cache
-            ir_cache, updated = t.update_ir_cache() # sets tile.ir_cache
-            if updated:
-                models.Model.save(t, update_fields=['ir_cache']) # skip full_clean
-            print "{}: updated".format(t)
-        except SerializerError as e:
-            print "\t{}: {}".format(t, e)
-            dts.append((t, e))
-        except ValidationError as e:
-            print "\t{}: {}".format(t, e)
-            dts.append((t, e))
-    return dts
 
 def remove_product_tiles_from_page(page_slug, prod_url_id_list, category=False, fake=False):
     """
@@ -238,3 +208,45 @@ def remove_product_tiles_from_page(page_slug, prod_url_id_list, category=False, 
                 print "{}Deleting {} tiles containing {}".format(fake_str, tiles.count(), prod)
                 if not fake:
                     tiles.delete()
+
+def remove_duplicate_product_tiles_from_page(page_slug, category=False, fake=False):
+    """
+    Deletes duplicate product tiles in each category of a page, leaving highest priority tile
+
+    page_slug: page to remove duplicate product tiles from
+    category: (optional) <str> or <Category> - remove product tiles from this category only
+    fake: (optional) <bool> if True, nothing is deleted
+
+    Ex: remove_duplicate_product_tiles_from_page("giftideas", category="all-gifts")
+    """
+    fake_str = "FAKE: " if fake else ''
+    page = Page.objects.get(url_slug=page_slug)
+
+    if category:
+        if isinstance(category, basestring):
+            category = Category.objects.get(store=page.store, name=category)
+        categories = [category]
+    else:
+        categories = page.feed.categories
+
+    for c in categories:
+        tiles = page.feed.tiles.filter(categories=c, template="product")
+        products = Product.objects.filter(tiles__in=tiles)
+        # Remove duplicates
+        product_count = []
+        tiles_delete = []
+        for p in products:
+            product_tiles = p.tiles.filter(id__in=tiles).distinct().order_by("-priority")
+            if product_tiles.count() > 1:
+                product_count.append(p)
+                for t in product_tiles[1:]:
+                    tiles_delete.append(t)
+
+        std = set(tiles_delete)
+        spc = set(product_count)
+
+        print "{}Deleting {} tiles for {} products in category {}".format(fake_str, len(std),len(spc), c.name)
+
+        if not fake:
+            for t in std:
+                t.delete()

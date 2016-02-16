@@ -1,38 +1,87 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
-from django.core.exceptions import ValidationError
-
-from apps.assets.models import Tile
-from apps.intentrank.serializers import SerializerError
 
 
-class Migration(DataMigration):
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Update currently live pages
-        pages = orm.Page.objects.filter(url_slug__in=['giftideas','halloween'])
-        feeds = [p.feed for p in pages]
-        
-        for t in orm.Tile.objects.filter(feed__in=feeds).order_by('-priority'):
-            # Convert orm.Tile into Tile model to access serialization mixin
-            tile = Tile(**{k:v for (k,v) in t.__dict__.iteritems() if not k.startswith('_')})
-            try:
-                ir_cache, updated = tile.update_ir_cache()
-                if updated:
-                    # update the orm.Tile model with new ir_cache
-                    t.ir_cache = ir_cache
-                    t.save(update_fields=['ir_cache'])
-                    print "{}: updated".format(t)
-                else:
-                    print "{}: not updated".format(t)
-            except (SerializerError, ValidationError) as e:
-                print "{}: {}".format(t, e)
+        # Adding field 'ProductImage.placeholder'
+        db.add_column(u'assets_productimage', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Category.placeholder'
+        db.add_column(u'assets_category', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Store.placeholder'
+        db.add_column(u'assets_store', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Page.placeholder'
+        db.add_column(u'assets_page', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Product.placeholder'
+        db.add_column(u'assets_product', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Tag.placeholder'
+        db.add_column(u'assets_tag', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Content.placeholder'
+        db.add_column(u'assets_content', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Feed.placeholder'
+        db.add_column(u'assets_feed', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'Theme.placeholder'
+        db.add_column(u'assets_theme', 'placeholder',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        raise RuntimeError('Manully control which tiles to update, takes too long to do them all')
+        # Deleting field 'ProductImage.placeholder'
+        db.delete_column(u'assets_productimage', 'placeholder')
+
+        # Deleting field 'Category.placeholder'
+        db.delete_column(u'assets_category', 'placeholder')
+
+        # Deleting field 'Store.placeholder'
+        db.delete_column(u'assets_store', 'placeholder')
+
+        # Deleting field 'Page.placeholder'
+        db.delete_column(u'assets_page', 'placeholder')
+
+        # Deleting field 'Product.placeholder'
+        db.delete_column(u'assets_product', 'placeholder')
+
+        # Deleting field 'Tag.placeholder'
+        db.delete_column(u'assets_tag', 'placeholder')
+
+        # Deleting field 'Content.placeholder'
+        db.delete_column(u'assets_content', 'placeholder')
+
+        # Deleting field 'Feed.placeholder'
+        db.delete_column(u'assets_feed', 'placeholder')
+
+        # Deleting field 'Theme.placeholder'
+        db.delete_column(u'assets_theme', 'placeholder')
+
 
     models = {
         u'assets.category': {
@@ -41,6 +90,7 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'categories'", 'to': u"orm['assets.Store']"}),
             'tiles': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'categories'", 'symmetrical': 'False', 'to': u"orm['assets.Tile']"}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
@@ -53,6 +103,7 @@ class Migration(DataMigration):
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'source': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'source_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'status': ('django.db.models.fields.CharField', [], {'default': "'needs-review'", 'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -68,7 +119,8 @@ class Migration(DataMigration):
             'feed_ratio': ('django.db.models.fields.DecimalField', [], {'default': '0.2', 'max_digits': '2', 'decimal_places': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'is_finite': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_finite': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'source_urls': ('apps.utils.fields.ListField', [], {'blank': 'True'}),
             'spider_name': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'feeds'", 'to': u"orm['assets.Store']"}),
@@ -103,6 +155,7 @@ class Migration(DataMigration):
             'last_published_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'legal_copy': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'pages'", 'to': u"orm['assets.Store']"}),
             'theme': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'pages'", 'null': 'True', 'to': u"orm['assets.Theme']"}),
             'theme_settings': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
@@ -122,6 +175,7 @@ class Migration(DataMigration):
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'last_scraped_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '1024'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '10', 'decimal_places': '2'}),
             'sale_price': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '10', 'decimal_places': '2', 'blank': 'True'}),
             'similar_products': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'reverse_similar_products'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['assets.Product']"}),
@@ -139,8 +193,10 @@ class Migration(DataMigration):
             'file_type': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'height': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'image_sizes': ('apps.imageservice.fields.ImageSizesField', [], {'null': 'True', 'blank': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'original_url': ('django.db.models.fields.TextField', [], {}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'product': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'product_images'", 'null': 'True', 'blank': 'True', 'to': u"orm['assets.Product']"}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'url': ('django.db.models.fields.TextField', [], {}),
@@ -158,9 +214,11 @@ class Migration(DataMigration):
             'default_page': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'default_store'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': u"orm['assets.Page']"}),
             'default_theme': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'store'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': u"orm['assets.Theme']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'display_out_of_stock': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '1024'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'public_base_url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'slug': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
             'staff': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'stores'", 'symmetrical': 'False', 'to': u"orm['auth.User']"}),
@@ -172,6 +230,7 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'products': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'tags'", 'symmetrical': 'False', 'to': u"orm['assets.Product']"}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'tags'", 'to': u"orm['assets.Store']"}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
@@ -181,8 +240,10 @@ class Migration(DataMigration):
             'Meta': {'object_name': 'Theme'},
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'image_sizes': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
             'ir_cache': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'null': 'True', 'blank': 'True'}),
+            'placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'template': ('django.db.models.fields.CharField', [], {'default': "'apps/pinpoint/templates/pinpoint/campaign_base.html'", 'max_length': '1024'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },
@@ -262,4 +323,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['assets']
-    symmetrical = True

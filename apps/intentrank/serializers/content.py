@@ -1,4 +1,4 @@
-from apps.utils.functional import find_where, get_image_file_type
+from apps.utils.functional import find_where
 
 from .utils import IRSerializer, SerializerError, camelize_JSON
 
@@ -35,23 +35,16 @@ class ProductSerializer(IRSerializer):
 
         try:
             data["default-image"] = product.default_image.serializer().get_dump_object(product.default_image)
-            data["sizes"] = product.default_image.get('sizes', None)
-            data["orientation"] = product.default_image.orientation
         except AttributeError:
             try:
                 # fall back to first image
                 data["default-image"] = product_images[0].serializer().get_dump_object(product_images[0])
-                data["sizes"] = product_images[0].get('sizes', None)
-                data["orientation"] = product_images[0].orientation
             except (IndexError, AttributeError):
                 data['default-image'] = {}
-                data['sizes'] = {}
-                data['orientation'] = "portrait"
-
         
         if shallow:
             # Just have the default image & skip similar products
-            data["images"] = [data["default-image"]]
+            data["images"] = [data["default-image"]] if data['default-image'] else []
         else:
             # Order images
             if product.attributes.get('product_images_order'):
@@ -77,7 +70,7 @@ class ProductSerializer(IRSerializer):
             data["images"] = [image.serializer().get_dump_object(image) for image in product_images]
 
             # Include a shallow similar_products. Prevents infinite loop
-            similar_products = product.similar_products.all()
+            similar_products = product.similar_products.filter(placeholder=False)
             if not product.store.display_out_of_stock:
                 similar_products = similar_products.filter(in_stock=True)
 
@@ -91,6 +84,13 @@ class ProductImageSerializer(IRSerializer):
     """This dumps some fields from the image as JSON."""
     def get_dump_object(self, product_image):
         """This will be the data used to generate the object."""
+        default_image_sizes = {
+            'master': {
+                'url': product_image.url,
+                'width': product_image.width or '100%',
+                'height': product_image.height or '100%',
+            },
+        }
 
         data = {
             "format": product_image.file_type or "jpg",
@@ -98,10 +98,7 @@ class ProductImageSerializer(IRSerializer):
             "dominant-color": product_image.dominant_color or "transparent",
             "url": product_image.url,
             "id": product_image.id,
-            "sizes": product_image.attributes.get('sizes', {
-                'width': getattr(product_image, "width", '100%'),
-                'height': getattr(product_image, "height", '100%'),
-            }),
+            "sizes": dict(product_image.image_sizes) or default_image_sizes,
             "orientation": product_image.orientation,
         }
 
@@ -115,16 +112,16 @@ class ContentSerializer(IRSerializer):
     def get_dump_object(self, content):
         data = {
             'id': content.id,
-            'store-id': str(content.store.id if content.store else 0),
+            'storeId': content.store.id,
             'source': content.source,
-            'source_url': content.source_url,
+            'sourceUrl': content.source_url,
             'url': content.url or content.source_url,
-            'author': content.author,
             'status': content.status,
             'tagged-products': [],
         }
+        data.update(camelize_JSON(content.attributes))
 
-        tagged_products = content.tagged_products.all()
+        tagged_products = content.tagged_products.filter(placeholder=False)
         if not content.store.display_out_of_stock:
             tagged_products = tagged_products.filter(in_stock=True)
 
@@ -138,26 +135,24 @@ class ImageSerializer(ContentSerializer):
     """This dumps some fields from the image as JSON."""
     def get_dump_object(self, image):
         """This will be the data used to generate the object."""
-        from apps.assets.models import default_master_size
-
-        ext = get_image_file_type(image.url)
+        default_image_sizes = {
+            'master': {
+                'url': image.url,
+                'width': image.width or '100%',
+                'height': image.height or '100%',
+            }
+        }
 
         data = super(ImageSerializer, self).get_dump_object(image)
         data.update({
-            "format": ext or "jpg",
+            "name": image.name or "",
+            "description": image.description or "",
+            "format": image.file_type,
             "type": "image",
-            "dominant-color": getattr(image, "dominant_color", "transparent"),
-            "status": image.status,
-            "sizes": image.attributes.get('sizes', {
-                'width': getattr(image, "width", '100%'),
-                'height': getattr(image, "height", '100%'),
-            }),
-            "orientation": getattr(image, 'orientation', 'portrait'),
+            "dominant-color": image.dominant_color or "transparent",
+            "sizes": image.attributes.get('sizes', default_image_sizes),
+            "orientation": image.orientation or "portrait",
         })
-        if getattr(image, 'description', False):
-            data.update({"description": image.description})
-        if getattr(image, 'name', False):
-            data.update({"name": image.name})
 
         return data
 
@@ -166,22 +161,24 @@ class GifSerializer(ContentSerializer):
     """This dumps some fields from the image as JSON."""
     def get_dump_object(self, gif):
         """This will be the data used to generate the object."""
-        from apps.assets.models import default_master_size
-
-        ext = get_image_file_type(gif.url)
+        default_image_sizes = {
+            'master': {
+                'url': gif.url,
+                'width': gif.width or '100%',
+                'height': gif.height or '100%',
+            }
+        }
 
         data = super(GifSerializer, self).get_dump_object(gif)
         data.update({
-            "format": ext or "gif",
+            "name": gif.name or "",
+            "description": gif.description or "",
+            "format": gif.file_type,
             "type": "gif",
-            "dominant-color": getattr(gif, "dominant_color", "transparent"),
-            "status": gif.status,
-            "sizes": gif.attributes.get('sizes', {
-                'width': getattr(gif, "width", '100%'),
-                'height': getattr(gif, "height", '100%'),
-            }),
-            "orientation": getattr(gif, "orientation", "portrait"),
-            "gifUrl": gif.gif_url
+            "dominant-color": gif.dominant_color or "transparent",
+            "sizes": gif.attributes.get('sizes', default_image_sizes),
+            "orientation": gif.orientation or "portrait",
+            "gifUrl": gif.gif_url,
         })
 
         return data
@@ -194,17 +191,12 @@ class VideoSerializer(ContentSerializer):
         data = super(VideoSerializer, self).get_dump_object(video)
 
         data.update({
+            "name": video.name or "",
+            "description": video.description or "",
             "type": "video",
-            "caption": getattr(video, 'caption', ''),
-            "description": getattr(video, 'description', ''),
             "original-id": video.original_id or video.id,
-            "original-url": video.source_url or video.url,
-            "source": getattr(video, 'source', 'youtube'),
+            "source": video.source or 'youtube',
         })
-
-        if hasattr(video, 'attributes'):
-            if video.attributes.get('username'):
-                data['username'] = video.attributes.get('username')
 
         return data
 

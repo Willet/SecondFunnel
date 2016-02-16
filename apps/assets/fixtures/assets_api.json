@@ -4,8 +4,9 @@
     "pk": 1,
     "fields": {
       "name": "MyStore",
-      "description": "",
-      "slug": "store_slug", 
+      "description": "hi",
+      "slug": "store_slug",
+      "display_out_of_stock": true,
       "default_theme": null,
       "default_page": null,
       "public_base_url": "http://gifts.mystore.com",
@@ -17,12 +18,13 @@
     "pk": 14,
     "fields": {
       "name": "MyOtherStore",
-      "description": "",
-      "slug": "store_slug", 
-      "default_theme": null,
-      "default_page": null,
-      "public_base_url": "gifts.mystore.com",
-      "updated_at": "2015-11-18 00:43:26"
+      "description": "hello",
+      "slug": "store_slug",
+      "display_out_of_stock": false,
+      "default_theme": 2,
+      "default_page": 8,
+      "public_base_url": "http://gifts2.mystore.com",
+      "updated_at": "2016-11-18 00:43:26"
     }
   },
   {
@@ -38,14 +40,17 @@
     "model": "assets.Product",
     "pk": 3,
     "fields": {
-      "name": "Default",
-      "description": "foo",
-      "details": "bar",
-      "sku": "123ABC",
       "store": 1,
+      "name": "Default",
+      "description": "default default",
+      "details": "<li>blah blah</li>",
+      "url": "www.google.com/product",
+      "sku": "1234",
       "price": 19.99,
       "sale_price": 9.99,
+      "currency": "$",
       "in_stock": true,
+      "default_image": 4,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -53,10 +58,17 @@
     "model": "assets.Product",
     "pk": 12,
     "fields": {
-      "name": "Default",
       "store": 1,
-      "price": 19.99,
+      "name": "Default2",
+      "description": "wah",
+      "details": "<li>wah wah</li>",
+      "url": "www.facebook.com/product",
+      "sku": "1234",
+      "price": 20.99,
+      "sale_price": 19.99,
+      "currency": "$",
       "in_stock": false,
+      "default_image": 4,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -64,10 +76,11 @@
     "model": "assets.Product",
     "pk": 13,
     "fields": {
-      "name": "Default",
+      "name": "Default3",
       "store": 1,
       "price": 21.99,
       "in_stock": true,
+      "default_image": 4,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -75,10 +88,17 @@
     "model": "assets.Product",
     "pk": 15,
     "fields": {
-      "name": "OtherDefault",
       "store": 14,
+      "name": "Default4",
+      "description": "default default",
+      "details": "<li>blah blah</li>",
+      "url": "www.google.com/product",
+      "sku": "1234",
       "price": 29.99,
+      "sale_price": 9.99,
+      "currency": "$",
       "in_stock": true,
+      "default_image": 11,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -88,15 +108,12 @@
     "fields": {
       "url": "/image.jpg",
       "original_url": "test.com/image.jpg",
-      "updated_at": "2015-11-18 00:43:26"
-    }
-  },
-  {
-    "model": "assets.ProductImage",
-    "pk": 5,
-    "fields": {
-      "url": "/image.jpg",
-      "original_url": "test.com/image.jpg",
+      "file_type": "jpg",
+      "file_checksum": "123456",
+      "dominant_color": "#556677",
+      "width": 100,
+      "height": 100,
+      "image_sizes": "{\"h400\": {\"url\": \"http://images.secondfunnel.com/foo/h400/bar.jpg\", \"height\": 400}, \"master\": {\"url\": \"http://images.secondfunnel.com/foo/bar.jpg\", \"width\": 640, \"height\": 480}}",
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -105,9 +122,14 @@
     "pk": 11,
     "fields": {
       "product": 13,
-      "image_sizes": "{\"h400\": {\"url\": \"http://images.secondfunnel.com/foo/h400/bar.jpg\", \"height\": 400}, \"master\": {\"url\": \"http://images.secondfunnel.com/foo/bar.jpg\", \"width\": 640, \"height\": 480}, \"w400\": {\"url\": \"http://images.secondfunnel.com/foo/w400/bar.jpg\", \"width\": 400, \"height\": 400}}",
-      "url": "/another-image.png",
+      "url": "/another-image.jpg",
       "original_url": "test.com/another-image.jpg",
+      "file_type": "jpg",
+      "file_checksum": "345678",
+      "dominant_color": "#5500AA",
+      "width": 200,
+      "height": 200,
+      "image_sizes": "{\"h400\": {\"url\": \"http://images.secondfunnel.com/foo/h400/bar.jpg\", \"height\": 400}, \"master\": {\"url\": \"http://images.secondfunnel.com/foo/bar.jpg\", \"width\": 640, \"height\": 480}, \"w400\": {\"url\": \"http://images.secondfunnel.com/foo/w400/bar.jpg\", \"width\": 400, \"height\": 400}}",
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -124,54 +146,46 @@
     "model": "assets.Content",
     "pk": 6,
     "fields": {
+      "name": "blah6",
+      "description": "wah wah wah",
       "url": "/content.jpg",
       "source": "upload",
+      "source_url": "www.google.com",
       "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "updated_at": "2015-11-18 00:43:26",
+      "status": "needs-review"
     }
   },
   {
     "model": "assets.Content",
     "pk": 16,
     "fields": {
+      "name": "blah16",
+      "description": "blah blah blah",
       "url": "/content.jpg",
       "source": "upload",
+      "source_url": "www.facebook.com",
       "store": 14,
-      "updated_at": "2015-11-18 00:43:26"
+      "updated_at": "2015-11-18 00:43:26",
+      "status": "approved"
     }
   },
   {
     "model": "assets.Image",
     "pk": 6,
     "fields": {
-      "url": "/content.jpg",
-      "source": "upload",
-      "source_url": "test.com/image.jpg",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
-    }
-  },
-  {
-    "model": "assets.Image",
-    "pk": 16,
-    "fields": {
-      "url": "/content.jpg",
-      "source": "upload",
-      "source_url": "test.com/image.gif",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "file_type": "jpg",
+      "file_checksum": "123456",
+      "width": 350,
+      "height": 600,
+      "dominant_color": "#FF1122"
     }
   },
   {
     "model": "assets.Gif",
-    "pk": 16,
+    "pk": 6,
     "fields": {
-      "url": "/content.jpg",
-      "gif_url": "/content.gif",
-      "source": "upload",
-      "source_url": "test.com/image.gif",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "gif_url": "test.com/gif1.gif"
     }
   },
   {
@@ -179,10 +193,21 @@
     "pk": 6,
     "fields": {
       "url": "/content.jpg",
-      "source": "upload",
+      "file_type": "jpg",
+      "file_checksum": "345678",
       "player": "youtube",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "original_id": "vid1originalID"
+    }
+  },
+  {
+    "model": "assets.Video",
+    "pk": 16,
+    "fields": {
+      "url": "/content.png",
+      "file_type": "png",
+      "file_checksum": "987654",
+      "player": "facebook",
+      "original_id": "vid2originalID"
     }
   },
   {
@@ -228,7 +253,9 @@
     "pk": 9,
     "fields": {
       "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "updated_at": "2015-11-18 00:43:26",
+      "feed_ratio": 0.20,
+      "feed_algorithm": "magic"
     }
   },
     {
@@ -236,6 +263,8 @@
     "pk": 13,
     "fields": {
       "store": 1,
+      "feed_ratio": 0.6,
+      "feed_algorithm": "priority",
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -244,6 +273,8 @@
     "pk": 18,
     "fields": {
       "store": 1,
+      "feed_ratio": 0.3,
+      "feed_algorithm": "non-priority",
       "updated_at": "2015-11-18 00:43:26"
     }
   },

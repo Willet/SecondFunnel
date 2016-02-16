@@ -88,22 +88,29 @@ def index(request):
     try:
         profile = UserProfile.objects.get(user=user)
         dashboards = profile.dashboards.all()
-        context_dict = {'dashboards': [{'site': dash.site_name,
-                                        'pk': dash.pk} for dash in dashboards]}
+        context_dict = {'dashboards': [{'site': dashboards[x].site_name,
+                                        'url_slug': dashboards[x].page.url_slug} for x in range(0, dashboards.count())]}
     except UserProfile.DoesNotExist:
         print "user does not exist"
 
     context = RequestContext(request)
-    return render_to_response('index.html', context_dict, context)
-
+    return render_to_response('dashboard_index.html', context_dict, context)
+    #return render_to_response('dashboard_index.html',context)
 
 @login_required(login_url=LOGIN_URL)
-def dashboard(request, dashboard_id):
+def dashboard(request, dashboard_slug):
     """The analytics dashboard.
     The user must be able to view the dashboard.
     """
     profile = UserProfile.objects.get(user=request.user)
-    if not profile.dashboards.all().filter(pk=dashboard_id):
+    dashboards = profile.dashboards.all()
+    dashboard_id = ''
+    for x in range(0, dashboards.count()):
+        if dashboards[x].page.url_slug == dashboard_slug:
+            dashboard_id = dashboards[x].pk
+            break
+
+    if dashboard_id == '' or not profile.dashboards.all().filter(pk=dashboard_id):
         # can't view page
         return HttpResponseRedirect('/dashboard/')
     else:

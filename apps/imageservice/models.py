@@ -40,12 +40,16 @@ class ImageSizes(collections.MutableMapping):
 
     Will automatically delete remote resources on removal / over-writing
     """
-    def __init__(self, internal_json=None):
+    def __init__(self, internal_json=None, internal_dict=None):
         """
-        internal_json should be provided by repr call on ImageSizes object.
+        internal_json - should be provided by repr call on ImageSizes object.
+
+        internal_dict - meant just for testing
         """
         if isinstance(internal_json, basestring) and internal_json:
             self._sizes = json.loads(internal_json)
+        elif isinstance(internal_dict, dict):
+            self._sizes = internal_dict
         else:
             self._sizes = {}
 

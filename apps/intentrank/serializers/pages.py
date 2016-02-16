@@ -120,7 +120,10 @@ class PageConfigSerializer(object):
             store = page.store
 
         if not feed:
-            feed = page.feed
+            if page.feed:
+                feed = page.feed
+            else:
+                raise SerializerError("Page {} must have a feed!".format(page))
 
         if not algorithm:
             algorithm = 'magic'
