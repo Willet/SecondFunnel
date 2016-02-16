@@ -63,7 +63,7 @@
       "description": "wah",
       "details": "<li>wah wah</li>",
       "url": "www.facebook.com/product",
-      "sku": "1234",
+      "sku": "355353",
       "price": 20.99,
       "sale_price": 19.99,
       "currency": "$",
@@ -93,13 +93,49 @@
       "description": "default default",
       "details": "<li>blah blah</li>",
       "url": "www.google.com/product",
-      "sku": "1234",
+      "sku": "1234566789",
       "price": 29.99,
       "sale_price": 9.99,
       "currency": "$",
       "in_stock": true,
       "default_image": 11,
       "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 111,
+    "fields": {
+      "store": 1,
+      "name": "Default5",
+      "description": "default5 default5",
+      "details": "<li>5 5</li>",
+      "url": "www.yahoo.com/product",
+      "sku": "5555",
+      "price": 19.99,
+      "sale_price": 9.99,
+      "currency": "$",
+      "in_stock": true,
+      "default_image": 4,
+      "updated_at": "2015-12-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 112,
+    "fields": {
+      "store": 1,
+      "name": "Default6",
+      "description": "default6 default6",
+      "details": "<li>6 6</li>",
+      "url": "www.yahoo.com/product",
+      "sku": "6666",
+      "price": 2.99,
+      "sale_price": 1.99,
+      "currency": "$",
+      "in_stock": true,
+      "default_image": 4,
+      "updated_at": "2015-12-18 00:43:26"
     }
   },
   {
@@ -162,11 +198,39 @@
     "fields": {
       "name": "blah16",
       "description": "blah blah blah",
-      "url": "/content.jpg",
+      "url": "/content2.jpg",
       "source": "upload",
       "source_url": "www.facebook.com",
       "store": 14,
-      "updated_at": "2015-11-18 00:43:26",
+      "updated_at": "2015-11-11 00:43:15",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 534,
+    "fields": {
+      "name": "blah534",
+      "description": "blah blah blah534",
+      "url": "/contentMULTIPLE.jpg",
+      "source": "upload",
+      "source_url": "www.facebook.com",
+      "store": 14,
+      "updated_at": "2015-11-11 00:43:15",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 535,
+    "fields": {
+      "name": "blah535",
+      "description": "blah blah blah535",
+      "url": "/contentMULTIPLE.jpg",
+      "source": "upload",
+      "source_url": "www.facebook.com",
+      "store": 14,
+      "updated_at": "2015-11-11 00:43:15",
       "status": "approved"
     }
   },
@@ -232,9 +296,16 @@
     "model": "assets.Page",
     "pk": 8,
     "fields": {
-      "name": "TestPage",
+      "name": "TestPage1",
       "url_slug": "test_page",
       "store": 1,
+      "feed": 9,
+      "theme": 5,
+      "theme_settings": {"color": "blue", "font": "bold"},
+      "dashboard_settings": {"settings": "user","number_of_items": 5},
+      "description": "TestPage1 Description",
+      "campaign": null,
+      "legal_copy": "Not Available",
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -242,9 +313,13 @@
     "model": "assets.Page",
     "pk": 17,
     "fields": {
-      "name": "TestPage",
+      "name": "TestPage2",
       "url_slug": "other_test_page",
       "store": 1,
+      "theme": 6,
+      "theme_settings": {"color": "red","font": "italic"},
+      "description": "TestPage2 Description",
+      "legal_copy": "Store webpage",
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -311,6 +386,24 @@
       "template": "default",
       "feed": 13,
       "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+    {
+    "model": "assets.Theme",
+    "pk": 5,
+    "fields": {
+      "name": "Theme5",
+      "template": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+    {
+    "model": "assets.Theme",
+    "pk": 6,
+    "fields": {
+      "name": "Theme6",
+      "template": 2,
+      "updated_at": "2015-11-11 11:11:11"
     }
   }
 ]
