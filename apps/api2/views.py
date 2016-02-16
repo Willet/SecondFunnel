@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
+from apps.imageservice.utils import upload_to_cloudinary
 from apps.scrapy.controllers import PageMaintainer
 from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
     ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer
@@ -35,13 +36,14 @@ class ProductViewSet(viewsets.ModelViewSet):
         returns:
             status: status message containing result of search task
             ids: list of id/ids of product/products found
+            product: 
         """
-        return_dict = {'status': None, 'ids': []}
+        return_dict = {'status': None, 'ids': [], 'products': []}
         
         try:
             data = request.POST or ast.literal_eval(request.body)
         except SyntaxError:
-            data = ''
+            data = {}
 
         # Compare the data keys with approved keys list and put found keys in a new array
         filter_keys_in_data = set(['id','name','url','sku']) & set(data)
@@ -91,11 +93,13 @@ class ProductViewSet(viewsets.ModelViewSet):
                     for p in products:
                         status_parts.append(str(p['id']))
                         return_dict['ids'].append(p['id'])
+                        return_dict['products'].append(ProductSerializer(p).data)
                     return_dict['status'] = " ".join(status_parts)
                     status_code = 200
                 else:
                     return_dict['status'] = "Product found: ID {0}.".format(str(product.id))
                     return_dict['ids'].append(product.id)
+                    return_dict['products'].append(ProductSerializer(product).data)
                     status_code = 200
 
         return Response(return_dict, status=status_code)
@@ -111,14 +115,15 @@ class ProductViewSet(viewsets.ModelViewSet):
         returns:
             status: status message containing result of scrape
             id: id of resultant product
+            product: resultant product
         """
 
-        return_dict = {'action': 'scrape', 'status': "", 'id': None, 'product': []}
+        return_dict = {'status': "", 'id': None, 'product': []}
 
         try:
             data = request.POST or ast.literal_eval(request.body)
         except SyntaxError:
-            data = ''
+            data = {}
 
         if not 'url' in data:
             return_dict['status'] = "No URL found."
@@ -142,15 +147,18 @@ class ProductViewSet(viewsets.ModelViewSet):
             p.start()
             p.join()
 
-            product = Product.objects.get(url=url)
+            try:
+                product = Product.objects.get(url=url)
+            except Product.DoesNotExist:
+                return_dict['status'] = "Scraping has failed. Product Not Found."
+                status_code = 404
+            else:
+                return_dict['status'] = "Scraping has succeeded. Product ID: {}".format(product.id)
+                return_dict['id'] = product.id
+                return_dict['product'].append(ProductSerializer(product).data)
+                status_code = 200
 
-            return_dict['status'] = "Scraped! Product ID: {}".format(product.id)
-            return_dict['id'] = product.id
-            return_dict['product'].append(ProductSerializer(product).data)
-
-            status_code = 200
-
-        return Response(return_dict, status_code)
+        return Response(return_dict, status=status_code)
 
 
 class ContentViewSet(viewsets.ModelViewSet):
@@ -168,14 +176,15 @@ class ContentViewSet(viewsets.ModelViewSet):
         returns:
             status: status message containing result of search task
             ids: list of id/ids of content/contents found
+            content: resultant added content
         """
 
-        return_dict = {'status': None, 'ids': [], 'content': []}
+        return_dict = {'status': None, 'ids': [], 'contents': []}
 
         try:
             data = request.POST or ast.literal_eval(request.body)
         except SyntaxError:
-            data = ''
+            data = {}
 
         # Compare the data keys with approved keys list and put found keys in a new array
         filter_keys_in_data = set(['id','name','url']) & set(data) # intersection
@@ -219,16 +228,16 @@ class ContentViewSet(viewsets.ModelViewSet):
                     for c in contents:
                         status_parts.append(str(c['id']))
                         return_dict['ids'].append(c['id'])
-                        return_dict['content'].append(ContentSerializer(c).data)
+                        return_dict['contents'].append(ContentSerializer(c).data)
                     return_dict['status'] = " ".join(status_parts)
                     status_code = 200
                 else:
                     return_dict['status'] = "Content with {0}: {1} has been found.".format(key[0], str(data[key[1]]))
                     return_dict['ids'].append(content.id)       
-                    return_dict['content'].append(ContentSerializer(content).data)
+                    return_dict['contents'].append(ContentSerializer(content).data)
                     status_code = 200
 
-        return Response(return_dict, status_code)
+        return Response(return_dict, status=status_code)
 
     @list_route(methods=['post'])
     def scrape(self, request):
@@ -240,30 +249,38 @@ class ContentViewSet(viewsets.ModelViewSet):
 
         returns:
             status: status message containing result of upload
-            id: id of resultant image
+            url: if upload successful, secure url of uploaded image on cloudinary
+            image: if upload successful, image object returned by cloudinary
+            error: if upload unsuccessful, error messages returned by cloudinary
         """
 
-        return_dict = {'action': 'scrape', 'status': "", 'id': None, 'image': []}
+        return_dict = {'status': "", 'image': []}
+        status_code = 400
 
         try:
             data = request.POST or ast.literal_eval(request.body)
         except SyntaxError:
-            data = ''
+            data = {}
 
-        if len(data) < 1:
-            return_dict['status'] = "Expecting 1 data input but got 0."
-            status_code = 400
-        elif not 'url' in data:
+        if not 'url' in data:
             return_dict['status'] = "No URL found."
-            status_code = 400
         else:
-            img_obj = upload_to_cloudinary(data['url'])
-            return_dict['status'] = "Uploaded. Image ID: {}".format(img_obj.id)
-            return_dict['id'].append(img_obj.id)
-            return_dict['image'].append(ImageSerializer(img_ob).data)
-            status_code = 200
+            try:
+                img_obj = upload_to_cloudinary(data['url'])
+            except Exception as e:
+                return_dict['status'] = "Upload failed. Error: {}".format(str(e))
+                return_dict['error'] = str(e)
+            else:
+                if 'error' in img_obj:
+                    return_dict['status'] = "Upload failed. Error: {}".format(img_obj['error']['http_code'])
+                    return_dict['error'] = img_obj['error']
+                else:
+                    return_dict['status'] = "Uploaded. Image URL: {}".format(img_obj['secure_url'])
+                    return_dict['url'] = img_obj['secure_url']
+                    return_dict['image'] = img_obj
+                    status_code = 200
 
-        return Response(return_dict, status_code)
+        return Response(return_dict, status=status_code)
 
 
 class ImageViewSet(viewsets.ModelViewSet):
@@ -307,7 +324,7 @@ class PageViewSet(viewsets.ModelViewSet):
             success: True if add succeeded, False if product not found
         """
 
-        tile = success = None
+        tile = None
 
         try:
             product = Product.objects.get(filters)
@@ -318,23 +335,22 @@ class PageViewSet(viewsets.ModelViewSet):
         except Product.MultipleObjectsReturned:
             status = ("Multiple products with ID: {0}, Store: {1} have been found. Add "
                       "failed.").format(str(product_id), page.store.name)
+            raise AttributeError(status)
         else:
             if page.feed.tiles.filter(products=product, template="product"):
                 status = ("Product with ID: {0}, Name: {1}, Store: {2} is already added. "
                           "Add failed.").format(str(product_id),product.name,page.store.name)
+                raise AttributeError(status)
             else:
                 (tile, result) = page.feed.add(product,priority=priority,category=category)
-                # Additional check to make sure adding succeeded
-                if page.feed.tiles.filter(products=product, template="product"):
+                if result:
                     status = "Product with ID: {0}, Name: {1} has been added.".format(str(product_id), product.name)
                     success = True
                 else:
                     status = ("Adding of product with ID: {0}, Name: {1} has failed due to "
                               "an unknown error.").format(str(product_id), product.name)
+                    raise AttributeError(status)
 
-        if success is None:
-            raise AttributeError(status)
-        
         return (status, tile, success)
 
     def remove_product(self, filters, product_id, page):
@@ -351,7 +367,6 @@ class PageViewSet(viewsets.ModelViewSet):
             success: True if remove succeeded, False if product not found
         """
 
-        success = None
 
         try: 
             product = Product.objects.get(filters)
@@ -362,26 +377,20 @@ class PageViewSet(viewsets.ModelViewSet):
         except Product.MultipleObjectsReturned:
             status = ("Multiple products with ID: {0}, Store: {1} have been found. "
                       "Remove failed.").format(str(product_id), page.store.name)
+            raise AttributeError(status)
         else:
             if not page.feed.tiles.filter(products=product, template="product"):
                 status = ("Product with ID: {0}, Name: {1}, Store: {2} has not been "
                           "found. Remove failed.").format(str(product_id), product.name, page.store.name)
+                raise AttributeError(status)
             else:
                 page.feed.remove(product)
-                # Additional check to make sure removing succeeded
-                if not page.feed.tiles.filter(products=product, template="product"):
-                    status = "Product with ID: {0}, Name: {1} has been removed.".format(str(product_id), product.name)
-                    success = True
-                else:
-                    status = ("Product with ID: {0}, Name: {1} could not be removed due to "
-                              "an unknown reason.").format(str(product_id), product.name)
+                status = "Product with ID: {0}, Name: {1} has been removed.".format(str(product_id), product.name)
+                success = True
 
-        if success is None:
-            raise AttributeError(status)
-        
         return (status, success)
 
-    def add_content(self, filters, content_id, page, category=None):
+    def add_content(self, filters, content_id, page, category=None, priority=None):
         """
         Adds content to page, with optional category
 
@@ -397,7 +406,7 @@ class PageViewSet(viewsets.ModelViewSet):
             success: True if add succeeded, False if content not found
         """
 
-        tile = success = None
+        tile = None
         
         try:
             content = Content.objects.get(filters)
@@ -408,23 +417,22 @@ class PageViewSet(viewsets.ModelViewSet):
         except Content.MultipleObjectsReturned:
             status = ("Multiple contents with ID: {0}, Store: {1} have been found. "
                       "Add failed.").format(str(content_id), page.store.name)
+            raise AttributeError(status)
         else:
             #Content adding
             if page.feed.tiles.filter(content=content):
                 status = ("Content with ID: {0}, Store: {1} is already added. Add "
                           "failed.").format(str(content_id), page.store.name)
+                raise AttributeError(status)
             else:
-                (tile, status) = page.feed.add(content,category=category) 
-                # Additional check to make sure adding succeeded
-                if page.feed.tiles.filter(content=content):
+                (tile, result) = page.feed.add(content,priority=priority,category=category) 
+                if result:
                     status = "Content with ID: {0} has been added.".format(str(content_id))
                     success = True
                 else:
                     status = ("Adding of content with ID: has failed due to an unknown "
                               "error.").format(str(content_id)) 
-          
-        if success is None:
-            raise AttributeError(status)
+                    raise AttributeError(status)
           
         return (status, tile, success)
 
@@ -441,9 +449,7 @@ class PageViewSet(viewsets.ModelViewSet):
             status: status message containing result of remove task
             success: True if remove succeeded, False if content not found
         """
-        
-        success = None
-        
+                
         try:
             content = Content.objects.get(filters)
         except Content.DoesNotExist:
@@ -453,20 +459,17 @@ class PageViewSet(viewsets.ModelViewSet):
         except Content.MultipleObjectsReturned:
             status = ("Multiple contents with ID: {0}, Store: {1} have been found. "
                       "Remove failed.").format(str(content_id), page.store.name)
+            raise AttributeError(status)
         else:
             #Content removing
             if not page.feed.tiles.filter(content=content):
                 status = ("Content with ID: {0}, Store: {1} is already removed. "
                           "Removal failed.").format(str(content_id), page.store.name)
+                raise AttributeError(status)
             else:
                 page.feed.remove(content)
-                # Additional check to make sure removing succeeded
-                if not page.feed.tiles.filter(content=content):
-                    status = "Content with ID: {0} has been removed.".format(str(content_id))
-                    success = True
-                else:
-                    status = ("Removal of content with ID: {0} has failed due to "
-                              "an unknown error.").format(str(content_id))
+                status = "Content with ID: {0} has been removed.".format(str(content_id))
+                success = True
 
         if success is None:
             raise AttributeError(status)
@@ -485,7 +488,6 @@ class PageViewSet(viewsets.ModelViewSet):
             type: what type the id is: 'product' or 'content'
 
         returns:
-            action: action performed (Add)
             status: status message
             id: ID of newly created tile
         """
@@ -537,7 +539,7 @@ class PageViewSet(viewsets.ModelViewSet):
                         if add_type == 'product':
                             (status, tile, success) = self.add_product(filters, obj_id, page, category, priority)
                         elif add_type == 'content':
-                            (status, tile, success) = self.add_content(filters, obj_id, page, category)
+                            (status, tile, success) = self.add_content(filters, obj_id, page, category, priority)
                         else:
                             status = "Type '{}' is not a valid type (content/product only).".format(add_type)
                     except AttributeError as e:
@@ -551,11 +553,10 @@ class PageViewSet(viewsets.ModelViewSet):
                             status_code = 404    
                     
         response = {
-            "action": "Add",
             "status": status
         }
 
-        if not tile == None:
+        if tile:
             response['id'] = tile.id
             response['tile'] = TileSerializer(tile).data
 
@@ -571,7 +572,6 @@ class PageViewSet(viewsets.ModelViewSet):
             type: what type the id is: 'product' or 'content'
 
         returns:
-            action: action performed (Remove)
             status: status message
         """
 
@@ -619,7 +619,6 @@ class PageViewSet(viewsets.ModelViewSet):
                         status_code = 404   
 
         return Response({
-            "action": "Remove",
             "status": status,
         }, status=status_code)
 
