@@ -532,7 +532,7 @@ class PageViewSet(viewsets.ModelViewSet):
                         try:
                             category = Category.objects.get(name=category, store=page.store)
                         except Category.DoesNotExist:
-                            raise RuntimeError("Category '{0}' not found.".format(category))
+                            raise RuntimeError("Category '{0}' not found for store '{1}'.".format(category, page.store.name))
                 except RuntimeError as e:
                     status = str(e)
                 else:
@@ -551,13 +551,11 @@ class PageViewSet(viewsets.ModelViewSet):
                             elif add_type == 'content':
                                 (status, tile, success) = self.add_content(filters, obj_id, page, category, priority)
                             else:
-                                status = "Type '{}' is not a valid type (content/product only).".format(add_type)
+                                raise AttributeError("Type '{}' is not a valid type (content/product only).".format(add_type))
                         except AttributeError as e:
                             status = str(e)
                         else:
-                            if success is None:
-                                status_code = 400
-                            elif success:
+                            if success:
                                 status_code = 200
                             else:
                                 status_code = 404   
@@ -623,7 +621,7 @@ class PageViewSet(viewsets.ModelViewSet):
                             try:
                                 category = Category.objects.get(name=category, store=page.store)
                             except Category.DoesNotExist:
-                                raise RuntimeError("Category '{0}' not found.".format(category))
+                                raise RuntimeError("Category '{0}' not found for store '{1}'.".format(category, page.store.name))
                     except RuntimeError as e:
                         status = str(e)
                     else:               
@@ -634,13 +632,11 @@ class PageViewSet(viewsets.ModelViewSet):
                             elif remove_type == 'content':
                                 (status, success) = self.remove_content(filters, obj_id, page, category)
                             else:
-                                status = "Type '{}' is not a valid type (content/product only).".format(remove_type)
+                                raise AttributeError("Type '{}' is not a valid type (content/product only).".format(remove_type))
                         except AttributeError as e:
                             status = str(e)
                         else:
-                            if success is None:
-                                status_code = 400
-                            elif success:
+                            if success:
                                 status_code = 200
                             else:
                                 status_code = 404   

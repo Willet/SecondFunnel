@@ -869,7 +869,7 @@ class APITest(APITestCase):
     def page_add_bad_category_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 6, 'category': "TestFaulty"})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], u"Category 'TestFaulty' not found.")
+        self.assertEqual(response.data['status'], u"Category 'TestFaulty' not found for store 'MyStore'.")
 
     def page_add_bad_priority_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 6, 'priority': "TestFaulty"})
@@ -951,7 +951,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['id'], 14)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory3'})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found.")
+        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_product_category_unsuccessful2_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
@@ -1027,7 +1027,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['id'], 14)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory3'})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found.")
+        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_content_successful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
@@ -1099,7 +1099,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 14)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory3'})
-        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found.")
+        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_content_category_unsuccessful3_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
@@ -1153,7 +1153,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 14)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory3'})
-        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found.")
+        self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_content_unsuccessful_test(self):
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 100000})

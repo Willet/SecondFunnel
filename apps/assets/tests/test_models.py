@@ -658,6 +658,28 @@ class FeedTest(TestCase):
         self.assertEqual(len(f.tiles.first().categories.all()), 1)
         self.assertEqual(f.tiles.first().categories.first(), cat)
 
+    def remove_product_categories_test(self):
+        cat = Category.objects.get(pk=7)
+        f = Feed.objects.get(pk=18)
+        p = Product.objects.get(pk=12)
+        i = ProductImage.objects.get(pk=4)
+        p.product_images.add(i)
+        f._add_product(p, priority=35, category=cat, force_create_tile=False)
+        self.assertEqual(len(f.tiles.all()), 1)
+        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.first().priority, 35)
+        self.assertEqual(len(f.tiles.first().categories.all()), 1)
+        self.assertEqual(f.tiles.first().categories.first(), cat)
+        f.remove(p, deepdelete=False)
+        self.assertEqual(len(f.tiles.all()), 1)
+        self.assertEqual(f.tiles.first().product, p)
+        self.assertEqual(f.tiles.first().priority, 35)
+        self.assertEqual(len(f.tiles.first().categories.all()), 1)
+        self.assertEqual(f.tiles.first().categories.first(), cat)
+        f.remove(p, categories=cat, deepdelete=False)
+        self.assertEqual(len(f.tiles.all()), 0)
+        self.assertEqual(f.tiles.first(), None)
+
     def add_existing_product_test(self):
         cat = Category.objects.get(pk=7)
         f = Feed.objects.get(pk=18)
