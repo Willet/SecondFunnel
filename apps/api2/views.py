@@ -384,7 +384,10 @@ class PageViewSet(viewsets.ModelViewSet):
                       "Remove failed.").format(str(product_id), page.store.name)
             raise AttributeError(status)
         else:
-            if not page.feed.tiles.filter(products=product, template="product", categories=category):
+            query = Q(products=product, template="product")
+            if category:
+                query &= Q(categories=category)
+            if not page.feed.tiles.filter(query):
                 status = ("Product with ID: {0}, Name: {1}, Store: {2} has not been "
                           "found. Remove failed.").format(str(product_id), product.name, page.store.name)
                 raise AttributeError(status)
@@ -468,7 +471,10 @@ class PageViewSet(viewsets.ModelViewSet):
             raise AttributeError(status)
         else:
             #Content removing
-            if not page.feed.tiles.filter(content=content, categories=category):
+            query = Q(content=content)
+            if category:
+                query &= Q(categories=category)
+            if not page.feed.tiles.filter(query):
                 status = ("Content with ID: {0}, Store: {1} has not been found. "
                           "Remove failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)

@@ -973,25 +973,6 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], "Product with ID: 3, Name: Default, Store: MyStore has not been found. Remove failed.")
 
     def page_remove_product_category_unsuccessful3_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [3])
-        self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
-        response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Product with ID: 3, Name: Default, Store: MyStore has not been found. Remove failed.")
-
-    def page_remove_product_category_unsuccessful4_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
@@ -1010,7 +991,7 @@ class APITest(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Product with ID: 3, Name: Default, Store: MyStore has not been found. Remove failed.")
 
-    def page_remove_product_category_unsuccessful5_test(self):
+    def page_remove_product_category_unsuccessful4_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
@@ -1120,24 +1101,6 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], 'Content with ID: 6, Store: MyStore has not been found. Remove failed.')
 
     def page_remove_content_category_unsuccessful4_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [])
-        self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
-        response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6})
-        self.assertEqual(response.data['status'], 'Content with ID: 6, Store: MyStore has not been found. Remove failed.')
-
-    def page_remove_content_category_unsuccessful5_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
