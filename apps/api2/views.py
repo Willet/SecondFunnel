@@ -367,6 +367,7 @@ class PageViewSet(viewsets.ModelViewSet):
             filters: filters corresponding to product query requirements
             product_id: product ID
             page: page on which to add product
+            category: (optional) <Category> object
 
         returns:
             status: status message containing result of remove task
@@ -448,6 +449,7 @@ class PageViewSet(viewsets.ModelViewSet):
             filters: filters corresponding to content query requirements
             content_id: content ID
             page: page on which to add product
+            category: (optional) <Category> object
 
         returns:
             status: status message containing result of remove task
@@ -577,6 +579,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         inputs:
             id: product or content ID
+            category: (optional) category name
             type: what type the id is: 'product' or 'content'
 
         returns:
