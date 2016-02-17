@@ -359,7 +359,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         return (status, tile, success)
 
-    def remove_product(self, filters, product_id, page):
+    def remove_product(self, filters, product_id, page, category=None):
         """
         Remove product from page
 
@@ -372,24 +372,23 @@ class PageViewSet(viewsets.ModelViewSet):
             status: status message containing result of remove task
             success: True if remove succeeded, False if product not found
         """
-
         try: 
             product = Product.objects.get(filters)
         except Product.DoesNotExist:
-            status = ("Product with ID: {0}, Store: {1} has not been found. Remove "
-                      "failed.").format(str(product_id), page.store.name)
+            status = ("Product with ID: {0}, Store: {1} has not been found. "
+                      "Remove failed.").format(str(product_id), page.store.name)
             success = False
         except Product.MultipleObjectsReturned:
             status = ("Multiple products with ID: {0}, Store: {1} have been found. "
                       "Remove failed.").format(str(product_id), page.store.name)
             raise AttributeError(status)
         else:
-            if not page.feed.tiles.filter(products=product, template="product"):
+            if not page.feed.tiles.filter(products=product, template="product", categories=category):
                 status = ("Product with ID: {0}, Name: {1}, Store: {2} has not been "
                           "found. Remove failed.").format(str(product_id), product.name, page.store.name)
                 raise AttributeError(status)
             else:
-                page.feed.remove(product)
+                page.feed.remove(product, categories=category)
                 status = "Product with ID: {0}, Name: {1} has been removed.".format(str(product_id), product.name)
                 success = True
 
@@ -441,7 +440,7 @@ class PageViewSet(viewsets.ModelViewSet):
           
         return (status, tile, success)
 
-    def remove_content(self, filters, content_id, page):
+    def remove_content(self, filters, content_id, page, category=None):
         """
         Remove content from page
 
@@ -467,12 +466,12 @@ class PageViewSet(viewsets.ModelViewSet):
             raise AttributeError(status)
         else:
             #Content removing
-            if not page.feed.tiles.filter(content=content):
-                status = ("Content with ID: {0}, Store: {1} is already removed. "
-                          "Removal failed.").format(str(content_id), page.store.name)
+            if not page.feed.tiles.filter(content=content, categories=category):
+                status = ("Content with ID: {0}, Store: {1} has not been found. "
+                          "Remove failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)
             else:
-                page.feed.remove(content)
+                page.feed.remove(content, categories=category)
                 status = "Content with ID: {0} has been removed.".format(str(content_id))
                 success = True
         
@@ -599,6 +598,7 @@ class PageViewSet(viewsets.ModelViewSet):
                 data = {}
 
             obj_id = data.get('id', None)
+            category = data.get('category', None)
             remove_type = data.get('type', None)
 
             if not obj_id:
@@ -613,24 +613,34 @@ class PageViewSet(viewsets.ModelViewSet):
                     filters = filters & Q(id=obj_id)
                 except ValueError:
                     status = "Expecting a number as input, but got non-number."
-                else:                   
-                    # Use remove_product if the type's product, else use remove_content
+                else: 
                     try:
-                        if remove_type == 'product':
-                            (status, success) = self.remove_product(filters, obj_id, page)
-                        elif remove_type == 'content':
-                            (status, success) = self.remove_content(filters, obj_id, page)
-                        else:
-                            status = "Type '{}' is not a valid type (content/product only).".format(remove_type)
-                    except AttributeError as e:
+                        # Check if category exists
+                        if category:
+                            try:
+                                category = Category.objects.get(name=category, store=page.store)
+                            except Category.DoesNotExist:
+                                raise RuntimeError("Category '{0}' not found.".format(category))
+                    except RuntimeError as e:
                         status = str(e)
-                    else:
-                        if success is None:
-                            status_code = 400
-                        elif success:
-                            status_code = 200
+                    else:               
+                        # Use remove_product if the type's product, else use remove_content
+                        try:
+                            if remove_type == 'product':
+                                (status, success) = self.remove_product(filters, obj_id, page, category)
+                            elif remove_type == 'content':
+                                (status, success) = self.remove_content(filters, obj_id, page, category)
+                            else:
+                                status = "Type '{}' is not a valid type (content/product only).".format(remove_type)
+                        except AttributeError as e:
+                            status = str(e)
                         else:
-                            status_code = 404   
+                            if success is None:
+                                status_code = 400
+                            elif success:
+                                status_code = 200
+                            else:
+                                status_code = 404   
 
         return Response({
             "status": status,

@@ -1000,12 +1000,20 @@ class Feed(BaseModel):
         raise ValueError("add() accepts either Product, Content or Tile; "
                          "got {}".format(obj.__class__))
 
-    def remove(self, obj, deepdelete=False):
-        """:raises ValueError"""
+    def remove(self, obj, categories=None, deepdelete=False):
+        """ Remove a <Product>, <Content>, <Tile> from the feed, with options to deep delete them.
+
+        obj: <Product>, <Content>, or <Tile>
+        categories: <Category> from which the obj will be deleted from
+        deepdelete: <bool> If True, for products, obj will be deleted too (wiping tagging associations) 
+                           If True, for content, tries to delete other products & content associated with
+                                    this content (will not delete them if they are in other tiles)
+
+        :raises ValueError"""
         if isinstance(obj, Product):
-            return self._remove_product(product=obj, deepdelete=deepdelete)
+            return self._remove_product(product=obj, categories=categories, deepdelete=deepdelete)
         elif isinstance(obj, Content):
-            return self._remove_content(content=obj, deepdelete=deepdelete)
+            return self._remove_content(content=obj, categories=categories, deepdelete=deepdelete)
         elif isinstance(obj, Tile):
             return (self._deepdelete_tiles(tiles=self.tiles.get(id=obj.id))
                    if deepdelete else obj.delete())
@@ -1165,17 +1173,17 @@ class Feed(BaseModel):
                       <Tile {1}>".format(content.id, new_tile.id))
         return (new_tile, True)
 
-    def _remove_product(self, product, deepdelete=False):
+    def _remove_product(self, product, categories=None, deepdelete=False):
         """Removes (if present) product tiles with this product from the feed.
 
         If deepdelete, product will be deleted too (wiping tagging associations)
 
         :raises AttributeError
         """
-        tiles = self.tiles.filter(products__id=product.id, template='product')
+        tiles = self.tiles.filter(products__id=product.id, categories=categories, template='product')
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
-    def _remove_content(self, content, deepdelete=False):
+    def _remove_content(self, content, categories=None, deepdelete=False):
         """Removes (if present) tiles with this content from the feed that
         belongs to this page.
 
@@ -1184,7 +1192,7 @@ class Feed(BaseModel):
 
         :raises AttributeError
         """
-        tiles = self.tiles.filter(content__id=content.id)
+        tiles = self.tiles.filter(content__id=content.id, categories=categories)
         self._deepdelete_tiles(tiles) if deepdelete else tiles.delete()
 
     def healthcheck(self):
