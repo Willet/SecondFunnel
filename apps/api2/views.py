@@ -392,7 +392,7 @@ class PageViewSet(viewsets.ModelViewSet):
                           "found. Remove failed.").format(str(product_id), product.name, page.store.name)
                 raise AttributeError(status)
             else:
-                page.feed.remove(product, categories=category)
+                page.feed.remove(product, category=category)
                 status = "Product with ID: {0}, Name: {1} has been removed.".format(str(product_id), product.name)
                 success = True
 
@@ -479,7 +479,7 @@ class PageViewSet(viewsets.ModelViewSet):
                           "Remove failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)
             else:
-                page.feed.remove(content, categories=category)
+                page.feed.remove(content, category=category)
                 status = "Content with ID: {0} has been removed.".format(str(content_id))
                 success = True
         
