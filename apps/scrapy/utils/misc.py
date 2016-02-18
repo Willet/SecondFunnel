@@ -1,4 +1,5 @@
 import base64
+import bleach
 from cloudinary import uploader as uploader
 import decimal
 import logging
@@ -134,11 +135,13 @@ def monkeypatch_method(cls):
         return func
     return decorator
 
-def str_to_boolean(value):
-    if not isinstance(value, six.string_types):
-        return value
+def normalize_price(string):
+    """
+    Currenlty replaces commas with decimals in currency
 
-    return value.lower() in ['true', 'yes', '1', 't']
+    Converts u"$19,99" -> u"$19.99"
+    """
+    return string.replace(",",".")
 
 def extract_decimal(string):
         """
@@ -159,3 +162,12 @@ def extract_currency(string):
         pattern = re.compile(r'[0-9\s\.]')
         currency = re.sub(pattern, '', string)
         return currency
+
+def sanitize_html(html):
+    allowed_tags = ['div', 'ul', 'ol', 'li', 'p', ]
+    allowed_attrs = {
+        '*': [],
+    }
+    return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs,
+                        strip=True)
+

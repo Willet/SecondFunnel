@@ -16,7 +16,7 @@ var get_data = function () {
 
     for (var i=0; i < lines.length; i++) {
         line = lines[i].split(delim);
-
+        console.log(line);
         // validation
         if (line.length != 3) {
             warning.text("<- Look you fool");
@@ -55,6 +55,7 @@ var scrape = function(create_tiles) {
         for (cat in categories) {
             $results.html($results.html() + "\n Category: " + cat);
             console.log('Category: ' + cat);
+            console.log(JSON.stringify(categories[cat]));
             $.ajax({
                 url: urlAddPath('scrape'),
                 type: 'POST',

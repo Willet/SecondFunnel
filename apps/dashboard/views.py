@@ -1,26 +1,28 @@
 import json
+import requests
+from time import sleep
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render_to_response, render, get_object_or_404
 from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
 
-from apps.assets.models import Store
+from apps.assets.models import Category, Page, Product, Store
 from apps.dashboard.models import DashBoard, UserProfile, Query
-
+from apps.scrapy.views import scrape
 
 LOGIN_URL = '/dashboard/login'
-
+API_URL = '/api2/'
 
 def error(error_message):
     print error_message
     response = {'error': error_message}
     return HttpResponseServerError(json.dumps(response), content_type='application/json')
-
 
 # @cache_page(60*60)  # cache page for an hour
 # @login_required(login_url=LOGIN_URL)
@@ -77,7 +79,6 @@ def get_data(request):
     # last ditch. Unknown error happened which caused success case to not happen
     return HttpResponse(response, content_type='application/json')
 
-
 @login_required(login_url=LOGIN_URL)
 def index(request):
     """ The main page of the dashboard, shows a list of
@@ -95,7 +96,6 @@ def index(request):
 
     context = RequestContext(request)
     return render_to_response('dashboard_index.html', context_dict, context)
-    #return render_to_response('dashboard_index.html',context)
 
 @login_required(login_url=LOGIN_URL)
 def dashboard(request, dashboard_slug):
@@ -104,13 +104,12 @@ def dashboard(request, dashboard_slug):
     """
     profile = UserProfile.objects.get(user=request.user)
     dashboards = profile.dashboards.all()
-    dashboard_id = ''
-    for x in range(0, dashboards.count()):
-        if dashboards[x].page.url_slug == dashboard_slug:
-            dashboard_id = dashboards[x].pk
-            break
+    dashboard = dashboards.filter(page__url_slug=dashboard_slug).first()
+    if not dashboard:
+        return HttpResponseRedirect('/dashboard')
+    dashboard_id = dashboard.id
 
-    if dashboard_id == '' or not profile.dashboards.all().filter(pk=dashboard_id):
+    if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
         # can't view page
         return HttpResponseRedirect('/dashboard/')
     else:
@@ -121,9 +120,8 @@ def dashboard(request, dashboard_slug):
             return HttpResponseRedirect('/dashboard/')
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name
-
+        context_dict['dashboard_slug'] = dashboard_slug
         return render(request, 'dashboard.html', context_dict)
-
 
 @login_required(login_url=LOGIN_URL)
 def overview(request):
@@ -139,6 +137,32 @@ def overview(request):
         'domain': settings.WEBSITE_BASE_URL,
     })
 
+@login_required(login_url=LOGIN_URL)
+def dashboard_manage(request, dashboard_slug):
+    profile = UserProfile.objects.get(user=request.user)
+    dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
+
+    if not dashboard:
+        return HttpResponseRedirect('/dashboard')
+    dashboard_id = dashboard.first().id
+
+    if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
+        return HttpResponseRedirect('/dashboard/')
+    else:
+        try:
+            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
+        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            return HttpResponseRedirect('/dashboard/')
+        context = RequestContext(request)
+        cur_dashboard_page = cur_dashboard.page
+
+        return render(request, 'manage.html', {
+                'context': context, 
+                'siteName': cur_dashboard.site_name, 
+                'status': '',
+                'url_slug': dashboard.first().page_id,
+                'page': cur_dashboard_page
+            })
 
 def user_login(request):
     """
@@ -171,7 +195,6 @@ def user_login(request):
         return render_to_response('login.html',
                                   {},  # no context variables to pass
                                   context)
-
 
 @login_required(login_url=LOGIN_URL)
 def user_logout(request):
