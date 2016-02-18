@@ -9,14 +9,12 @@ def django_item_values(item):
     # Modified from DjangoItem.instance
     return ((k, item.get(k)) for k in item._values if k in item._model_fields)
 
-
 def item_to_model(item):
     model_class = getattr(item, 'django_model')
     if not model_class:
         raise TypeError("Item is not a `DjangoItem` or is misconfigured")
 
     return item.instance
-
 
 def get_or_create(model):
     """
@@ -63,7 +61,6 @@ def get_or_create(model):
     else:
         # Don't know what this is, pass it on
         return (model, False)
-
 
 def update_model(destination, source_item, commit=True):
     pk = destination.pk
