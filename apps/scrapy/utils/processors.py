@@ -1,3 +1,20 @@
+class DefaultValue(object):
+    """
+    Internally, ItemLoader uses a defaultdict([]). If the `arg` is `[]`, replace
+    it with the desired default `value`.
+
+    Note: if value is a [] or {}, it should be wrapped in a lambda to avoid that
+    object being shared between loader instances
+    """
+    def __init__(self, default):
+        self.value = default
+
+    def __call__(self, arg):
+        if isinstance(arg, list) and not arg:
+            return self.value() if callable(self.value) else self.value
+        else:
+            return arg
+
 
 class MergeDicts(object):
     """
