@@ -103,6 +103,42 @@
     }
   },
   {
+    "model": "assets.Product",
+    "pk": 111,
+    "fields": {
+      "store": 1,
+      "name": "Default5",
+      "description": "default5 default5",
+      "details": "<li>5 5</li>",
+      "url": "www.yahoo.com/product",
+      "sku": "5555",
+      "price": 19.99,
+      "sale_price": 9.99,
+      "currency": "$",
+      "in_stock": true,
+      "default_image": 4,
+      "updated_at": "2015-12-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Product",
+    "pk": 112,
+    "fields": {
+      "store": 1,
+      "name": "Default6",
+      "description": "default6 default6",
+      "details": "<li>6 6</li>",
+      "url": "www.yahoo.com/product",
+      "sku": "6666",
+      "price": 2.99,
+      "sale_price": 1.99,
+      "currency": "$",
+      "in_stock": true,
+      "default_image": 4,
+      "updated_at": "2015-12-18 00:43:26"
+    }
+  },
+  {
     "model": "assets.ProductImage",
     "pk": 4,
     "fields": {
@@ -163,6 +199,34 @@
       "name": "blah16",
       "description": "blah blah blah",
       "url": "/content2.jpg",
+      "source": "upload",
+      "source_url": "www.facebook.com",
+      "store": 14,
+      "updated_at": "2015-11-11 00:43:15",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 534,
+    "fields": {
+      "name": "blah534",
+      "description": "blah blah blah534",
+      "url": "/contentMULTIPLE.jpg",
+      "source": "upload",
+      "source_url": "www.facebook.com",
+      "store": 14,
+      "updated_at": "2015-11-11 00:43:15",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 535,
+    "fields": {
+      "name": "blah535",
+      "description": "blah blah blah535",
+      "url": "/contentMULTIPLE.jpg",
       "source": "upload",
       "source_url": "www.facebook.com",
       "store": 14,

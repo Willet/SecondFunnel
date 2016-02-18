@@ -9,11 +9,11 @@
     </script>
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
     <script type="text/javascript" src="{% static "manage.js" %}"></script>
 {% endblock %}
 
 {% block main %}
-
     <div id="main-content">
         <div class="page-content">
             <div class="row">
@@ -29,11 +29,9 @@
                 <!--/col-md-12-->
             </div>
             <!--/row-->
-
-            <!-- Add/Remove Product/Content -->
+ 
             <div class="row" id="allforms">
                 <div class="col-md-12">
-                    <!-- Add/Remove Product -->
                     <div class="block-web">       
                         <table style="height: 100%; width: 100%;">  
                             <tr style="width: 50%;">
@@ -50,29 +48,20 @@
                             </tr>
                             <tr style="width: 50%;">
                                 <td valign="top">
-                                    <form id="product-add-form">
-                                        {% csrf_token %}
-                                        <table>
-                                            {{ productAddForm.as_table }}
-                                        </table>
-                                        <input type="submit" id="product-add-button" value="Add">
-                                    </form>
+                                    <div id="addProductDiv"></div>
+                                    <input type="submit" id="product-add-button" value="Add">
                                 </td>
                                 <td valign="top">
-                                    <form id="product-remove-form">
-                                        {% csrf_token %}
-                                        <table>
-                                            {{ productRemoveForm.as_table }}
-                                        </table>
-                                        <input type="submit" id="product-remove-button" value="Remove">
-                                    </form>
+                                    <div id="removeProductDiv"></div>
+                                    <input type="submit" id="product-remove-button" value="Remove">
                                 </td>
                             </tr>
                         </table>
                         <div id="product-add-result"></div>
                         <div id="product-remove-result"></div>
-                    </div>     
-                    <!-- Add/Remove Content -->               
+
+
+                    </div>                    
                     <div class="block-web">       
                         <table style="height: 100%; width: 100%;">  
                             <tr style="width: 50%;">
@@ -89,32 +78,26 @@
                             </tr>
                             <tr style="width: 50%;">
                                 <td valign="top">
-                                    <form id="content-add-form">
-                                        {% csrf_token %}
-                                        <table>
-                                            {{ contentAddForm.as_table }}
-                                        </table>
-                                        <input type="submit" id="content-add-button" value="Add">
-                                    </form>
+                                    <div id="addContentDiv"></div>
+                                    <input type="submit" id="content-add-button" value="Add">
                                 </td>
                                 <td valign="top">
-                                    <form id="content-remove-form">
-                                        {% csrf_token %}
-                                        <table>
-                                            {{ contentRemoveForm.as_table }}
-                                        </table>
-                                        <input type="submit" id="content-remove-button" value="Remove">
-                                    </form>
+                                    <div id="removeContentDiv"></div>
+                                    <input type="submit" id="content-remove-button" value="Remove">
                                 </td>
                             </tr>
                         </table>
                         <div id="content-add-result"></div>
                         <div id="content-remove-result"></div>
                     </div>   
+                    <!--/block-web-->
                 </div>
+                <!--/col-md-12-->
             </div>
+            <!--/row-->
+
+
         </div>
         <!--/page-content end-->
-    </div>
-    <!--/main-content end-->
+    </div><!--/main-content end-->
 {% endblock %}

@@ -3,7 +3,6 @@ import collections
 import requests
 from time import sleep
 
-from django import forms
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.shortcuts import render_to_response, render, get_object_or_404
@@ -20,48 +19,6 @@ from apps.scrapy.views import scrape
 
 LOGIN_URL = '/dashboard/login'
 API_URL = '/api2/'
-
-
-class ProductAddForm(forms.Form):
-    selection_choices = (
-        ('URL', 'URL'),
-        ('SKU', 'SKU'),
-        ('ID', 'ID')
-    )
-    selection = forms.ChoiceField(choices=selection_choices)
-    num = forms.CharField(label='Number', max_length=100)
-    priority = forms.CharField(label='Priority (Optional)', max_length=100)
-    category = forms.CharField(label='Category (Optional)', max_length=100)
-
-
-class ProductRemoveForm(forms.Form):
-    selection_choices = (
-        ('URL', 'URL'),
-        ('SKU', 'SKU'),
-        ('ID', 'ID')
-    )
-    selection = forms.ChoiceField(choices=selection_choices)
-    num = forms.CharField(label='Number', max_length=100)
-
-
-class ContentAddForm(forms.Form):
-    selection_choices = (
-        ('URL', 'URL'),
-        ('ID', 'ID')
-    )
-    selection = forms.ChoiceField(choices=selection_choices)
-    num = forms.CharField(label='Number', max_length=100)
-    category = forms.CharField(label='Category (Optional)', max_length=100)
-
-
-class ContentRemoveForm(forms.Form):
-    selection_choices = (
-        ('URL', 'URL'),
-        ('ID', 'ID')
-    )
-    selection = forms.ChoiceField(choices=selection_choices)
-    num = forms.CharField(label='Number', max_length=100)
-
 
 def error(error_message):
     print error_message
@@ -183,11 +140,6 @@ def overview(request):
 
 @login_required(login_url=LOGIN_URL)
 def dashboard_manage(request, dashboard_slug):
-    productAddForm = ProductAddForm()
-    productRemoveForm = ProductRemoveForm()
-    contentAddForm = ContentAddForm()
-    contentRemoveForm = ContentRemoveForm()
-
     profile = UserProfile.objects.get(user=request.user)
     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
 
@@ -208,10 +160,6 @@ def dashboard_manage(request, dashboard_slug):
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'manage.html', {
-                'productAddForm': productAddForm,
-                'productRemoveForm': productRemoveForm, 
-                'contentAddForm': contentAddForm,
-                'contentRemoveForm': contentRemoveForm,
                 'context': context, 
                 'siteName': cur_dashboard.site_name, 
                 'url_slug': page_id,

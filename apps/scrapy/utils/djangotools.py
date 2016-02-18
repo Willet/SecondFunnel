@@ -9,14 +9,12 @@ def django_item_values(item):
     # Modified from DjangoItem.instance
     return ((k, item.get(k)) for k in item._values if k in item._model_fields)
 
-
 def item_to_model(item):
     model_class = getattr(item, 'django_model')
     if not model_class:
         raise TypeError("Item is not a `DjangoItem` or is misconfigured")
 
     return item.instance
-
 
 def get_or_create(model):
     """
@@ -64,13 +62,12 @@ def get_or_create(model):
         # Don't know what this is, pass it on
         return (model, False)
 
-
 def update_model(destination, source_item, commit=True):
     pk = destination.pk
     
     # Persist exisitng attributes (arbitrary data field)
-    attrs = destination.get('attributes', {}).copy()
-    attrs.update(source_item.get('attributes', {}))
+    attrs = getattr(destination, 'attributes', {}).copy()
+    attrs.update(getattr(source_item,'attributes', {}))
     source_item['attributes'] = attrs
     for (key, value) in django_item_values(source_item):
         setattr(destination, key, value)

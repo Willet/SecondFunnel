@@ -174,13 +174,13 @@ REST_FRAMEWORK = {
     ),
 }
 
-# http://django_compressor.readthedocs.org/en/latest/remote-storages/
+# Not currently used
 AWS_ACCESS_KEY_ID = 'AKIAJOVROL7FV33DULAA'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_SNS_REGION_NAME = 'us-west-2'
 AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
-AWS_SNS_TOPIC_NAME = 'page-generator'
-AWS_SNS_LOGGING_TOPIC_NAME = 'page-generator-queue-log'
+AWS_SNS_TOPIC_NAME = ''
+AWS_SNS_LOGGING_TOPIC_NAME = ''
 # allowed logging levels (arbitarily restricted)
 AWS_SNS_LOGGING_LEVELS = ['info', 'warning', 'error']
 AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
@@ -196,26 +196,6 @@ ALLOWED_HOSTS = '*'
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
-
-COMPRESS_OFFLINE = True
-
-COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
-                        'compressor.filters.cssmin.CSSMinFilter']
-
-COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
-                       'compressor.filters.jsmin.JSMinFilter']
-
-# Rebuilds compressed files after ~1 year (aka hopefully never)
-COMPRESS_REBUILD_TIMEOUT = REBUILD_TIMEOUT = 365 * 24 * 60
-
-COMPRESS_STORAGE = STATICFILES_STORAGE
-
-COMPRESS_PRECOMPILERS = (
-    ('text/x-sass', 'bundle exec sass {infile} {outfile}'),
-    ('text/x-scss', 'bundle exec sass {infile} {outfile}'),
-)
-
-COMPRESS_PARSER = 'compressor.parser.LxmlParser'
 
 # When GZIP is enabled, these types will be GZIPPED
 GZIP_CONTENT_TYPES = (
@@ -314,7 +294,6 @@ THIRD_PARTY_APPS = (
     'storages',
     'south',
     'django_extensions',
-    'tastypie',
     'rest_framework',
     'ajax_forms',
     'compressor',
@@ -323,11 +302,9 @@ THIRD_PARTY_APPS = (
 
 LOCAL_APPS = (
     # our apps
-    'apps.api',
     'apps.api2',
     'apps.assets',
     'apps.intentrank',
-    'apps.contentgraph',
     'apps.website',
     'apps.tracking',
     'apps.utils',
@@ -368,9 +345,6 @@ COVERAGE_REPORT_HTML_OUTPUT_DIR = \
 COVERAGE_ADDITIONAL_MODULES = ['apps']
 COVERAGE_PATH_EXCLUDES = ['.env', 'migrations']
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
 LOGGING = {
@@ -449,7 +423,6 @@ FIXTURE_DIRS = (
 
 WEBSITE_BASE_URL = 'http://secondfunnel.com'
 INTENTRANK_BASE_URL = WEBSITE_BASE_URL
-CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -466,8 +439,6 @@ IMAGE_SERVICE_USER_AGENT = "Mozilla/5.0 (compatible; SecondFunnelBot/1.0; +http:
 IMAGE_SERVICE_USER_AGENT_NAME = "SecondFunnelBot"
 IMAGE_SERVICE_BUCKET = "images.secondfunnel.com"
 
-STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
-
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
 CELERY_IMPORTS = ('apps.utils.tasks', )
@@ -477,37 +448,10 @@ API_LIMIT_PER_PAGE = 20
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
-    'poll 60-second queues': {
-        'task': 'apps.api.tasks.poll_queues',
-        'schedule': timedelta(seconds=CELERYBEAT_POLL_INTERVAL),
-        'args': (CELERYBEAT_POLL_INTERVAL,)
-    },
-    'poll 5-second queues': {
-        'task': 'apps.api.tasks.poll_queues',
-        'schedule': timedelta(seconds=5),
-        'args': (5,)
-    },
-    'poll 300-second queues': {
-        'task': 'apps.api.tasks.poll_queues',
-        'schedule': timedelta(seconds=300),
-        'args': (300,)
-    },
-    'poll 60-second stale tiles': {
-        'task': 'apps.api.tasks.queue_stale_tile_check',
-        'schedule': timedelta(seconds=60),
-        'args': tuple()
-    },
-    'poll 60-second regenerate pages': {
-        'task': 'apps.api.tasks.queue_page_regeneration',
-        'schedule': timedelta(seconds=300),
-        'args': tuple()
-    }
 }
 
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
-
-TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
 
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30  # seconds: s*m*h*d; 30 days
 TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'

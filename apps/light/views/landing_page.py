@@ -106,14 +106,11 @@ def landing_page(request, page_slug, identifier='', identifier_value=''):
     elif identifier in ['category']:
         category = identifier_value
 
-    tests = page.get('test')
-
     algorithm = request.GET.get('algorithm', page.feed.feed_algorithm or 'magic')
 
     # Build rendering context
     render_context = {
         'store': store,
-        'test': tests,
         'algorithm': algorithm,
         'ir_base_url': '/intentrank',
         'tile': (tile.to_json() if getattr(tile, 'to_json', False) else {}),
@@ -137,12 +134,6 @@ def render_landing_page(request, page, render_context):
         'hero': render_context.get('hero', None),
         'preview': render_context.get('preview', None),
     })
-
-    tests = []
-    if page.get('tests'):
-        tests = json.dumps(page.get('tests'))
-    if page.get('wideable_templates'):
-        page.wideable_templates = json.dumps(page.get('wideable_templates'))
 
     algorithm = get_algorithm(request=request, page=page)
     PAGES_INFO = PageConfigSerializer.to_json(request=request, page=page,
@@ -168,10 +159,7 @@ def render_landing_page(request, page, render_context):
         "pub_date": datetime.now().isoformat(),
         "session_id": request.session.session_key,
         "store": store,
-        "tests": tests,
         "tiles": [ tile ] if tile else [],
-        "url": page.get('url', ''),
-        "url_params": json.dumps(page.get("url_params", {})),
     }
 
     attributes.update(render_context)
