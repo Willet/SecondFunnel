@@ -95,6 +95,7 @@ class DuplicatesPipeline(ItemManifold, TilesMixin, AssociateMixin):
                 qs = Product.objects.filter(store=store, sku=sku)
                 product = Product.merge_products(qs)
             item['instance'] = product
+            item['created'] = False
 
             if item.get('content_id_to_tag'):
                 self.tag_to_content(item, spider)
@@ -179,9 +180,8 @@ class ItemPersistencePipeline(PlaceholderMixin, TilesMixin):
         except TypeError:
             raise DropItem(u"Item was not a known model, discarding: {}".format(item))
 
-        model, was_it_created = get_or_create(item_model)
-        item['created'] = was_it_created
-        spider.logger.info(u"item: {}, created: {}".format(item, was_it_created))
+        model, item['created'] = get_or_create(item_model)
+        spider.logger.info(u"item: {}, created: {}".format(item, item['created']))
 
         try:
             update_model(model, item)

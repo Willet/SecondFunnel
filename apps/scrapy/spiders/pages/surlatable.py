@@ -1,3 +1,4 @@
+import logging
 import re
 
 from scrapy.selector import Selector
@@ -67,9 +68,13 @@ class SurLaTableSpider(SecondFunnelCrawlSpider):
     ### Scraper control
     @staticmethod
     def clean_url(url):
-        cleaned_url = re.match(r'((?:http://|https://)?www\.surlatable\.com/(?:category/TCA-\d+|product/(?:REC-|PRO-|prod)\d+)/).*?',
+        try:
+            return re.match(r'((?:http://|https://)?www\.surlatable\.com/(?:category/TCA-\d+|product/(?:REC-|PRO-|prod)\d+)/).*?',
                              url).group(1)
-        return cleaned_url
+        except AttributeError:
+            # NOTE! only logs outside of scrape process
+            logging.error("Could not clean url: {}".format(url))
+            return url
 
     def sort_images_order(self, product_images):
         # Urls have format:
