@@ -74,6 +74,7 @@ class PageMaintainer(object):
 
         # If source urls are not already in the page, add new source urls
         source_urls = set(source_urls)
+        
         if not source_urls.issubset(set(self.feed.source_urls)):
             self.feed.source_urls = list(set(self.feed.source_urls).union(source_urls))
             self.feed.save()

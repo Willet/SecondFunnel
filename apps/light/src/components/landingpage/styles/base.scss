@@ -37,6 +37,13 @@ $max-page-width: 1024px;
     transition: $property;
 }
 
+@mixin translateY($Y) {
+    -ms-transform: translateY($Y);
+    -moz-transform: translateY($Y);
+    -webkit-transform: translateY($Y);
+    transform: translateY($Y);
+}
+
 /***** DEFAULTS *****/
 
 html, body {
@@ -807,6 +814,24 @@ div.loading {
         &.selected {
             color: #FFF;
             background-color: #000;
+        }
+    }
+    .sub-categories {
+        .sub-categories-section {
+            display: table-cell;
+        }
+        .sub-categories-label,
+        .sub-category {
+            display: block;
+            text-align: left;
+        }
+        .sub-categories-label {
+            cursor: default;
+        }
+        .sub-category {
+            > span {
+                display: inline-block;
+            }
         }
     }
 }
