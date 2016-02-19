@@ -54,13 +54,6 @@ body {
   background-color: #fff;
 }
 
-.tile {
-  width: 33%;
-  &.wide {
-    width: 33%;
-  }
-}
-
 #main {
   max-width: 1024px; // to fit hero video
   padding: 0 0;
@@ -158,37 +151,6 @@ body {
     }
 }
 
-.tile.product {
-    text-align: left;
-    font-family: $deichmann-font;
-    font-weight:200;
-    font-stretch:normal;
-    font-size: 10px;
-}
-
-.tile.wide {
-    min-height: inherit;
-}
-
-.tile.image .overlay .title {
-    font-family: $deichmann-font;
-    font-size: 15pt;
-    font-weight: bold;
-    color: #010e3f;
-}
-
-.tile.image .overlay .title .shop-products {
-    font-family: $deichmann-font;
-    font-size: 11pt;
-    font-weight: normal;
-    color: #010e3f;
-    display: block;
-    text-transform: lowercase;
-}
-
-.tile.hypem {
-    width: 33%;
-}
 #category-area {
     display: block;
     position: relative;
@@ -799,15 +761,94 @@ body {
 }
 
 #shop-below {
-    position: absolute;
-    top: -50px;
-    left: 5%;
+    position: relative;
+    top: -60px;
+    left: 4%;
     z-index: 10;
+    width: 60%;
+    @include no-select;
     span {
         font-family: $deichmann-font;
         font-weight: 100;
         font-size: 30px;
         color: $black-color;
+    }
+}
+.tile {
+    font-family: $deichmann-font;
+    padding: 5px;
+    width: 33.33%;
+    &.wide {
+        width: 66.66%;
+    }
+    &.three-col {
+        width: 100%;
+    }
+    .relative.product-shot {
+        padding: 6%;
+        position: relative;
+        ul {
+            text-align: left;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            &.label {
+                position: relative;
+                top: 0;
+                left: 0;
+                width: 55%;
+                height: auto;
+                white-space: normal;
+                li {
+                    font-size: 12px;
+                    color: $black-color;
+                    width: inherit;
+                    line-height: 16px;
+                    &.brand {
+                        font-weight: 300;
+                    }
+                    &.name {
+                        font-weight: 900;
+                    }
+                }
+            }
+            &.price {
+                position: absolute;
+                top: 6%;
+                right: 6%;
+                li {
+                    font-weight: 100;
+                    &.current {
+                        text-align: right;
+                        font-size: 40px;
+                        color: $orange-color;
+                        line-height: 40px;
+                        margin-bottom: 5px;
+                        sup {
+                            top: -14px;
+                            font-size: 21px;
+                        }
+                    }
+                    &.old {
+                        font-size: 11px;
+                        text-decoration: line-through;
+                        color: $black-color;
+                    }
+                }
+            }
+        }
+    }
+    .overlay {
+        color: #222;
+        font-size: 16px;
+        line-height: 26px;
+        .title {
+            font-weight: 100;
+            .name {
+                display: block;
+                font-weight: 700;
+            }
+        }
     }
 }
 
