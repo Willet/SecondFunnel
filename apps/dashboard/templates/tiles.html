@@ -10,33 +10,143 @@
     </script>
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
+    <script type="text/javascript" src="{% static "manage.js" %}"></script>
+	<script src="{% static "js/jquery-ui.min.js" %}"></script>
 {% endblock %}
 
 {% block main %}
     <div id="main-content">
         <div class="page-content">
+            <div class="row">
+                <div class="col-md-12">
+                    <h2><i class="fa fa-dashboard"></i>
+                        Welcome
+                        {% if user.is_authenticated %}
+                            {{ user.first_name }}
+                        {% endif %} to {{ siteName }} 
+                        Dashboard Management
+                    </h2>
+                </div>
+                <!--/col-md-12-->
+            </div>
+            <!--/row-->
+        	<!-- Manage Forms (Add/Remove Products/Content) -->
+        	<div class="row" id="allforms">
+                <div class="col-md-12">
+                    <div class="block-web">       
+                        <table style="height: 100%; width: 100%;">  
+                            <tr style="width: 50%;">
+                                <td>   
+                                    <h3 class="content-header">
+                                        Add product with:
+                                    </h3>
+                                </td>
+                                <td>
+                                    <h3 class="content-header">
+                                        Remove product with:
+                                    </h3>
+                                </td>
+                            </tr>
+                            <tr style="width: 50%;">
+                                <td valign="top">
+                                    <div id="addProductDiv"></div>
+                                    <input type="submit" id="product-add-button" value="Add">
+                                </td>
+                                <td valign="top">
+                                    <div id="removeProductDiv"></div>
+                                    <input type="submit" id="product-remove-button" value="Remove">
+                                </td>
+                            </tr>
+                        </table>
+                        <div id="product-add-result"></div>
+                        <div id="product-remove-result"></div>
+                    </div>                    
+                    <div class="block-web">       
+                        <table style="height: 100%; width: 100%;">  
+                            <tr style="width: 50%;">
+                                <td>   
+                                    <h3 class="content-header">
+                                        Add content with:
+                                    </h3>
+                                </td>
+                                <td>
+                                    <h3 class="content-header">
+                                        Remove content with:
+                                    </h3>
+                                </td>
+                            </tr>
+                            <tr style="width: 50%;">
+                                <td valign="top">
+                                    <div id="addContentDiv"></div>
+                                    <input type="submit" id="content-add-button" value="Add">
+                                </td>
+                                <td valign="top">
+                                    <div id="removeContentDiv"></div>
+                                    <input type="submit" id="content-remove-button" value="Remove">
+                                </td>
+                            </tr>
+                        </table>
+                        <div id="content-add-result"></div>
+                        <div id="content-remove-result"></div>
+                    </div>   
+                    <!--/block-web-->
+                </div>
+                <!--/col-md-12-->
+            </div>
+            <!--/row-->
+
 		    <!-- Prioritize/Re-order tiles -->
 		    <div class="block-web">
 		        <h3 class="content-header">
 		            List of current tiles
 		        </h3>
-	            {% for tile in tileList %}
-	        	<div class='tile-list'>
-			        <img src={{ tile.img }} alt={{ tile.id }} onclick="editTile( {{ tile.id }} )">
-	            	<div class='tile-info'>
-	            		{{ tile.template }} </br> 
-	            		{% if tile.priority == 0 %}
-	            			<font color="red">Priority: {{ tile.priority }} </br></font>
-	            		{% else %}
-	            			Priority: {{ tile.priority }} </br>
-	            		{% endif %}
-	            		ID: {{ tile.id }} </br>
-	            		{{ tile.name }}
-	            	</div>
-		        </div>
-	            {% endfor %}
-        	
+		        <div id="all-tiles">
+		            {% for tile in tileList %}
+		        	<div class='tile-list' class="sortable">
+				        <a href="#{{ tile.id }}" role="button" data-toggle="modal">
+				        	<img src={{ tile.img }} alt={{ tile.id }}>
+				        </a>
+		            	<div class='tile-info'>
+		            		{{ tile.template }} </br> 
+		            		{% if tile.priority == 0 %}
+		            			<font color="red">Priority: {{ tile.priority }} </br></font>
+		            		{% else %}
+		            			Priority: {{ tile.priority }} </br>
+		            		{% endif %}
+		            		ID: {{ tile.id }} </br>
+		            		{{ tile.name }}
+
+		            		<!-- Modal -->
+		            		<div class="modal fade" id="{{ tile.id }}" role="dialog">
+		            			<div class="modal-dialog">
+		            				<!-- Modal Content-->
+		            				<div class="modal-content">
+		            					<div class="modal-header">
+		            						<button type="button" class="close" data-dismiss="modal">&times;</button>
+		            						<h4 class="modal-title">{{ tile.name }}</h4>
+		            					</div>
+		            					<div class="modal-body">
+		            						Current Priority: {{ tile.priority }}</br>
+		            						New Priority: <input type="text" id="new_priority_{{ tile.id }}">
+		            						<div id="result"></div>
+		            					</div>
+		            					<div class="modal-footer">
+		            						<button type="button" class="btn btn-default" onclick="editTile({{ tile.id }}, document.getElementById('new_priority_{{ tile.id }}').value)">
+		            							Change Priority
+		            						</button>
+		            						<button type="button" class="btn btn-default" data-dismiss="modal" onclick="checkPrio({{ tile.id }})">
+		            							Close
+		            						</button>
+		            					</div>
+		            				</div>
+		            			</div>
+		            		</div>
+		            	</div>
+			        </div>
+		            {% endfor %}
+	        	</div>
 		    </div>
 		</div>
 	</div>

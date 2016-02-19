@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 
 from apps.assets.models import Category, Page, Product, Store, ProductImage
 from apps.dashboard.models import DashBoard, UserProfile, Query
+from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.views import scrape
 
 LOGIN_URL = '/dashboard/login'
@@ -185,22 +186,26 @@ def dashboard_tiles(request, dashboard_slug):
             return HttpResponseRedirect('/dashboard/')
 
         page = Page.objects.get(pk=page_id)
-        tileList = page.feed.tiles.all()
+        #tileList = page.feed.tiles.all()
+        tileMagic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
 
         allProducts = []
-        for tile in tileList:
+        for tile in tileMagic:
             tile = json.loads(tile.ir_cache)
             tile_id = tile['tile-id']
             tile_prio = tile['priority']
 
             if 'default-image' in tile:
-                try:
-                    if type(tile['default-image']) is dict:
+                if type(tile['default-image']) is dict:
+                    try:
                         tile_img = ProductImage.objects.get(id=tile['default-image']['id']).url
-                    else:
+                    except ProductImage.DoesNotExist:
+                        tile_img = tile['default-image']['sourceUrl']
+                else:
+                    try:
                         tile_img = ProductImage.objects.get(id=tile['default-image']).url
-                except ProductImage.DoesNotExist:
-                    tile_img = "Default image not found"
+                    except ProductImage.DoesNotExist:
+                        tile_img = tile['images'][0]['url']
             else:
                 tile_img = tile['url']
 
@@ -222,14 +227,11 @@ def dashboard_tiles(request, dashboard_slug):
                 'priority': tile_prio
             })
 
-        count = len(allProducts)
-
-        context = RequestContext(request)
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {
                 'tileList': allProducts,
-                'context': context, 
+                'context': RequestContext(request), 
                 'siteName': cur_dashboard.site_name, 
                 'url_slug': page_id,
                 'page': cur_dashboard_page

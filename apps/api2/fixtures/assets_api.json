@@ -316,6 +316,7 @@
       "name": "TestPage2",
       "url_slug": "other_test_page",
       "store": 1,
+      "feed": 13,
       "theme": 6,
       "theme_settings": {"color": "red","font": "italic"},
       "description": "TestPage2 Description",
@@ -367,6 +368,7 @@
     "fields": {
       "template": "default",
       "feed": 9,
+      "priority": 1,
       "updated_at": "2015-11-18 00:43:26"
     }
   },

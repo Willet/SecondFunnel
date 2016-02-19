@@ -3,6 +3,8 @@ from django.core.urlresolvers import reverse
 
 from rest_framework.test import APITestCase
 
+from apps.assets.models import Tile
+
 class APITest(APITestCase):
     fixtures = ['assets_api.json']
 
@@ -684,7 +686,7 @@ class APITest(APITestCase):
         self.assertEqual(page1['url_slug'], u'other_test_page')
         self.assertEqual(page1['legal_copy'], "Store webpage")
         self.assertEqual(page1['last_published_at'], None)
-        self.assertEqual(page1['feed'], None)
+        self.assertEqual(page1['feed'], 13)
 
     def page_single_test(self):
         response = self.client.get(reverse('page-list')+'17/')
@@ -700,7 +702,7 @@ class APITest(APITestCase):
         self.assertEqual(page['url_slug'], u'other_test_page')
         self.assertEqual(page['legal_copy'], "Store webpage")
         self.assertEqual(page['last_published_at'], None)
-        self.assertEqual(page['feed'], None)
+        self.assertEqual(page['feed'], 13)
 
     def page_error_test(self):
         response = self.client.get(reverse('page-list')+'100/')
@@ -1164,7 +1166,7 @@ class APITest(APITestCase):
         self.assertEqual(tile0['feed'], 9)
         self.assertEqual(tile0['template'], u'default')
         self.assertEqual(tile0['products'], [])
-        self.assertEqual(tile0['priority'], 0)
+        self.assertEqual(tile0['priority'], 1)
         self.assertEqual(tile0['clicks'], 0)
         self.assertEqual(tile0['views'], 0)
         self.assertEqual(tile0['placeholder'], False)
@@ -1207,6 +1209,104 @@ class APITest(APITestCase):
         self.assertEqual(tile['in_stock'], True)
         self.assertEqual(tile['attributes'], '{}')
         self.assertEqual(tile['feed'],9)
+
+    def tile_change_prio_test(self):
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100000})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100000.')
+        self.assertEqual(t.priority, 100000)
+
+    def tile_change_prio_same_test(self):
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 1})
+        self.assertEqual(response.status_code, 400)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 is already 1.')
+        self.assertEqual(t.priority, 1)
+
+    def tile_change_prio_wrongID_test(self):
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 55, 'priority': 1})
+        self.assertEqual(response.status_code, 404)
+        t = Tile.objects.filter(pk=55)
+        self.assertEqual(response.data['status'], 'The tile with ID: 55 could not be found.')
+        self.assertEqual(list(t), [])
+
+    def tile_change_prio_bad_inputs_test(self):
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 'test', 'priority': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+
+    def tile_change_prio_bad_inputs2_test(self):
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 1, 'priority': 'test'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+
+    def tile_change_prio_bad_inputs3_test(self):
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tileID': 1, 'priority': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'tile_id' field from input.")
+
+    def tile_change_prio_bad_inputs3_test(self):
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 1, 'prioritie': 3})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'priority' field from input.")
+
+
+    def tile_swap_tile_location_missing_inputs_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id': 1, 'tile_id2': 2, 'page_id': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'tile_id1' field from input.")
+
+    def tile_swap_tile_location_missing_inputs2_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id3': 3, 'page_id': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'tile_id2' field from input.")
+
+    def tile_swap_tile_location_missing_inputs3_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 4, 'pageid': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'page_id' field from input.")
+
+    def tile_swap_tile_location_bad_inputs_letters_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': "test", 'tile_id2': 1, 'page_id': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': "test", 'page_id': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 3, 'page_id': "test"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+
+    def tile_swap_tile_location_bad_inputs_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 1, 'page_id': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "'tile_id1' cannot be equal to 'tile_id2'.")
+
+    def tile_swap_tile_location_bad_inputs2_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 2, 'page_id': 1000})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The page with ID: 1000 could not be found.")
+
+    def tile_swap_tile_location_bad_inputs3_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 100, 'tile_id2': 11, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The tile with ID: 100 could not be found.")
+
+    def tile_swap_tile_location_bad_inputs4_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 11, 'tile_id2': 123, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The tile with ID: 123 could not be found.")
+
+    def tile_swap_tile_location_bad_inputs5_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 11, 'tile_id2': 12, 'page_id': 17})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The tile with ID: 11 is not part of the page with ID: 17.")
+
+    def tile_swap_tile_location_bad_inputs6_test(self):
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 11, 'tile_id2': 13, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The tile with ID: 13 is not part of the page with ID: 8.")
 
     def tile_error_test(self):
         response = self.client.get(reverse('tile-list')+'100/')

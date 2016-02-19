@@ -11,6 +11,7 @@ from rest_framework.reverse import reverse
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 from apps.imageservice.utils import upload_to_cloudinary
+from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
 from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
     ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer
@@ -655,6 +656,163 @@ class PageViewSet(viewsets.ModelViewSet):
 class TileViewSet(viewsets.ModelViewSet):
     queryset = Tile.objects.all()
     serializer_class = TileSerializer
+
+    @list_route(methods=['post'])
+    def edit_single_priority(self, request):
+        """
+        Edit the priority of a single tile
+
+        inputs:
+            tile_id: ID of tile
+            priority: new priority
+
+        returns:
+            status: status message
+        """
+
+        return_dict = {'status': None}
+        status_code = 400
+
+        try:
+            data = request.POST or ast.literal_eval(request.body)
+        except SyntaxError:
+            data = {}
+
+        if not 'tile_id' in data:
+            return_dict['status'] = "Missing 'tile_id' field from input."
+        elif not 'priority' in data:
+            return_dict['status'] = "Missing 'priority' field from input."
+        else:
+            try:
+                tile_id = int(data['tile_id'])
+                priority = int(data['priority'])
+            except (TypeError, ValueError):
+                return_dict['status'] = "Expecting a number as input, but got non-number."
+            else:
+                try:
+                    tile = Tile.objects.get(pk=tile_id)
+                except Tile.DoesNotExist:
+                    return_dict['status'] = "The tile with ID: {0} could not be found.".format(tile_id)
+                    status_code = 404
+                else:
+                    if priority == tile.priority:
+                        return_dict['status'] = "The priority of the tile with ID: {0} is already {1}.".format(tile_id, priority)
+                    else:
+                        tile.priority = priority
+                        tile.save()
+                        return_dict['status'] = "The priority of the tile with ID: {0} has been changed to {1}.".format(tile_id, priority)
+                        status_code = 200
+
+        return Response(return_dict, status=status_code)
+
+    @list_route(methods=['post'])
+    def swap_tile_location(self, request):
+        """
+        Swap the location of 2 tiles on a page
+
+        inputs:
+            tile_id1: ID of tile 1
+            tile_id2: ID of tile 2
+            page_id: page that contains both tiles to be swapped
+
+        returns:
+            status: status message
+        """
+
+        return_dict = {'status': None}
+        status_code = 400
+
+        try:
+            data = request.POST or ast.literal_eval(request.body)
+        except SyntaxError:
+            data = {}
+
+        if not 'tile_id1' in data:
+            return_dict['status'] = "Missing 'tile_id1' field from input."
+        elif not 'tile_id2' in data:
+            return_dict['status'] = "Missing 'tile_id2' field from input."
+        elif not 'page_id' in data:
+            return_dict['status'] = "Missing 'page_id' field from input."
+        else:
+            try:
+                tile_id1 = int(data['tile_id1'])
+                tile_id2 = int(data['tile_id2'])
+                page_id = int(data['page_id'])
+
+                if tile_id1 == tile_id2:
+                    raise AttributeError
+            except (TypeError, ValueError):
+                return_dict['status'] = "Expecting a number as input, but got non-number."
+            except AttributeError:
+                return_dict['status'] = "'tile_id1' cannot be equal to 'tile_id2'."
+            else:
+                try:
+                    page = Page.objects.get(pk=page_id)
+                    page_tiles = page.feed.tiles
+                except Page.DoesNotExist:
+                    return_dict['status'] = "The page with ID: {0} could not be found.".format(page_id)
+                except AttributeError:
+                    return_dict['status'] = "The page with ID: {0} does not have a feed or the feed has no tiles.".format(page_id)
+                else:
+                    try:
+                        tile1 = Tile.objects.get(pk=tile_id1)
+                        if not tile1 in page_tiles.all():
+                            raise ValueError
+                    except Tile.DoesNotExist:
+                        return_dict['status'] = "The tile with ID: {0} could not be found.".format(tile_id1)
+                    except ValueError:
+                        return_dict['status'] = "The tile with ID: {0} is not part of the page with ID: {1}.".format(tile_id1,page_id)
+                    else:
+                        try:
+                            tile2 = Tile.objects.get(pk=tile_id2)
+                            if not tile2 in page_tiles.all():
+                                raise ValueError
+                        except Tile.DoesNotExist:
+                            return_dict['status'] = "The tile with ID: {0} could not be found.".format(tile_id2)
+                        except ValueError:
+                            return_dict['status'] = "The tile with ID: {0} is not part of the page with ID: {1}.".format(tile_id2,page_id)
+                        else:
+                            tileMagic = list(ir_magic(page_tiles, num_results=page_tiles.count()))
+                            tile1_ind = tileMagic.index(tile1)
+                            tile2_ind = tileMagic.index(tile2)
+
+                            # Make sure that tile1 is on left, tile2 is on right
+                            if tile1_ind > tile2_ind:
+                                temp = tile1
+                                tile1 = tile2
+                                tile2 = temp
+
+                                temp = tile1_ind
+                                tile1_ind = tile2_ind
+                                tile2_ind = temp
+
+                                temp = tile_id1
+                                tile_id1 = tile_id2
+                                tile_id2 = temp
+
+                            tile1_prio = tile1.priority
+                            tile2_prio = tile2.priority
+
+                            # if tile2_prio > tileMagic[tile2_ind+1].priority:
+                            #     a = 1
+                            # else:
+                            #     a = 2
+
+                            tile1.priority = tile2.priority + 1
+
+                            for t in range(tile2_ind-1, tile1_ind, -1):
+                                tileMagic[t] = tileMagic[t+1].priority + 1
+                                #tileMagic[t].save()
+
+                            if not tileMagic[tile1_ind-1].priority > tileMagic[tile1_ind].priority:
+                                for t in range(tile1_ind-1, 0, -1):
+                                    tileMagic[t].priority = tileMagic[t+1].priority + 1
+                                    #tileMagic[t].save()
+
+                            return_dict['status'] = "Tile1: ID: {0}, Priority: {1}, Index: {2}, Tile2: ID: {3}, Priority: {4}, Index: {5}".format(tile_id1,tile1.priority,tile1_ind,tile_id2,tile2.priority,tile2_ind)
+                            status_code = 200
+
+        return Response(return_dict, status=status_code)
 
 
 class FeedViewSet(viewsets.ModelViewSet):
