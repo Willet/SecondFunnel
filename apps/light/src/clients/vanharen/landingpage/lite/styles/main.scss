@@ -248,12 +248,12 @@ body {
 
     .close {
         color: $grey-color;
-        padding: 10px 13px;
+        padding: 10px;
         font-weight: normal;
         line-height: 9px;
         letter-spacing: 0px;
         font-family: $basic-font;
-        font-size: 10px;
+        font-size: 25px;
         text-shadow: none;
     }
 
@@ -273,7 +273,6 @@ body {
 
     .cell {
         display: inline-block;
-        float: left;
         vertical-align: top;
         height: 100%;
     }
@@ -311,11 +310,13 @@ body {
             width: 14%;
             max-height: 760px;
             padding: 20px 0 0 0;
-            border-right: 1px solid $grey-color;
+            border-right: 1px solid $light-grey-color;
+            border-left: 1px solid $light-grey-color;
             text-transform: lowercase;
             .stl-title {
-                font-family: "Helvetica-Bold", sans-serif;
-                font-size: 14px;
+                font-family: $deichmann-font;
+                font-weight: 100;
+                font-size: 20px;
                 color: #000;
                 line-height: 14px;
                 max-height: 28px;
@@ -333,9 +334,9 @@ body {
                 position: absolute;
                 top: 0; left: 0; right: 0;
                 margin: auto;
-                font-family: $basic-font;
-                font-size: 10px;
-                line-height: 12px;
+                font-family: $deichmann-font;
+                font-size: 14px;
+                line-height: 14px;
                 height: 90%;
                 overflow: hidden;
             }
@@ -526,12 +527,14 @@ body {
     }
 
     .description {
-        color: #000d41;
-        font-family: "Verdana", proxima-nova-soft, sans-serif;
+        color: $grey-color;
+        font-family: $deichmann-font;
         font-size: 13px;
+        font-weight: 100;
         max-height: 260px;
         overflow-y: auto;
         .desc-title {
+            margin-bottom: 15px;
             font-weight: bold;
         }
     }
@@ -540,15 +543,15 @@ body {
         margin-top: 6px !important;
         .button {
             font-family: $basic-font;
-            font-size: 14px;
+            font-size: 16px;
             color: #fff;
             background-color: $orange-color;
             letter-spacing: 0px;
             line-height: 18px;
             text-align: center;
-            text-transform: lowercase;
-            padding: 10px 0;
-            width: 46%;
+            padding: 15px 25px;
+            width: auto;
+            border-radius: 7px;
         }
     }
 
@@ -697,32 +700,26 @@ body {
                         border-radius: 4px;
                         background-color: #FFF;
                         &.selected {
-                            border-color: $grey-color;
+                            background-color: $grey-color;
                         }
                     }
                 }
                 .buy {
-                    position: absolute;
+                    position: relative;
                     width: 100%;
                     padding: 0;
                     margin-top: 0 !important;
-                    bottom: 10px;
                     left: 0;
                     .button {
-                        width: 47%;
-                        text-transform: lowercase;
-                        font-size: 12px;
+                        background-color: $orange-color;
+                        border-radius: 5px;
+                        width: 90%;
+                        font-size: 20px;
                         letter-spacing: 0px;
                         line-height: 36px;
                         padding: 0;
                         margin: 0;
                         white-space: normal;
-                        &.find-store {
-                            float: left;
-                        }
-                        &.in-store {
-                            float: right;
-                        }
                     }
                 }
             }
@@ -754,9 +751,24 @@ body {
         }
     }
 }
-.previewContainer {
-    .content {
-        max-width: 1024px !important;
+#preview-area {
+    .previewContainer {
+        .fullscreen.product {
+            max-height: 540px;
+            .content, .template.target, .preview-container, .table, .tagged-product {
+                height: 100%;
+            }
+            .product-info .tagged-product > div {
+                margin: 0;
+            }
+            .gallery {
+                text-align: left;
+            }
+        }
+        z-index: 100;
+        .content {
+            max-width: 1024px !important;
+        }
     }
 }
 
@@ -774,6 +786,50 @@ body {
         color: $black-color;
     }
 }
+ul.price,
+ul.label {
+    font-family: $deichmann-font;
+    text-align: left;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+ul.label {
+    height: auto;
+    white-space: normal;
+    li {
+        font-size: 12px;
+        color: $black-color;
+        width: inherit;
+        line-height: 16px;
+        &.brand {
+            font-weight: 300;
+        }
+        &.name {
+            font-weight: 900;
+        }
+    }
+}
+ul.price {
+    li {
+        font-weight: 100;
+        &.current {
+            font-size: 40px;
+            color: $orange-color;
+            line-height: 40px;
+            margin-bottom: 5px;
+            sup {
+                top: -14px;
+                font-size: 21px;
+            }
+        }
+        &.old {
+            font-size: 11px;
+            text-decoration: line-through;
+            color: $black-color;
+        }
+    }
+}
 .tile {
     font-family: $deichmann-font;
     padding: 5px;
@@ -788,52 +844,18 @@ body {
         padding: 6%;
         position: relative;
         ul {
-            text-align: left;
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
             &.label {
                 position: relative;
                 top: 0;
                 left: 0;
                 width: 55%;
-                height: auto;
-                white-space: normal;
-                li {
-                    font-size: 12px;
-                    color: $black-color;
-                    width: inherit;
-                    line-height: 16px;
-                    &.brand {
-                        font-weight: 300;
-                    }
-                    &.name {
-                        font-weight: 900;
-                    }
-                }
             }
             &.price {
                 position: absolute;
                 top: 6%;
                 right: 6%;
-                li {
-                    font-weight: 100;
-                    &.current {
-                        text-align: right;
-                        font-size: 40px;
-                        color: $orange-color;
-                        line-height: 40px;
-                        margin-bottom: 5px;
-                        sup {
-                            top: -14px;
-                            font-size: 21px;
-                        }
-                    }
-                    &.old {
-                        font-size: 11px;
-                        text-decoration: line-through;
-                        color: $black-color;
-                    }
+                &.current {
+                    text-align: right;
                 }
             }
         }
