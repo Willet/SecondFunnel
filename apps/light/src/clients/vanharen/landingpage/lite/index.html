@@ -339,10 +339,10 @@
         <script type="text/template" id="product_price_template">
             <ul class="price">
                 <% if (obj.sale) { %>
-                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>.<sup><%= obj.displayPrice['cents'] %></sup></li>
+                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>,<sup><%= obj.displayPrice['cents'] %></sup></li>
                 <li class="old"><%= obj.currency %><%= obj.oldPrice %></li>
                 <% } else { %>
-                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>.<sub><%= obj.displayPrice['cents'] %></sub></li>
+                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>,<sub><%= obj.displayPrice['cents'] %></sub></li>
                 <% } %>
             </ul>
         </script>
