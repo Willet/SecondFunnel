@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    @@include('shared/campaign_head.html')
+    @@include('shared/campaign_opengraph_tags.html')
+    <link rel="shortcut icon"
+         href="/static/light/vanharen/landingpage/lite/images/favicon.png" />
+    <link rel="stylesheet"
+          href="/static/light/vanharen/landingpage/lite/styles/main.css"/>
+    @@include('shared/campaign_respond.html')
+    <title>{{ page.name|default:"vanHaren" }}</title>
+</head>
+<body>
+    <div class='navbar'>
+        <div class="header-links-bar">
+            <ul>
+                <li>
+                    <img src="/static/light/vanharen/landingpage/lite/images/header-delivery.png" />
+                    <span><a href="http://www.vanharen.nl/NL/nl/shop/content/faq.html">Gratis levering & retourneren</a></span>
+                </li>
+                <li>
+                    <img src="/static/light/vanharen/landingpage/lite/images/header-return.png" />
+                    <span>Gratis retourneren in onze filialen</span>
+                </li>
+                <li>
+                    <img src="/static/light/vanharen/landingpage/lite/images/header-phone.png" />
+                    <span>NL: 0800 - 0 910 910 BE: 0800 - 78 6 88 (GRATIS)</span>
+                </li>
+            </ul>
+        </div>
+        <div class="trends container">
+            <a href="http://www.vanharen.nl/" target="_top" class="logo">
+                <img class="desktop" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo.png" />
+                <img class="mobile" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo.png" />
+            </a>
+            <span class="title">Trends</span>
+            <!--<div id="search-bar">
+                <form><div class="input-group">
+                    <input type="text" class="form-control">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button"></button>
+                    </span>
+                </div></form>
+            </div>-->
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+
+    @@include('shared/campaign_body.html')
+
+    <div>
+        <!-- Custom templates here -->
+        <script type="text/template" id="image_tile_template">
+            <div class='relative'>
+                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
+                <!-- Varies depending on source (e.g. facebook, styldby, etc) -->
+                <div class="overlay">
+                    <div class='table'>
+                        <div class='cell'>
+                            <% /* "shop" is actually wanted for the tile overlay */ %>
+                            <div class="title">
+                                <% var products = obj.taggedProducts ? obj.taggedProducts : []; %>
+                                <% if (obj.hoverText) { %>
+                                    <span><%= (obj.hoverText) %></span>
+                                    <% if (products.length > 0) { %>
+                                    <br />
+                                    <span class='shop-products'>shop now</span>
+                                    <br />
+                                        <% _.each(products, function (related) { %>
+                                            <span class='shop-products'><%= related.get('name') %></span>
+                                        <% }); %>
+                                    <% } %>
+                                <% } else if (products.length > 0) { %>
+                                    <span>shop</span>
+                                    <br />
+                                    <% _.each(products, function (related) { %>
+                                        <span class='shop-products'><%= related.get('name') %></span>
+                                    <% }); %>
+                                <% } else { %>
+                                    shop
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="preview_container_template">
+            <div class="fullscreen">
+                <div class="content">
+                    <span class="close desktop-only">X</span>
+                    <span class="close mobile-only">Back</span>
+                    <div class="template target"></div>
+                </div>
+            </div>
+            <div class="mask"></div>
+        </script>
+
+        <script type="text/template" id="product_description_template">
+            <div class='desc-title'>Overview</div>
+            <% var description = (obj.description || ""); %>
+            <% if (!description.match(/<li(?:.|\n)*?>/)) { %>
+                <% var sentences = _.compact(description.split('.')); %>
+                <ul>
+                    <% _.each(sentences, function(sentence) { %>
+                        <li><%= App.utils.safeString(sentence) %></li>
+                    <% }); %>
+                </ul>
+            <% } else { %>
+                <%= App.utils.safeString(description) %>
+            <% } %>
+        </script>
+
+        <script type="text/template" id="product_preview_template">
+            <div class="product-info table"></div>
+            <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
+        </script>
+
+        <script type="text/template" id="product_thumbnails_template">
+            <div class="stl-title">shop the look</div>
+            <% include("carousel_template") %>
+        </script>
+
+        <script type="text/template" id="carousel_template">
+            <div class="stl-carousel carousel-view">
+                <div class="stl-swipe-left carousel-swipe-left"></div>
+                <div class="stl-swipe-right carousel-swipe-right"></div>
+                <div class="stl-swipe-up carousel-swipe-up"></div>
+                <div class="stl-swipe-down carousel-swipe-down"></div>
+                <div class="stl-look-container carousel-container">
+                    <div class="stl-look carousel-slide">
+                        <% include("carousel_items_template") %>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="carousel_items_template">
+            <div class="look-thumbnail mobile-only">
+                <img src="<%= obj.attrs['lookImageSrc'] %>" class="image"/>
+            </div>
+            <% var related = obj.items; %>
+            <% for (var i = 0; i < related.length; i++) { %>
+                <div class="stl-item" data-index="<%- i %>">
+                    <img src="<%- related[i].images[0].url %>" class="image"/>
+                    <span class="desktop-only"><%- related[i].name %></span>
+                </div>
+            <% } %>
+        </script>
+
+        <script type="text/template" id="desktop_tagged_products">
+            <% var orientation = (obj.orientation || "square"); %>
+            <% var oneProduct = (obj.taggedProducts.length < 2); %>
+            <div class="cell look-image-container desktop-only <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                <div class="look-image"
+                    style="background-image: url('<%= image.url %>');">
+                </div>
+            </div>
+            <% if (obj.taggedProducts.length > 1) { %>
+                <div class="cell desktop-only shop <%= orientation %>">
+                    <div class="product-thumbnails"></div>
+                </div>
+            <% } %>
+            <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+                <div class='product-info'></div>
+            </div>
+            <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
+        </script>
+
+        <script type="text/template" id="mobile_tagged_products">
+            <div class="look-product-carousel">
+                <div class="cell look-image-container mobile-only">
+                    <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+                </div>
+                <div class="cell info mobile-only">
+                    <div class="product-info"></div>
+                </div>
+            </div>
+            <div class="cell shop mobile-only">
+                <div class="product-thumbnails"></div>
+            </div>
+        </script>
+
+        <script type="text/template" id="no_tagged_products">
+            <div class="look-image-container cell desktop-only">
+                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+            </div>
+            <div class="cell info">
+                <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>
+                <div class="buy desktop-only">
+                    <a class="button" href="http://gap.com/" target="_blank">
+                        Shop on Gap.com
+                    </a>
+                    <a class="button find-store"
+                       href="http://www.gap.com/customerService/storeLocator.do"
+                       target="_blank">
+                        Find a Store
+                    </a>
+                </div>
+                <div class='description desktop-only'>
+                    <%= App.utils.safeString(obj.caption || obj.description) %>
+                </div>
+            </div>
+            <div class="look-image-container cell mobile-only">
+                <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+            </div>
+            <div class="buy mobile-only">
+                <a class="button" href="http://m.gap.com/" target="_blank">
+                    Shop on Gap.com
+                </a>
+                <a class="button find-store"
+                   href="http://m.gap.com/storelocator.html"
+                   target="_blank">
+                    Find a Store
+                </a>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_info_template">
+            <div class="tagged-product row">
+                <div class='cell info mobile-only'>
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                </div>
+                <div class='cell product-image'>
+                <% if (App.support.mobile()) { %>
+                    <div class='relative mobile-only'>
+                        <div class="gallery-main-image">
+                            <% include("product_galleryMainImage_template") %>
+                        </div>
+                        <% if (obj.images.length > 1) { %>
+                            <div class='gallery-dots<% if (obj.images.length < 2) { %> hide<% } %>'></div>
+                        <% } %>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
+                    </div>
+                <% } else { %>
+                    <div class="gallery-main-image">
+                        <% include("product_galleryMainImage_template") %>
+                    </div>
+                <% } %>
+                </div>
+                <div class='cell info desktop-only'>
+                    <div>
+                        <div class='title'>
+                            <% include("product_title_template") %>
+                        </div>
+                        <div class='price'>
+                            <% include("product_price_template") %>
+                        </div>
+                    </div>
+                    <div class='description'>
+                        <% include("product_description_template") %>
+                    </div>
+                    <div class='buy'>
+                        <% include("product_buy_template") %>
+                    </div>
+                    <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>">
+                        <% include("product_gallery_template") %>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="image_info_template">
+            <div class="tagged-product">
+                <div class="product-details">
+                    <div class='title'>
+                        <% include("product_title_template") %>
+                    </div>
+                    <div class='price'>
+                        <% include("product_price_template") %>
+                    </div>
+                </div>
+                <div class="gallery-swipe-left"></div>
+                <div class="gallery-swipe-right"></div>
+                <div class="gallery-main-image">
+                    <% include("product_galleryMainImage_template") %>
+                </div>
+                <div class="gallery-dots <% if (obj.images.length < 2) { %> hide <% } %>">
+                    <% include("product_galleryDots_template") %>
+                </div>
+                <div class='buy'>
+                    <% include("product_buy_template") %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_galleryMainImage_template">
+            <div class="main-image-container">
+                <div class="main-image">
+                    <% for (var j = 0; j < obj.images.length; j++) { %>
+                        <div class="image" data-id="<%= obj.images[j].id %>" style="background-image: url('<%= obj.images[j].url %>');"></div>
+                    <% } %>
+                </div>
+            </div>
+        </script>
+
+        <script type="text/template" id="product_buy_template">
+            <a class="button find-store desktop-only" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
+            <a class="button find-store mobile-only" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
+            <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
+        </script>
+
+        <script type="text/template" id="product_price_template">
+            <% if (obj.salePrice) { %>
+                <strike><%- obj.price %></strike> 
+                <b>NOW:</b> <%- obj.salePrice %>
+            <% } else { %>
+                <%- obj.price %>
+            <% } %>
+        </script>
+    </div>
+
+    <div id="category-area"></div>
+    <div id="hero-area"></div>
+    <div id="shop-below" class="desktop-only">
+        <span>klik op de trend onder wilklen >></span>
+    </div>
+    <div id="main" class="container-fluid">
+        <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+        <div id="discovery-area" class="discovery-area"></div>
+        <div class="tile-sizer tile"></div>
+        <div class="no-noscript loading"></div>
+        <noscript>
+            <!-- promotions to show when user does not have javascript.
+             this is a 'we need javascript' message by default.
+             -->
+            <div class="alert alert-danger">
+                <b>Oh no!</b> We need JavaScript enabled to show you this page.
+            </div>
+        </noscript>
+    </div>
+
+    {% if environment == 'production' %}
+    <!-- Google Tag Manager -->
+    <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-NQTT"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-NQTT');</script>
+    <!-- End Google Tag Manager -->
+    {% else %}
+    <script type='text/javascript'>
+        (function() {
+            var dataLayer = window.dataLayer = [];
+        }());
+    </script>
+    {% endif %}
+
+    <!-- Youtube Iframe API -->
+    <script>
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    </script>
+
+    <img src="{% url 'apps.tracking.views.pixel' %}"/>
+    <div>
+        @@include('shared/default_templates.html')
+    </div>
+    <script type="text/javascript" src="/static/light/vanharen/landingpage/lite/scripts/main.js" async></script>
+</body>
+</html>
