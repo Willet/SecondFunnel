@@ -33,8 +33,8 @@
         </div>
         <div class="trends container">
             <a href="http://www.vanharen.nl/" target="_top" class="logo">
-                <img class="desktop" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo.png" />
-                <img class="mobile" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo.png" />
+                <img class="desktop" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo-100x100.png" />
+                <img class="mobile" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo-100x100.png" />
             </a>
             <span class="title">Trends</span>
             <!--<div id="search-bar">
@@ -53,40 +53,60 @@
 
     <div>
         <!-- Custom templates here -->
-        <script type="text/template" id="image_tile_template">
-            <div class='relative'>
-                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
-                <!-- Varies depending on source (e.g. facebook, styldby, etc) -->
-                <div class="overlay">
-                    <div class='table'>
-                        <div class='cell'>
-                            <% /* "shop" is actually wanted for the tile overlay */ %>
-                            <div class="title">
-                                <% var products = obj.taggedProducts ? obj.taggedProducts : []; %>
-                                <% if (obj.hoverText) { %>
-                                    <span><%= (obj.hoverText) %></span>
-                                    <% if (products.length > 0) { %>
-                                    <br />
-                                    <span class='shop-products'>shop now</span>
-                                    <br />
-                                        <% _.each(products, function (related) { %>
-                                            <span class='shop-products'><%= related.get('name') %></span>
-                                        <% }); %>
-                                    <% } %>
-                                <% } else if (products.length > 0) { %>
-                                    <span>shop</span>
-                                    <br />
-                                    <% _.each(products, function (related) { %>
-                                        <span class='shop-products'><%= related.get('name') %></span>
-                                    <% }); %>
-                                <% } else { %>
-                                    shop
-                                <% } %>
-                            </div>
+        <script type="text/template" id="product_tile_template">
+            <div class='relative product-shot'>
+                <ul class="label">
+                    <% if (obj.product.get('brand')) { %>
+                    <li class='brand'><%= obj.product.get('brand')['name'] %></span>
+                    <% } %>
+                    <li class="name"><%= obj.product.get('name') %></span>
+                </ul>
+                <ul class="price">
+                    <% if (obj.product.get('sale')) { %>
+                    <li class="current"><%= obj.product.get('currency') %><%= obj.product.get('displayPrice')['euros'] %>.<sup><%= obj.product.get('displayPrice')['cents'] %></sup></li>
+                    <li class="old"><%= obj.product.get('currency') %><%= obj.product.get('oldPrice') %></li>
+                    <% } else { %>
+                    <li class="current"><%= obj.product.get('currency') %><%= obj.product.get('displayPrice')['euros'] %>.<sub><%= obj.product.get('displayPrice')['cents'] %></sub></li>
+                    <% } %>
+                </ul>
+                <div>
+                    <img class="focus" src="<%= obj.defaultImage.url %>" />
+                </div>
+            </div>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <% /* "Shop product" is actually wanted for the tile overlay */  %>
+                        <div class="title">
+                            <span>Bekijk Meer >></span>
+                            <span class="name"><%= obj.product.get('name') %></span>
                         </div>
                     </div>
                 </div>
             </div>
+        </script>
+
+        <script type="text/template" id="banner_tile_template">
+            <% include("image_tile_template") %>
+        </script>
+
+        <script type="text/template" id="image_tile_template">
+            <div class='relative'>
+                <img class="focus" src="<%= obj.defaultImage.url %>" />
+            </div>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <% /* "Shop product" is actually wanted for the tile overlay */  %>
+                        <div class="title">
+                            <span>Bekijk Meer >></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% if (App.option("debug", 0) > 1) { %>
+                <span class="type"><%= obj["content-type"] %></span>
+            <% } %>
         </script>
 
         <script type="text/template" id="preview_container_template">

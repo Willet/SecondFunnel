@@ -25,6 +25,7 @@ class VanHarenSpider(SecondFunnelCrawlSpider):
     store_slug = name
 
     remove_background = False
+    forced_image_ratio = 1.095
     
     # URLs will be scraped looking for more links that match these rules
     rules = ()
