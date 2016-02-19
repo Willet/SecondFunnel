@@ -799,9 +799,9 @@ body {
 }
 
 #shop-below {
-    position: absolute;
-    top: -50px;
-    left: 5%;
+    position: relative;
+    top: -60px;
+    left: 4%;
     z-index: 10;
     span {
         font-family: $deichmann-font;
