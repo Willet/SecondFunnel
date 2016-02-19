@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 
+import logging
 import re
 from urlparse import urlsplit, urlunsplit, urljoin
 from w3lib.html import remove_tags
@@ -40,10 +41,10 @@ class VanHarenSpider(SecondFunnelCrawlSpider):
             return []
 
     def is_product_page(self, response):
-        return bool(re.search(r'vanharen\.nl/NL/nl/shop/\d+/[\w%-]+\.prod', response.url))
+        return bool(re.search(r'vanharen\.nl/NL/nl/shop/\d+/[\w*%-]+\.prod', response.url))
 
     def is_category_page(self, response):
-        return bool(re.search(r'vanharen\.nl/NL/nl/shop/\d+/[\w%-]+\.cat', response.url))
+        return bool(re.search(r'vanharen\.nl/NL/nl/shop/\d+/[\w*%-]+\.cat', response.url))
 
     def is_sold_out(self, response):
         return not bool(response.selector.css('.details .buy span.PRODUCT_ADDTOCART').extract_first())
@@ -51,7 +52,14 @@ class VanHarenSpider(SecondFunnelCrawlSpider):
     ### Scraper control
     @staticmethod
     def clean_url(url):
-        return re.match(r'((?:http://|https://)?www\.vanharen\.nl/NL/nl/shop/\d+/[\w%-]+\.prod).*?', url).group(1)
+        try:
+            clean_url = re.match(r'((?:http://|https://)?www\.vanharen\.nl/NL/nl/shop/\d+/[\w*%-]+\.prod).*?', url).group(1)
+            # For reasons unknown, scrapes of https pages return the previous response...
+            return clean_url.replace('https', 'http', 1)
+        except AttributeError:
+            # NOTE! only logs outside of scrape process
+            logging.error("Could not clean url: {}".format(url))
+            return url
 
     def sort_images_order(self, product_images):
         # Urls have format:
@@ -126,8 +134,6 @@ class VanHarenSpider(SecondFunnelCrawlSpider):
         try:
             price = l.get_css('.details .m_product_facts #m_product_facts_price .PRODUCT_GLOBAL_PRICE', TakeFirst(), remove_tags, normalize_price)
             sugg_price = l.get_css('.details .m_product_facts #m_product_facts_oldPrice .inner>div::text', TakeFirst(), normalize_price)
-            self.logger.warning(u"price: {}".format(price))
-            self.logger.warning(u"sugg_price: {}".format(sugg_price))
             if sugg_price:
                 reg_price = sugg_price
                 sale_price = price

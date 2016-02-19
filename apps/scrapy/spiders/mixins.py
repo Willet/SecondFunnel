@@ -1,3 +1,5 @@
+import logging
+
 from apps.scrapy.items import ScraperProduct, ScraperImage
 
 
@@ -71,6 +73,8 @@ class ProcessingMixin(object):
         Returns: cleaned url 
 
         See controller.py """
+        # NOTE! Only logs outside of scrape process
+        logging.warning("Url cleaning not implemented for this spider")
         return url
 
     @staticmethod
