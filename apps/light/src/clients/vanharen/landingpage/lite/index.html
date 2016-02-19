@@ -55,20 +55,10 @@
         <!-- Custom templates here -->
         <script type="text/template" id="product_tile_template">
             <div class='relative product-shot'>
-                <ul class="label">
-                    <% if (obj.product.get('brand')) { %>
-                    <li class='brand'><%= obj.product.get('brand')['name'] %></span>
-                    <% } %>
-                    <li class="name"><%= obj.product.get('name') %></span>
-                </ul>
-                <ul class="price">
-                    <% if (obj.product.get('sale')) { %>
-                    <li class="current"><%= obj.product.get('currency') %><%= obj.product.get('displayPrice')['euros'] %>.<sup><%= obj.product.get('displayPrice')['cents'] %></sup></li>
-                    <li class="old"><%= obj.product.get('currency') %><%= obj.product.get('oldPrice') %></li>
-                    <% } else { %>
-                    <li class="current"><%= obj.product.get('currency') %><%= obj.product.get('displayPrice')['euros'] %>.<sub><%= obj.product.get('displayPrice')['cents'] %></sub></li>
-                    <% } %>
-                </ul>
+                <% (function (obj) { %>
+                <% include("product_title_template") %>
+                <% include("product_price_template") %>
+                <% })(obj.product.attributes) %>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
@@ -87,7 +77,24 @@
         </script>
 
         <script type="text/template" id="banner_tile_template">
-            <% include("image_tile_template") %>
+            <div class='relative'>
+                <img class="focus" src="<%= obj.defaultImage.url %>" />
+            </div>
+            <% if (obj['redirect-url']) { %>
+            <div class="overlay">
+                <div class='table'>
+                    <div class='cell'>
+                        <% /* "Shop product" is actually wanted for the tile overlay */  %>
+                        <div class="title">
+                            <span>Bekijk Meer >></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+            <% if (App.option("debug", 0) > 1) { %>
+                <span class="type"><%= obj["content-type"] %></span>
+            <% } %>
         </script>
 
         <script type="text/template" id="image_tile_template">
@@ -110,9 +117,10 @@
         </script>
 
         <script type="text/template" id="preview_container_template">
-            <div class="fullscreen">
+            <% var template = (obj.template || "image") %>
+            <div class="fullscreen <%= template %>">
                 <div class="content">
-                    <span class="close desktop-only">X</span>
+                    <span class="close desktop-only">⨉</span>
                     <span class="close mobile-only">Back</span>
                     <div class="template target"></div>
                 </div>
@@ -121,7 +129,7 @@
         </script>
 
         <script type="text/template" id="product_description_template">
-            <div class='desc-title'>Overview</div>
+            <div class='desc-title'>productdetails</div>
             <% var description = (obj.description || ""); %>
             <% if (!description.match(/<li(?:.|\n)*?>/)) { %>
                 <% var sentences = _.compact(description.split('.')); %>
@@ -210,15 +218,10 @@
                 <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
             </div>
             <div class="cell info">
-                <div class='title'><%= obj.title || obj.name || "Coming soon to Gap!" %></div>
+                <div class='title'><%= obj.title || obj.name || "Coming soon" %></div>
                 <div class="buy desktop-only">
-                    <a class="button" href="http://gap.com/" target="_blank">
-                        Shop on Gap.com
-                    </a>
-                    <a class="button find-store"
-                       href="http://www.gap.com/customerService/storeLocator.do"
-                       target="_blank">
-                        Find a Store
+                    <a class="button" href="http://www.vanharen.nl" target="_blank">
+                        vanHaren.nl
                     </a>
                 </div>
                 <div class='description desktop-only'>
@@ -229,19 +232,14 @@
                 <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
             </div>
             <div class="buy mobile-only">
-                <a class="button" href="http://m.gap.com/" target="_blank">
-                    Shop on Gap.com
-                </a>
-                <a class="button find-store"
-                   href="http://m.gap.com/storelocator.html"
-                   target="_blank">
-                    Find a Store
+                <a class="button" href="http://www.vanharen.nl/" target="_blank">
+                    vanHaren.nl
                 </a>
             </div>
         </script>
 
         <script type="text/template" id="product_info_template">
-            <div class="tagged-product row">
+            <div class="tagged-product">
                 <div class='cell info mobile-only'>
                     <div class='title'>
                         <% include("product_title_template") %>
@@ -278,14 +276,14 @@
                             <% include("product_price_template") %>
                         </div>
                     </div>
-                    <div class='description'>
-                        <% include("product_description_template") %>
-                    </div>
                     <div class='buy'>
                         <% include("product_buy_template") %>
                     </div>
                     <div class="gallery<% if (obj.images.length < 2) { %> hide<% } %>">
                         <% include("product_gallery_template") %>
+                    </div>
+                    <div class='description'>
+                        <% include("product_description_template") %>
                     </div>
                 </div>
             </div>
@@ -325,19 +323,28 @@
             </div>
         </script>
 
+        <script type="text/template" id="product_title_template">
+            <ul class="label">
+                <% if (obj.brand) { %>
+                <li class='brand'><%= obj.brand['name'] %></span>
+                <% } %>
+                <li class="name"><%= obj.name %></span>
+            </ul>
+        </script>
+
         <script type="text/template" id="product_buy_template">
-            <a class="button find-store desktop-only" href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>Find a store</a>
-            <a class="button find-store mobile-only" href='http://m.gap.com/storelocator.html' target='_blank'>Find a store</a>
-            <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop on Gap.com</a>
+            <a class='button in-store' href='<%- obj.url %>' target='_blank'>In winkelmandge</a>
         </script>
 
         <script type="text/template" id="product_price_template">
-            <% if (obj.salePrice) { %>
-                <strike><%- obj.price %></strike> 
-                <b>NOW:</b> <%- obj.salePrice %>
-            <% } else { %>
-                <%- obj.price %>
-            <% } %>
+            <ul class="price">
+                <% if (obj.sale) { %>
+                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>.<sup><%= obj.displayPrice['cents'] %></sup></li>
+                <li class="old"><%= obj.currency %><%= obj.oldPrice %></li>
+                <% } else { %>
+                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>.<sub><%= obj.displayPrice['cents'] %></sub></li>
+                <% } %>
+            </ul>
         </script>
     </div>
 
