@@ -218,9 +218,13 @@ def process_image_now(source, path='', sizes=None, remove_background=False, forc
         actual_ratio = (float(trimmed_object['width']) / trimmed_object['height'])
 
         if actual_ratio > desired_ratio:
-            kwargs['width'] = kwargs['height'] = trimmed_object['width']
+            # Too wide-y
+            kwargs['width'] = trimmed_object['width']
+            kwargs['height'] = int(float(trimmed_object['width']) / desired_ratio)
         else:
-            kwargs['width'] = kwargs['height'] = trimmed_object['height']
+            # Too tall-ey
+            kwargs['height'] = trimmed_object['height']
+            kwargs['width'] = int(float(trimmed_object['height']) * desired_ratio)
 
         image_object = upload_to_cloudinary(trimmed_object['url'], path=path, **kwargs)
         delete_cloudinary_resource(trimmed_object['url']) # destroy the temporary
