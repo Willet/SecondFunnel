@@ -339,10 +339,10 @@
         <script type="text/template" id="product_price_template">
             <ul class="price">
                 <% if (obj.sale) { %>
-                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>,<sup><%= obj.displayPrice['cents'] %></sup></li>
-                <li class="old"><%= obj.currency %><%= obj.oldPrice %></li>
+                <li class="current"><span class="currency"><%= obj.currency %></span><%= obj.displayPrice['euros'] %>,<sup><%= obj.displayPrice['cents'] %></sup></li>
+                <li class="old"><span class="currency"><%= obj.currency %></span><%= obj.oldPrice %></li>
                 <% } else { %>
-                <li class="current"><%= obj.currency %><%= obj.displayPrice['euros'] %>,<sub><%= obj.displayPrice['cents'] %></sub></li>
+                <li class="current"><span class="currency"><%= obj.currency %></span><%= obj.displayPrice['euros'] %>,<sub><%= obj.displayPrice['cents'] %></sub></li>
                 <% } %>
             </ul>
         </script>
@@ -351,7 +351,7 @@
     <div id="category-area"></div>
     <div id="hero-area"></div>
     <div id="shop-below" class="desktop-only">
-        <span>klik op de trend onder wilklen >></span>
+        <span>Klik en ontdek jouw trend >></span>
     </div>
     <div id="main" class="container-fluid">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->

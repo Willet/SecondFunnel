@@ -321,8 +321,9 @@ body {
                 font-size: 18px;
                 line-height: 22px;
                 color: #000;
-                max-height: 28px;
+                max-height: 40px;
                 overflow: hidden;
+                padding-bottom: 15px;
             }
             .product-thumbnails {
                 height: 94%;
@@ -427,24 +428,13 @@ body {
             height: 66%;
         }
         .title {
-            text-transform: lowercase;
-            font-family: $deichmann-font;
-            font-size: 16px;
-            color: #4e5c85;
-            line-height: 18px;
             width: 97%;
             height: auto;
             text-align: left;
-            margin: 0px;
         }
         .price {
-            font-family: $deichmann-font;
-            font-size: 10px;
-            color: $orange-color;
             text-align: left;
-            line-height: 13px;
             height: auto;
-            margin: 0 0 6px 0 !important;
         }
         .product-info, .tagged-product {
             height: 100%;
@@ -823,6 +813,11 @@ ul.price {
             color: $orange-color;
             line-height: 40px;
             margin-bottom: 5px;
+            > .currency {
+                font-size: 90%;
+                padding-right: 6px;
+                vertical-align: top;
+            }
             sup {
                 top: -14px;
                 font-size: 21px;
@@ -877,6 +872,14 @@ ul.price {
             }
         }
     }
+    &.image {
+        .overlay {
+            .title {
+                font-weight: 300;
+                font-size: 26px;
+            }
+        }
+    }
 }
 
 .stl-carousel, .tagged-product, .hero-carousel {
@@ -884,57 +887,84 @@ ul.price {
     .stl-swipe-left, .stl-swipe-right,
     .hero-swipe-left, .hero-swipe-right,
     .gallery-swipe-left, .gallery-swipe-right {
-        display: block;
-        background-repeat: no-repeat;
-        background-position: center;
         border: none;
+        display: block;
         position: absolute;
         cursor: pointer;
         z-index: 1;
-        background-color: transparent;
-        background-size: contain;
     }
     .stl-swipe-up, .stl-swipe-down {
         display: none;
         width: 100%;
         height: 5%;
         left: 0;
-        background-size: 25%;
-    }
-    .hero-swipe-left, .hero-swipe-right {
-        display: none;
-        width: 3.5%;
-        height: 100%;
-        top: 0;
-        background-size: 45%;
     }
     .stl-swipe-left, .stl-swipe-right {
         display: none;
         width: 5%;
         height: 100%;
         top: 0;
-        background-size: 30%;
     }
     .gallery-swipe-left, .gallery-swipe-right {
         width: 45px;
-        height: 45px;
-        top: 40%;
-    }
-    .stl-swipe-up {
-        background-image: url('/static/light/vanharen/landingpage/lite/images/up-image-arrow.png');
+        height: 100%;
         top: 0;
     }
+    .stl-swipe-up {
+        top: 0;
+        &:before {
+            content: " ";
+            position: absolute;
+            left: calc(50% - 10px);
+            top: -24px;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-bottom: 18px solid $grey-color;
+            border-right: 20px solid transparent;
+        }
+    }
     .stl-swipe-down {
-        background-image: url('/static/light/vanharen/landingpage/lite/images/down-image-arrow.png');
         bottom: 0;
+        &:after {
+            content: " ";
+            position: absolute;
+            left: calc(50% - 10px);
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-top: 18px solid $light-grey-color;
+            border-right: 20px solid transparent;
+        }
     }
     .stl-swipe-left, .gallery-swipe-left {
-        background-image: url('/static/light/vanharen/landingpage/lite/images/prev-image-arrow.png');
         left: 0;
+        &:before {
+            content: " ";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-right: 18px solid $light-grey-color;
+            border-bottom: 20px solid transparent;
+        }
     }
     .stl-swipe-right, .gallery-swipe-right {
-        background-image: url('/static/light/vanharen/landingpage/lite/images/next-image-arrow.png');
         right: 0;
+        &:after {
+            content: " ";
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-top: 18px solid transparent;
+            border-left: 24px solid $light-grey-color;
+            border-bottom: 18px solid transparent;
+        }
     }
 }
 
