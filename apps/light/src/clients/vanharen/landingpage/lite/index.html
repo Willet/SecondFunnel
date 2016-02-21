@@ -6,16 +6,18 @@
 <head>
     @@include('shared/campaign_head.html')
     @@include('shared/campaign_opengraph_tags.html')
-    <link rel="shortcut icon"
-         href="/static/light/vanharen/landingpage/lite/images/favicon.png" />
+    <link rel="icon" type="image/png"
+        href="/static/light/vanharen/landingpage/lite/images/favicon-32x32.png" sizes="32x32" />
+    <link rel="shortcut icon" type="image/png"
+        href="/static/light/vanharen/landingpage/lite/images/favicon-16x16.png" sizes="16x16" />
     <link rel="stylesheet"
-          href="/static/light/vanharen/landingpage/lite/styles/main.css"/>
+        href="/static/light/vanharen/landingpage/lite/styles/main.css"/>
     @@include('shared/campaign_respond.html')
-    <title>{{ page.name|default:"vanHaren" }}</title>
+    <title>vanHaren Trends</title>
 </head>
 <body>
     <div class='navbar'>
-        <div class="header-links-bar">
+        <div class="header-links-bar desktop-only">
             <ul>
                 <li>
                     <img src="/static/light/vanharen/landingpage/lite/images/header-delivery.png" />
@@ -34,7 +36,7 @@
         <div class="trends container">
             <a href="http://www.vanharen.nl/" target="_top" class="logo">
                 <img class="desktop" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo-100x100.png" />
-                <img class="mobile" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo-100x100.png" />
+                <img class="mobile" src="/static/light/vanharen/landingpage/lite/images/vanharen-logo-50x50.png" />
             </a>
             <span class="title">Trends</span>
             <!--<div id="search-bar">
@@ -68,7 +70,7 @@
                     <div class='cell'>
                         <% /* "Shop product" is actually wanted for the tile overlay */  %>
                         <div class="title">
-                            <span>Bekijk Meer >></span>
+                            <span>Shop nu >></span>
                             <span class="name"><%= obj.product.get('name') %></span>
                         </div>
                     </div>
@@ -86,7 +88,7 @@
                     <div class='cell'>
                         <% /* "Shop product" is actually wanted for the tile overlay */  %>
                         <div class="title">
-                            <span>Bekijk Meer >></span>
+                            <span>Shop nu >></span>
                         </div>
                     </div>
                 </div>
@@ -106,7 +108,7 @@
                     <div class='cell'>
                         <% /* "Shop product" is actually wanted for the tile overlay */  %>
                         <div class="title">
-                            <span>Bekijk Meer >></span>
+                            <span>Shop nu >></span>
                         </div>
                     </div>
                 </div>
@@ -333,7 +335,7 @@
         </script>
 
         <script type="text/template" id="product_buy_template">
-            <a class='button in-store' href='<%- obj.url %>' target='_blank'>In winkelmandge</a>
+            <a class='button in-store' href='<%- obj.url %>' target='_blank'>Shop nu</a>
         </script>
 
         <script type="text/template" id="product_price_template">
