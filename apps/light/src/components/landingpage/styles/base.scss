@@ -815,8 +815,14 @@ div.loading {
             color: #FFF;
             background-color: #000;
         }
+        &.expanded {
+            .sub-categories {
+                display: block;
+            }
+        }
     }
     .sub-categories {
+        display: none;
         .sub-categories-section {
             display: table-cell;
         }
