@@ -9,6 +9,7 @@ $black-color: #333;
 $beige-color: #ECECEA;
 $page-width: 943px;
 $mobile-details-height: 75px;
+$mobile-buy-height: 40px;
 
 @import "lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap.scss";
 @import "src/components/landingpage/styles/base.scss";
@@ -1019,7 +1020,7 @@ ul.price {
         }
         .info {
             width: 100%;
-            padding: $mobile-details-height 20px 40px; /* height of info */
+            padding: $mobile-details-height 20px $mobile-buy-height; /* height of info */
             .gallery-main-image {
                 display: block;
                 width: 100%;
@@ -1059,7 +1060,7 @@ ul.price {
         .product-image {
             position: relative;
             width: 100%;
-            padding: $mobile-details-height 20px 40px; /* height of info */
+            padding: $mobile-details-height 20px $mobile-buy-height; /* height of info */
             z-index: 0;
         }
         .product-image,
@@ -1076,7 +1077,7 @@ ul.price {
                     width: 100%;
                     font-size: 20px;
                     letter-spacing: 0px;
-                    line-height: 40px;
+                    line-height: $mobile-buy-height;
                     padding: 0;
                     margin: 0;
                     white-space: normal;
@@ -1204,7 +1205,7 @@ ul.price {
                 height: 100%;
             }
             .product-image {
-                height: 100px;
+                height: 100%;
             }
         }
 
