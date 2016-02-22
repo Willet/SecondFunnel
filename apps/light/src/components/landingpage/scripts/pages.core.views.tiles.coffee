@@ -107,8 +107,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             columnDetails =
                 1: ""
                 2: "wide"
-                3: "three-col"
-                4: "full"
+                3: "full"
 
             wideable = wideableTemplates[@model.get("template")]
             showWide = (Math.random() < App.option("page:tiles:wideProbability", 0.5))
