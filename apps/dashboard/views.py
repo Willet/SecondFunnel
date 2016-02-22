@@ -186,55 +186,83 @@ def dashboard_tiles(request, dashboard_slug):
             return HttpResponseRedirect('/dashboard/')
 
         page = Page.objects.get(pk=page_id)
-        #tileList = page.feed.tiles.all()
         tileMagic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+        tileMagic_count = len(tileMagic)
 
         allProducts = []
-        for tile in tileMagic:
-            tile = json.loads(tile.ir_cache)
-            tile_id = tile['tile-id']
-            tile_prio = tile['priority']
+        all_tiles_priority = []
 
-            if 'default-image' in tile:
-                if type(tile['default-image']) is dict:
-                    try:
-                        tile_img = ProductImage.objects.get(id=tile['default-image']['id']).url
-                    except ProductImage.DoesNotExist:
-                        tile_img = tile['default-image']['sourceUrl']
+        for t in range(0,tileMagic_count):
+            tile = tileMagic[t]
+
+            if tile.ir_cache:
+                tile = json.loads(tile.ir_cache)
+                tile_id = tile['tile-id']
+                tile_prio = tile['priority']
+                all_tiles_priority.append(tile_prio)
+
+                if 'default-image' in tile:
+                    default_image_dict = tile['default-image']
+                    if type(default_image_dict) is dict:
+                        if 'url' in default_image_dict:
+                            tile_img = default_image_dict['url']
+                        else:
+                            try:
+                                tile_img = ProductImage.objects.get(id=default_image_dict['id']).url
+                            except ProductImage.DoesNotExist:
+                                tile_img = default_image_dict['url']
+                    else:
+                        try:
+                            tile_img = ProductImage.objects.get(id=default_image_dict).url
+                        except ProductImage.DoesNotExist:
+                            tile_img = tile['images'][0]['url']
                 else:
-                    try:
-                        tile_img = ProductImage.objects.get(id=tile['default-image']).url
-                    except ProductImage.DoesNotExist:
-                        tile_img = tile['images'][0]['url']
-            else:
-                tile_img = tile['url']
+                    tile_img = tile.get('url',None)
 
-            if 'name' in tile:
-                tile_name = tile['name']
+                if 'template' in tile:
+                    tile_template = tile['template'].title()
+                else:
+                    tile_template = "No template"
+
+                if 'name' in tile:
+                    tile_name = tile['name']
+                else:
+                    if tile['template'] == 'product':
+                        try:
+                            tile_name = Product.objects.get(sku=tile['product']['sku']).name
+                        except Product.DoesNotExist:
+                            tile_name = "No name"
+                    else:
+                        tile_name = "No name"
             else:
+                tile_id = tile['id']
+                tile_prio = tile['priority']
+                tile_img = None
                 tile_name = "No name"
-
-            if 'template' in tile:
                 tile_template = tile['template'].title()
-            else:
-                tile_template = "No template"
+                all_tiles_priority.append(tile_prio)
 
             allProducts.append({
                 'id': tile_id, 
                 'img': tile_img,
                 'name': tile_name,
                 'template': tile_template,
-                'priority': tile_prio
+                'priority': tile_prio,
             })
+
+        tile_IDs = []
+        for x in range(0 , tileMagic_count - 1):
+            tile_IDs.append(allProducts[x]['id'])
 
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {
                 'tileList': allProducts,
+                'tileIDs': tile_IDs,
                 'context': RequestContext(request), 
                 'siteName': cur_dashboard.site_name, 
                 'url_slug': page_id,
-                'page': cur_dashboard_page
+                'page': cur_dashboard_page,
             })
 
 def user_login(request):

@@ -705,6 +705,114 @@ class TileViewSet(viewsets.ModelViewSet):
 
         return Response(return_dict, status=status_code)
 
+    def checkOrdered(self, tileList):
+        """
+        Check if the list given is ordered.
+        Ordered tile lists have a decreasing priority count, such that 
+            tileList[x].priority = tileList[x+1].priority + 1
+
+        input:
+            tileList: list of all tiles
+
+        returns:
+            True/False: True if the list is ordered, False otherwise
+        """
+        ordered = True
+        for x in range(0,len(tileList)-2):
+            if not tileList[x].priority == tileList[x+1].priority + 1:
+                ordered = False
+                break
+
+        return ordered
+
+    def swap_ordered_priorities(self, tileList, tile1_ind, tile2_ind):
+        """
+        Swap the location of 2 tiles an ordered tile list.
+        Ordered tile lists have a decreasing priority count, such that 
+            tileList[x].priority = tileList[x+1].priority + 1
+        Swapping ordered tile lists require simply exchanging the priorities of 
+            the two tiles that needs to be swapped
+
+        inputs:
+            tileList: list of all tiles
+            tile1_ind: index of tile 1
+            tile2_ind: index of tile 2
+
+        returns:
+            tileList: tileList after swapping
+        """
+        # Swap the priority of the tiles in the tileList
+        temp = tileList[tile1_ind].priority
+        tileList[tile1_ind].priority = tileList[tile2_ind].priority
+        tileList[tile2_ind].priority = temp
+        
+        # Swap the tiles in the tileList
+        temp = tileList[tile1_ind]
+        tileList[tile1_ind] = tileList[tile2_ind]
+        tileList[tile2_ind] = temp
+
+        tileList[tile1_ind].save()
+        tileList[tile2_ind].save()
+        return tileList
+
+    def swap_unordered_priorities(self, tileList, tile1_ind, tile2_ind):
+        """
+        Swap the location of 2 tiles an unordered tile list.
+        Ordered tile lists have a decreasing priority count, such that 
+            tileList[x].priority = tileList[x+1].priority + 1
+        Swapping unordered tile lists require setting the priority of all tiles
+            from index of 0 to tile2_ind
+
+        inputs:
+            tileList: list of all tiles
+            tile1_ind: index of tile 1
+            tile2_ind: index of tile 2
+
+        returns:
+            tileList: tileList after swapping
+        """
+        # Make sure that tile1 is on left, tile2 is on right
+        if tile1_ind > tile2_ind:
+            temp = tile1
+            tile1 = tile2
+            tile2 = temp
+
+            temp = tile1_ind
+            tile1_ind = tile2_ind
+            tile2_ind = temp
+
+            temp = tile_id1
+            tile_id1 = tile_id2
+            tile_id2 = temp
+
+        # Swap Tile1 and Tile2 in list
+        temp = tileList[tile1_ind]
+        tileList[tile1_ind] = tileList[tile2_ind]
+        tileList[tile2_ind] = temp
+
+        temp = tile1_ind
+        tile1_ind = tile2_ind
+        tile2_ind = temp
+
+        # Tile1 is now swapped with Tile2, so just need to set priorities. Tile1 is now on the right, Tile2 is on left
+
+        # Set tile1's priority to the one 1 to the right's +1
+        if tile1_ind == len(tileList) - 1:
+            # This means tile1 is now at the end of the list so just set priority = 1
+            tileList[tile1_ind].priority = 1
+        else:
+            # This means tile1 is not at the end of the list so there are still things on the right of it
+            tileList[tile1_ind].priority = tileList[tile1_ind + 1].priority + 1
+
+        tileList[tile1_ind].save()
+
+        # Now just loop from tile1 to tile with ind of 0 in list, while setting priority + 1 the net one
+        for t in range(tile1_ind-1, -1, -1):
+            tileList[t].priority = tileList[t+1].priority + 1
+            tileList[t].save()
+
+        return tileList
+
     @list_route(methods=['post'])
     def swap_tile_location(self, request):
         """
@@ -773,47 +881,115 @@ class TileViewSet(viewsets.ModelViewSet):
                             return_dict['status'] = "The tile with ID: {0} is not part of the page with ID: {1}.".format(tile_id2,page_id)
                         else:
                             tileMagic = list(ir_magic(page_tiles, num_results=page_tiles.count()))
+                            ordered = self.checkOrdered(tileMagic)
+
                             tile1_ind = tileMagic.index(tile1)
                             tile2_ind = tileMagic.index(tile2)
 
-                            # Make sure that tile1 is on left, tile2 is on right
-                            if tile1_ind > tile2_ind:
-                                temp = tile1
-                                tile1 = tile2
-                                tile2 = temp
+                            if ordered:
+                                tileMagic = self.swap_ordered_priorities(tileMagic, tile1_ind, tile2_ind)
+                            else:
+                                tileMagic = self.swap_unordered_priorities(tileMagic, tile1_ind, tile2_ind)
 
-                                temp = tile1_ind
-                                tile1_ind = tile2_ind
-                                tile2_ind = temp
-
-                                temp = tile_id1
-                                tile_id1 = tile_id2
-                                tile_id2 = temp
-
-                            tile1_prio = tile1.priority
-                            tile2_prio = tile2.priority
-
-                            # if tile2_prio > tileMagic[tile2_ind+1].priority:
-                            #     a = 1
-                            # else:
-                            #     a = 2
-
-                            tile1.priority = tile2.priority + 1
-
-                            for t in range(tile2_ind-1, tile1_ind, -1):
-                                tileMagic[t] = tileMagic[t+1].priority + 1
-                                #tileMagic[t].save()
-
-                            if not tileMagic[tile1_ind-1].priority > tileMagic[tile1_ind].priority:
-                                for t in range(tile1_ind-1, 0, -1):
-                                    tileMagic[t].priority = tileMagic[t+1].priority + 1
-                                    #tileMagic[t].save()
-
-                            return_dict['status'] = "Tile1: ID: {0}, Priority: {1}, Index: {2}, Tile2: ID: {3}, Priority: {4}, Index: {5}".format(tile_id1,tile1.priority,tile1_ind,tile_id2,tile2.priority,tile2_ind)
+                            return_dict['status'] = "The tile with ID: {0} has been swapped with tile with ID: {1}.".format(tile_id1, tile_id2)
                             status_code = 200
 
         return Response(return_dict, status=status_code)
 
+    @list_route(methods=['post'])
+    def move_tile_to_position(self, request):
+        """
+        Move the tile to index position
+
+        inputs:
+            index: index to move tile to, with index = 0 indidcating 1st item of list of tiles
+            tile_id: ID of tile
+            page_id: page that contains tile to be moved
+
+        returns:
+            status: status message
+        """
+
+        return_dict = {'status': None}
+        status_code = 400
+
+        try:
+            data = request.POST or ast.literal_eval(request.body)
+        except SyntaxError:
+            data = {}
+
+        if not 'index' in data:
+            return_dict['status'] = "Missing 'index' field from input."
+        elif not 'tile_id' in data:
+            return_dict['status'] = "Missing 'tile_id' field from input."
+        elif not 'page_id' in data:
+            return_dict['status'] = "Missing 'page_id' field from input."
+        else:
+            try:
+                index = int(data['index'])
+                tile_id = int(data['tile_id'])
+                page_id = int(data['page_id'])
+            except (TypeError, ValueError):
+                return_dict['status'] = "Expecting a number as input, but got non-number."
+            else:
+                try:
+                    page = Page.objects.get(pk=page_id)
+                    page_tiles = page.feed.tiles
+                except Page.DoesNotExist:
+                    return_dict['status'] = "The page with ID: {0} could not be found.".format(page_id)
+                except AttributeError:
+                    return_dict['status'] = "The page with ID: {0} does not have a feed or the feed has no tiles.".format(page_id)
+                else:
+                    try:
+                        tile = Tile.objects.get(pk=tile_id)
+                        if not tile in page_tiles.all():
+                            raise ValueError
+                        tileMagic = list(ir_magic(page_tiles, num_results=page_tiles.count()))
+                        tile_index = tileMagic.index(tile)
+                        if tile_index == index:
+                            raise AttributeError
+                    except Tile.DoesNotExist:
+                        return_dict['status'] = "The tile with ID: {0} could not be found.".format(tile_id)
+                    except ValueError:
+                        return_dict['status'] = "The tile with ID: {0} is not part of the page with ID: {1}.".format(tile_id, page_id)
+                    except AttributeError:
+                        return_dict['status'] = "The tile with ID: {0} is already at index {1}.".format(tile_id, index)
+                    else:
+                        # Now we need to make the new list so we can reorder the tiles using priority
+                        # First check if the index we're moving to is on the left or right of original tile index
+                        # Then insert/delete appropriately
+                        if index < tile_index:
+                            tileMagic.insert(index, tileMagic[tile_index])  
+                            del tileMagic[tile_index+1]
+                        else:
+                            tileMagic.insert(index+1, tileMagic[tile_index])  
+                            del tileMagic[tile_index]
+
+                        # Set the starting point for re-numbering the priority to be the one on the right most
+                        if index > tile_index:
+                            start_point = index
+                        else:
+                            start_point = tile_index
+
+                        if start_point == len(tileMagic) - 1:
+                            # This means the starting point is now at the end of the list so just set priority = 1
+                            tileMagic[start_point].priority = 1
+                        else:
+                            # This means the starting point is not at the end of the list so just set priority = element on the right + 1
+                            # This makes sure that the starting point will always be at this spot
+                            tileMagic[start_point].priority = tileMagic[start_point + 1].priority + 1
+
+                        tileMagic[start_point].save()
+
+                        # Go from starting point to the beginning of the list, while setting the priorities for each tile
+                        for x in range(start_point-1, -1, -1):
+                            tileMagic[x].priority = tileMagic[x+1].priority +1
+                            tileMagic[x].save()
+
+                        return_dict['status'] = "The tile with ID: {0} has been moved to index {1}.".format(tile_id, index)
+                        status_code = 200
+
+        return Response(return_dict, status=status_code)
 
 class FeedViewSet(viewsets.ModelViewSet):
     queryset = Feed.objects.all()
