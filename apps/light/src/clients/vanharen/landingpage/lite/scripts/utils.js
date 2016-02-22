@@ -4,20 +4,6 @@ require('jquery-deparam');
 
 module.exports = function (module, App, Backbone, Marionette, $, _) {
     /**
-     *
-     * @param {string} url
-     *
-     * @returns {string} url
-     */
-    module.generateAdClickUrl = function (dest_url) {
-        if ((dest_url.indexOf('gap.com') > -1) && App.option('clickUrl')) {
-            return App.option('clickUrl') + dest_url;
-        } else {
-            return dest_url;
-        }
-    };
-
-    /**
      * ALL CLICKS TO EXTERNAL URLS SHOULD GO THROUGH THIS FUNCTION
      * 
      * Opens url in correct window w/ tracking parameters appended & Emits tracking event
@@ -39,8 +25,14 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         // Track destination url
         App.vent.trigger("tracking:click", dest_url);
 
-        click_url = module.generateAdClickUrl(dest_url);
-        window.open(click_url, "_blank");
+        window.open(dest_url, "_blank");
         return;
+    };
+
+    module.addUrlTrackingParameters = function (url) {
+        var params = {
+            "campaign":   "TRENDSPAGE"
+        };
+        return module.urlAddParams(url, _.extend({}, params, App.option("page:urlParams")));
     };
 };

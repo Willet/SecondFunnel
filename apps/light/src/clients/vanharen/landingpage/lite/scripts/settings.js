@@ -3,6 +3,7 @@
     "wideProbability":1,
     "wideableTemplates":{
       "image":true,
+      "banner": true
     }
   },
   "mobileCategories":[
@@ -13,27 +14,27 @@
         },
         {
           "displayName":"So Sweet",
-          "name":"so-sweet-dames",
+          "name":"so-sweet-dames-mobile",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/mobile-hero-so-sweet-dames.jpg"
         },
         {
           "displayName":"City Style",
-          "name":"city-style-dames",
+          "name":"city-style-dames-mobile",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/mobile-hero-city-style-dames.jpg"
         },
         {
           "displayName":"White Outline",
-          "name":"white-outline-dames",
+          "name":"white-outline-dames-mobile",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/mobile-hero-white-outline-dames.jpg"
         },
         {
           "displayName":"Light & Easy",
-          "name":"light-and-easy-dames",
+          "name":"light-and-easy-dames-mobile",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/mobile-hero-light-and-easy-dames.jpg"
         },
         {
           "displayName":"Hippie Chic",
-          "name":"hippie-chic-dames",
+          "name":"hippie-chic-dames-mobile",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/mobile-hero-hippie-chic-dames.jpg"
         },
         {
@@ -41,7 +42,7 @@
         },
         {
           "displayName":"Mix & Match",
-          "name":"mix-and-match-heren",
+          "name":"mix-and-match-heren-mobile",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/mobile-hero-mix-and-match-heren.jpg"
         }
       ],
