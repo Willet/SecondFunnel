@@ -69,6 +69,10 @@ class PageSerializer(IRSerializer):
                 'hero':             getattr(page, 'home', {}).get('hero', None),
                 'category':         getattr(page, 'home', {}).get('category', ''),
             },
+            'mobileHome': {
+                'hero':             getattr(page, 'mobileHome', {}).get('hero', None),
+                'category':         getattr(page, 'mobileHome', {}).get('category', ''),
+            },
             # expected format: ["facebook", "twitter", "pinterest", "tumblr"]
             'socialButtons':        may_be_json(page, 'socialButtons', list),
             'showSharingCount':     getattr(page, 'showSharingCount', False),
