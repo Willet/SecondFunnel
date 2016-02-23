@@ -231,6 +231,41 @@
     </div>
 </script>
 
+<script type="text/template" id="desktop_tagged_products">
+    <% var orientation = (obj.orientation || "square"); %>
+    <% var oneProduct = (obj.taggedProducts.length < 2); %>
+    <% var imageUrl =  mobileExpandedImage ? mobileExpandedImage.url : image.url; %>
+    <div class="cell look-image-container <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+        <div class="look-image"
+            style="background-image: url('<%= imageUrl %>');">
+        </div>
+    </div>
+    <% if (obj.taggedProducts.length > 1) { %>
+    <div class="cell shop <%= orientation %>">
+        <div class="product-thumbnails"></div>
+    </div>
+    <% } %>
+    <div class="cell info <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
+        <div class='product-info'></div>
+    </div>
+    <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
+</script>
+
+<script type="text/template" id="mobile_tagged_products">
+    <% var imageUrl = mobileExpandedImage ? mobileExpandedImage.url : image.url; %>
+    <div class="look-product-carousel">
+        <div class="cell look-image-container">
+            <div class="look-image" style="background-image: url('<%= imageUrl %>');"></div>
+        </div>
+        <div class="cell info">
+            <div class="product-info"></div>
+        </div>
+    </div>
+    <div class="cell shop">
+        <div class="product-thumbnails"></div>
+    </div>
+</script>
+
 <script type="text/template" id="image_info_template">
     <% include("product_info_template") %>
 </script>
