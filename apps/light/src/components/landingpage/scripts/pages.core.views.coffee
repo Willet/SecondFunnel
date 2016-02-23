@@ -365,6 +365,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             templateRules
 
+        events:
+            'click': (event) ->
+                # Categories can have a `previewTile` tile id, which will be
+                # opened on click
+                catName = App.intentRank.currentCategory()
+                catObj = App.categories.findModelByName(catName)
+                if catObj['previewTile']? and _.isNumber(catObj['previewTile'])
+                    App.router.navigate("preview/#{catObj['previewTile']}",
+                        trigger: true
+                    )
+                return false # stop event propogation
+
         onRender: ->
             # hide discovery, then show this window as a page.
             if App.support.mobile()

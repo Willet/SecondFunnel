@@ -3,7 +3,7 @@
     "wideProbability":1,
     "wideableTemplates":{
       "image":true,
-      "banner": true
+      "banner":true
     }
   },
   "mobileCategories":[
@@ -38,7 +38,7 @@
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/mobile-hero-hippie-chic-dames.jpg"
         },
         {
-          "label": "Heren"
+          "label":"Heren"
         },
         {
           "displayName":"Mix & Match",
@@ -51,63 +51,69 @@
   ],
   "categoryHome":false,
   "gaAccountNumber":"UA-23764505-33",
+  "mobileHome":{
+    "category":"so-sweet-dames-mobile"
+  },
   "social_buttons":null,
-  "stickyCategories":false,
   "generateHeroArea":true,
   "useAffiliateLinks":false,
   "column_width":341,
   "home":{
     "category":"so-sweet-dames"
   },
-  "mobileHome": {
-    "category":"so-sweet-dames-mobile"
-  },
   "masonry":{
     "tileAspectRatio":1,
     "forceGrid":true
   },
   "minImageWidth":400,
+  "stickyCategories":false,
   "categories":[
     {
-      "subCategories": [
+      "subCategories":[
         {
-          "label": "Dames"
+          "label":"Dames"
         },
         {
+          "previewTile":34215,
           "displayName":"So Sweet",
           "name":"so-sweet-dames",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-so-sweet-dames.jpg"
         },
         {
+          "previewTile":34218,
           "displayName":"City Style",
           "name":"city-style-dames",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-city-style-dames.jpg"
         },
         {
+          "previewTile":34231,
           "displayName":"White Outline",
           "name":"white-outline-dames",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-white-outline-dames.jpg"
         },
         {
+          "previewTile":34233,
           "displayName":"Light & Easy",
           "name":"light-and-easy-dames",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-light-and-easy-dames.jpg"
         },
         {
+          "previewTile":34235,
           "displayName":"Hippie Chic",
           "name":"hippie-chic-dames",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-hippie-chic-dames.jpg"
         },
         {
-          "label": "Heren"
+          "label":"Heren"
         },
         {
+          "previewTile":34237,
           "displayName":"Mix & Match",
           "name":"mix-and-match-heren",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-mix-and-match-heren.jpg"
         }
       ],
-      "displayName": ""
+      "displayName":""
     }
   ]
 }
