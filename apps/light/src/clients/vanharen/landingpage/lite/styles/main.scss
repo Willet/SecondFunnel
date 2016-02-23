@@ -551,7 +551,13 @@ body {
         }
     }
 }
-
+#hero-area {
+    .heroContainer {
+        .hero-image-wrapper {
+            cursor: zoom-in;
+        }
+    }
+}
 #preview-area {
     .previewContainer {
         .fullscreen.product {
