@@ -10,7 +10,7 @@ import apps.intentrank.serializers as ir_serializers
 from apps.intentrank.serializers.utils import SerializerError
 
 class FeedSerializerTest(TestCase):
-    fixtures = ['assets_models.json']
+    fixtures = ['intentrank_models.json']
 
     def get_dump_object_test(self):
         s = ir_serializers.FeedSerializer()
@@ -20,7 +20,7 @@ class FeedSerializerTest(TestCase):
         self.assertEqual(data['algorithm'], feed.feed_algorithm)
 
 class StoreSerializerTest(TestCase):
-    fixtures = ['assets_models.json']
+    fixtures = ['assets_intentrank.json']
 
     def get_dump_object_test(self):
         s = ir_serializers.StoreSerializer()
@@ -45,7 +45,7 @@ class StoreSerializerTest(TestCase):
         self.assertEqual(data['defaultPageName'], page.url_slug)
 
 class PageSerializerTest(TestCase):
-    fixtures = ['assets_models.json']
+    fixtures = ['assets_intentrank.json']
 
     def get_dump_object_test(self):
         s = ir_serializers.PageSerializer()
@@ -82,6 +82,11 @@ class PageSerializerTest(TestCase):
             'category':         getattr(page, 'home', {}).get('category', ''),
         }
         self.assertEqual(data['home'], home)
+        mobileHome = {
+            'hero':             getattr(page, 'mobileHome', {}).get('hero', None),
+            'category':         getattr(page, 'mobileHome', {}).get('category', ''),
+        }
+        self.assertEqual(data['mobileHome'], mobileHome)
         defaults = {
             'heroImage':        getattr(page, 'defaults', {}).get('heroImage', ''),
             'mobileHeroImage':  getattr(page, 'defaults', {}).get('mobileHeroImage', ''),
@@ -90,7 +95,7 @@ class PageSerializerTest(TestCase):
         self.assertEqual(data['defaults'], defaults)
 
 class IntentRankSerializerTest(TestCase):
-    fixtures = ['assets_models.json']
+    fixtures = ['assets_intentrank.json']
 
     def to_json_test(self):
         s = ir_serializers.IntentRankSerializer()
@@ -99,7 +104,7 @@ class IntentRankSerializerTest(TestCase):
         self.assertEqual(data['offset'], 0)
 
 class PageConfigSerializerclassTest(TestCase):
-    fixtures = ['assets_models.json']
+    fixtures = ['assets_intentrank.json']
 
     def to_json_test(self):
         s = ir_serializers.PageConfigSerializer()
