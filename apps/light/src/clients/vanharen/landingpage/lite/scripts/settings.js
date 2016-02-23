@@ -59,6 +59,9 @@
   "home":{
     "category":"so-sweet-dames"
   },
+  "mobileHome": {
+    "category":"so-sweet-dames-mobile"
+  },
   "masonry":{
     "tileAspectRatio":1,
     "forceGrid":true
