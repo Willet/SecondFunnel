@@ -3,7 +3,9 @@ from django.core.urlresolvers import reverse
 
 from rest_framework.test import APITestCase
 
-from apps.assets.models import Tile
+from apps.assets.models import Tile, Page
+from apps.intentrank.algorithms import ir_magic
+
 
 class APITest(APITestCase):
     fixtures = ['assets_api.json']
@@ -659,7 +661,7 @@ class APITest(APITestCase):
 
     def page_test(self):
         response = self.client.get(reverse('page-list'))
-        self.assertEqual(len(response.data),2)
+        self.assertEqual(len(response.data),3)
         page0 = response.data[0]
         page1 = response.data[1]
 
@@ -675,6 +677,7 @@ class APITest(APITestCase):
         self.assertEqual(page0['legal_copy'], "Not Available")
         self.assertEqual(page0['last_published_at'], None)
         self.assertEqual(page0['feed'], 9)
+
         self.assertEqual(page1['id'], 17)
         self.assertEqual(page1['store'], 1)
         self.assertEqual(page1['name'], u'TestPage2')
@@ -713,7 +716,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -723,13 +726,13 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_product_successful_category_priority_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory", 'priority': 100})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -739,13 +742,13 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_product_successful_category_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -755,13 +758,13 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_product_successful_priority_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'priority': 1000})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -771,13 +774,13 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_content_successful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -787,13 +790,13 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_content_successful_category_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': "TestCategory"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -803,7 +806,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_product_unsuccessful_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 1000})
@@ -814,7 +817,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -824,7 +827,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default, Store: MyStore is already added. Add failed.')
@@ -838,7 +841,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -848,7 +851,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u'Content with ID: 6, Store: MyStore is already added. Add failed.')
@@ -897,7 +900,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -907,7 +910,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
@@ -921,7 +924,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -931,7 +934,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory2'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
@@ -940,7 +943,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -950,7 +953,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory3'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
@@ -959,7 +962,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -969,7 +972,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Product with ID: 3, Name: Default, Store: MyStore has not been found. Remove failed.")
@@ -978,7 +981,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -988,7 +991,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Product with ID: 3, Name: Default, Store: MyStore has not been found. Remove failed.")
@@ -997,7 +1000,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -1007,7 +1010,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'product')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory3'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
@@ -1016,7 +1019,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -1026,7 +1029,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6})
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
 
@@ -1034,7 +1037,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -1044,7 +1047,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
 
@@ -1052,7 +1055,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -1062,7 +1065,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory2'})
         self.assertEqual(response.data['status'], 'Content with ID: 6, Store: MyStore has not been found. Remove failed.')
 
@@ -1070,7 +1073,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -1080,7 +1083,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory3'})
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
@@ -1088,7 +1091,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -1098,7 +1101,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory2'})
         self.assertEqual(response.data['status'], 'Content with ID: 6, Store: MyStore has not been found. Remove failed.')
 
@@ -1106,7 +1109,7 @@ class APITest(APITestCase):
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 14)
+        self.assertEqual(response.data['id'], 16)
         self.assertEqual(response.data['tile']['feed'], 9)
         self.assertEqual(response.data['tile']['views'], 0)
         self.assertEqual(response.data['tile']['clicks'], 0)
@@ -1116,7 +1119,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['template'], 'image')
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 14)
+        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory3'})
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
@@ -1157,10 +1160,13 @@ class APITest(APITestCase):
 
     def tile_test(self):
         response = self.client.get(reverse('tile-list'))
-        self.assertEqual(len(response.data),3)
+        self.assertEqual(len(response.data),6)
         tile0 = response.data[0]
         tile1 = response.data[1]
         tile2 = response.data[2]
+        tile3 = response.data[3]
+        tile4 = response.data[4]
+        tile5 = response.data[5]
 
         self.assertEqual(tile0['id'], 10)
         self.assertEqual(tile0['feed'], 9)
@@ -1177,23 +1183,56 @@ class APITest(APITestCase):
         self.assertEqual(tile1['feed'], 9)
         self.assertEqual(tile1['template'], u'default')
         self.assertEqual(tile1['products'], [])
-        self.assertEqual(tile1['priority'], 0)
+        self.assertEqual(tile1['priority'], 2)
         self.assertEqual(tile1['clicks'], 0)
         self.assertEqual(tile1['views'], 0)
         self.assertEqual(tile1['placeholder'], False)
         self.assertEqual(tile1['in_stock'], True)
         self.assertEqual(tile1['attributes'], '{}')
 
-        self.assertEqual(tile2['id'], 13)
-        self.assertEqual(tile2['feed'], 13)
+        self.assertEqual(tile2['id'], 12)
+        self.assertEqual(tile2['feed'], 9)
         self.assertEqual(tile2['template'], u'default')
         self.assertEqual(tile2['products'], [])
-        self.assertEqual(tile2['priority'], 0)
+        self.assertEqual(tile2['priority'], 3)
         self.assertEqual(tile2['clicks'], 0)
         self.assertEqual(tile2['views'], 0)
         self.assertEqual(tile2['placeholder'], False)
         self.assertEqual(tile2['in_stock'], True)
         self.assertEqual(tile2['attributes'], '{}')
+
+        self.assertEqual(tile3['id'], 14)
+        self.assertEqual(tile3['feed'], 9)
+        self.assertEqual(tile3['template'], u'default')
+        self.assertEqual(tile3['products'], [])
+        self.assertEqual(tile3['priority'], 4)
+        self.assertEqual(tile3['clicks'], 0)
+        self.assertEqual(tile3['views'], 0)
+        self.assertEqual(tile3['placeholder'], False)
+        self.assertEqual(tile3['in_stock'], True)
+        self.assertEqual(tile3['attributes'], '{}')
+
+        self.assertEqual(tile4['id'], 15)
+        self.assertEqual(tile4['feed'], 9)
+        self.assertEqual(tile4['template'], u'default')
+        self.assertEqual(tile4['products'], [])
+        self.assertEqual(tile4['priority'], 5)
+        self.assertEqual(tile4['clicks'], 0)
+        self.assertEqual(tile4['views'], 0)
+        self.assertEqual(tile4['placeholder'], False)
+        self.assertEqual(tile4['in_stock'], True)
+        self.assertEqual(tile4['attributes'], '{}')
+
+        self.assertEqual(tile5['id'], 13)
+        self.assertEqual(tile5['feed'], 13)
+        self.assertEqual(tile5['template'], u'default')
+        self.assertEqual(tile5['products'], [])
+        self.assertEqual(tile5['priority'], 0)
+        self.assertEqual(tile5['clicks'], 0)
+        self.assertEqual(tile5['views'], 0)
+        self.assertEqual(tile5['placeholder'], False)
+        self.assertEqual(tile5['in_stock'], True)
+        self.assertEqual(tile5['attributes'], '{}')
 
     def tile_single_test(self):
         response = self.client.get(reverse('tile-list')+'11/')
@@ -1202,7 +1241,7 @@ class APITest(APITestCase):
         self.assertEqual(tile['feed'], 9)
         self.assertEqual(tile['template'], u'default')
         self.assertEqual(tile['products'], [])
-        self.assertEqual(tile['priority'], 0)
+        self.assertEqual(tile['priority'], 2)
         self.assertEqual(tile['clicks'], 0)
         self.assertEqual(tile['views'], 0)
         self.assertEqual(tile['placeholder'], False)
@@ -1251,6 +1290,156 @@ class APITest(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Missing 'priority' field from input.")
 
+    def tile_swap_tile_location_ordered_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 10, 'tile_id2': 14, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[0])
+        self.assertEqual(t_bef[1], t_aft[4])
+        self.assertEqual(t_bef[2], t_aft[2])
+        self.assertEqual(t_bef[3], t_aft[3])
+        self.assertEqual(t_bef[4], t_aft[1])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 10 has been swapped with tile with ID: 14.")
+
+    def tile_swap_tile_location_ordered2_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 14, 'tile_id2': 10, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[0])
+        self.assertEqual(t_bef[1], t_aft[4])
+        self.assertEqual(t_bef[2], t_aft[2])
+        self.assertEqual(t_bef[3], t_aft[3])
+        self.assertEqual(t_bef[4], t_aft[1])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 14 has been swapped with tile with ID: 10.")
+
+    def tile_swap_tile_location_unordered_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100.')
+        self.assertEqual(t.priority, 100)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 11, 'priority': 200})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=11)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 11 has been changed to 200.')
+        self.assertEqual(t.priority, 200)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 12, 'priority': 300})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=12)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 12 has been changed to 300.')
+        self.assertEqual(t.priority, 300)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 14, 'priority': 0})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=14)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 14 has been changed to 0.')
+        self.assertEqual(t.priority, 0)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 15, 'priority': 0})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=15)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 15 has been changed to 0.')
+        self.assertEqual(t.priority, 0)
+
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 10, 'tile_id2': 14, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[0])
+        self.assertEqual(t_bef[1], t_aft[1])
+        self.assertEqual(t_bef[2], t_aft[3])
+        self.assertEqual(t_bef[3], t_aft[2])
+        self.assertEqual(t_bef[4], t_aft[4])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 10 has been swapped with tile with ID: 14.")
+
+    def tile_swap_tile_location_unordered2_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100.')
+        self.assertEqual(t.priority, 100)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 11, 'priority': 200})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=11)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 11 has been changed to 200.')
+        self.assertEqual(t.priority, 200)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 12, 'priority': 300})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=12)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 12 has been changed to 300.')
+        self.assertEqual(t.priority, 300)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 14, 'priority': 0})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=14)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 14 has been changed to 0.')
+        self.assertEqual(t.priority, 0)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 15, 'priority': 0})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=15)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 15 has been changed to 0.')
+        self.assertEqual(t.priority, 0)
+
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 12, 'tile_id2': 14, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[3])
+        self.assertEqual(t_bef[1], t_aft[1])
+        self.assertEqual(t_bef[2], t_aft[2])
+        self.assertEqual(t_bef[3], t_aft[0])
+        self.assertEqual(t_bef[4], t_aft[4])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 12 has been swapped with tile with ID: 14.")
+
+    def tile_swap_tile_location_unordered3_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100.')
+        self.assertEqual(t.priority, 100)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 11, 'priority': 200})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=11)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 11 has been changed to 200.')
+        self.assertEqual(t.priority, 200)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 12, 'priority': 300})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=12)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 12 has been changed to 300.')
+        self.assertEqual(t.priority, 300)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 14, 'priority': 0})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=14)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 14 has been changed to 0.')
+        self.assertEqual(t.priority, 0)
+        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 15, 'priority': 0})
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=15)
+        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 15 has been changed to 0.')
+        self.assertEqual(t.priority, 0)
+
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 15, 'tile_id2': 12, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[4])
+        self.assertEqual(t_bef[1], t_aft[1])
+        self.assertEqual(t_bef[2], t_aft[2])
+        self.assertEqual(t_bef[3], t_aft[3])
+        self.assertEqual(t_bef[4], t_aft[0])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 15 has been swapped with tile with ID: 12.")
 
     def tile_swap_tile_location_missing_inputs_test(self):
         response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id': 1, 'tile_id2': 2, 'page_id': 1})
@@ -1289,9 +1478,9 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], "The page with ID: 1000 could not be found.")
 
     def tile_swap_tile_location_bad_inputs3_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 100, 'tile_id2': 11, 'page_id': 8})
+        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 999, 'tile_id2': 11, 'page_id': 8})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 100 could not be found.")
+        self.assertEqual(response.data['status'], "The tile with ID: 999 could not be found.")
 
     def tile_swap_tile_location_bad_inputs4_test(self):
         response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 11, 'tile_id2': 123, 'page_id': 8})
@@ -1308,8 +1497,114 @@ class APITest(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "The tile with ID: 13 is not part of the page with ID: 8.")
 
+    def tile_move_tile_to_position_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 0, 'tile_id': 10, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[1])
+        self.assertEqual(t_bef[1], t_aft[2])
+        self.assertEqual(t_bef[2], t_aft[3])
+        self.assertEqual(t_bef[3], t_aft[4])
+        self.assertEqual(t_bef[4], t_aft[0])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 10 has been moved to index 0.")
+
+    def tile_move_tile_to_position2_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 4, 'tile_id': 15, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[4])
+        self.assertEqual(t_bef[1], t_aft[0])
+        self.assertEqual(t_bef[2], t_aft[1])
+        self.assertEqual(t_bef[3], t_aft[2])
+        self.assertEqual(t_bef[4], t_aft[3])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 15 has been moved to index 4.")
+
+    def tile_move_tile_to_position3_test(self):
+        p = Page.objects.get(pk=8)
+        p_tiles = p.feed.tiles
+        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 3, 'tile_id': 14, 'page_id': 8})
+        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
+        self.assertEqual(t_bef[0], t_aft[0])
+        self.assertEqual(t_bef[1], t_aft[3])
+        self.assertEqual(t_bef[2], t_aft[1])
+        self.assertEqual(t_bef[3], t_aft[2])
+        self.assertEqual(t_bef[4], t_aft[4])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], "The tile with ID: 14 has been moved to index 3.")
+
+    def tile_move_tile_to_position_missing_inputs_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index1': 11, 'tile_id': 13, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'index' field from input.")
+
+    def tile_move_tile_to_position_missing_inputs2_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 11, 'tile_id1': 13, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'tile_id' field from input.")
+
+    def tile_move_tile_to_position_missing_inputs3_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 11, 'tile_id': 13, 'page_id1': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "Missing 'page_id' field from input.")
+
+    def tile_move_tile_to_position_bad_inputs_letters_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': "test", 'tile_id': 1, 'page_id': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': "test", 'page_id': 1})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 3, 'page_id': "test"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+
+    def tile_move_tile_to_position_bad_inputs_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 1, 'page_id': 9})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The page with ID: 9 could not be found.")
+
+    def tile_move_tile_to_position_bad_inputs2_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 1, 'page_id': 19})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The page with ID: 19 does not have a feed or the feed has no tiles.")
+
+    def tile_move_tile_to_position_bad_inputs3_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 133, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The tile with ID: 133 could not be found.")
+
+    def tile_move_tile_to_position_bad_inputs4_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 13, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The tile with ID: 13 is not part of the page with ID: 8.")
+
+    def tile_move_tile_to_position_bad_inputs5_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 4, 'tile_id': 10, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The tile with ID: 10 is already at index 4.")
+
+    def tile_move_tile_to_position_bad_inputs6_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 100, 'tile_id': 10, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The index 100 is out of range of the tile list.")
+
+    def tile_move_tile_to_position_bad_inputs7_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': -1, 'tile_id': 10, 'page_id': 8})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], "The index -1 is out of range of the tile list.")
+
+    def tile_move_tile_to_position_bad_inputs_test(self):
+        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 11, 'tile_id': 13, 'page_id': 8})
+
     def tile_error_test(self):
-        response = self.client.get(reverse('tile-list')+'100/')
+        response = self.client.get(reverse('tile-list')+'999/')
         self.assertEqual(response.data,{u'detail': u'Not found.'})
         self.assertEqual(response.data[u'detail'],u'Not found.')
 
