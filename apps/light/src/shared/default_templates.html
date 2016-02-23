@@ -234,9 +234,10 @@
 <script type="text/template" id="desktop_tagged_products">
     <% var orientation = (obj.orientation || "square"); %>
     <% var oneProduct = (obj.taggedProducts.length < 2); %>
+    <% var imageUrl = expandedImage.url || image.url; %>
     <div class="cell look-image-container <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
         <div class="look-image"
-            style="background-image: url('<%= image.url %>');">
+            style="background-image: url('<%= imageUrl %>');">
         </div>
     </div>
     <% if (obj.taggedProducts.length > 1) { %>
@@ -251,9 +252,10 @@
 </script>
 
 <script type="text/template" id="mobile_tagged_products">
+    <% var imageUrl = expandedMobileImage.url || image.url; %>
     <div class="look-product-carousel">
         <div class="cell look-image-container">
-            <div class="look-image" style="background-image: url('<%= image.url %>');"></div>
+            <div class="look-image" style="background-image: url('<%= imageUrl %>');"></div>
         </div>
         <div class="cell info">
             <div class="product-info"></div>
