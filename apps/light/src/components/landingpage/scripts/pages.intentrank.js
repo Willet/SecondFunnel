@@ -179,7 +179,11 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
                     if (App.option('debug', false)) {
                         console.error(e.responseText);
                     }
-                    if (module._category === App.option("page:home:category")) {
+                    var homeCat = homeCat = App.option("page:home:category", '');
+                    if (App.support.mobile() && App.option("page:mobileHome:category", '')) {
+                        homeCat = App.option("page:mobileHome:category");
+                    }
+                    if (module._category === homeCat) {
                         // Home category is failing, go directly to unfiltered feed
                         module._changeCategory('', true);
                     } else {
@@ -304,9 +308,15 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
             if (!_.isString(category) && App.option('debug', false)) {
                 console.error("Invalid category '"+category+"', attempting to load home category");
             }
+
+            var homeCat = App.option("page:home:category", '');
+            if (App.support.mobile() && App.option("page:mobileHome:category", '')) {
+                homeCat = App.option("page:mobileHome:category");
+            }
+
             // try the home category
-            if (App.option("page:home:category")) {
-                category = App.option("page:home:category");
+            if (homeCat) {
+                category = homeCat;
             } else {
                 // home category is no beuno, lets go with empty string
                 if (App.option('debug', false)) {

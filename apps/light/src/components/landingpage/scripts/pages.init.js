@@ -67,8 +67,12 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // Initialize IntentRank
             // will create new discovery feed
+            var homeCat = App.option('page:home:category', '');
+            if (App.support.mobile() && App.option('page:mobileHome:category', '')) {
+                homeCat = App.option('page:mobileHome:category');
+            }
             App.intentRank.initialize({
-                'category': App.option('page:init:category', App.option('page:home:category', '')),
+                'category': App.option('page:init:category', homeCat),
                 'trigger': true
             });
 
@@ -82,7 +86,12 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // Prevent hero image from resetting to first category on reload
             if (!App.heroArea.currentView) {
-                tileId = App.option('page:init:hero', App.option('page:home:hero', null));
+                var homeHero = App.option('page:home:hero', null);
+                if (App.support.mobile() && App.option('page:mobileHome:hero', null)) {
+                    homeHero = App.option('page:mobileHome:hero');
+                }
+
+                tileId = App.option('page:init:hero', homeHero);
                 if (App.utils.isNumber(tileId)) {
                     App.heroArea.show(new App.core.HeroAreaView({tileId: tileId}));
                 } else {
