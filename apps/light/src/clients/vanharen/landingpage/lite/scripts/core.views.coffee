@@ -90,14 +90,3 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if @model.get("redirect-url")
                 App.utils.openUrl(@model.get("redirect-url"), '_top')
             return false # stop event propogation
-
-    module.HeroContent::events =
-        'click': (event) ->
-            catName = App.intentRank.currentCategory()
-            catObj = App.categories.findModelByName(catName)
-            if catObj['previewTile']? and _.isNumber(catObj['previewTile'])
-                App.router.navigate("preview/#{catObj['previewTile']}",
-                    trigger: true
-                )
-            return false # stop event propogation
-
