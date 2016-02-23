@@ -165,11 +165,35 @@ class ImageTileSerializer(TileSerializer):
         products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
                     image['tagged-products'])
 
+        images = tile.separated_content['images']
+        expandedImageId = tile.attributes.get('expandedImage') or tile.attributes.get('expanded-image')
+        expandedImage = None
+        if expandedImageId:
+            try:
+                expandedImage = [i.to_json() for i in images if i.id == expandedImageId][0]
+            except IndexError:
+                raise SerializerError(" Collection Tile #{} is not tagged with its \
+                                       expanded Image #{}".format(tile.id, expandedImageId))
+
+        mobileExpandedImageId = tile.attributes.get('mobileExpandedImage') or \
+                                tile.attributes.get('mobile-expanded-image')
+        mobileExpandedImage = None
+        if mobileExpandedImageId:
+            try:
+                mobileExpandedImage = [i.to_json() for i in images if i.id == mobileExpandedImageId][0]
+            except IndexError:
+                raise SerializerError(" Collection Tile #{} is not tagged with its \
+                                       mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
+
         data = self.get_core_attributes(tile)
         data.update({
             'default-image': image,
             'tagged-products': products,
         })
+        if expandedImage:
+            data['expandedImage'] = expandedImage
+        if mobileExpandedImage:
+            data['mobileExpandedImage'] = mobileExpandedImage
         return data
 
 
