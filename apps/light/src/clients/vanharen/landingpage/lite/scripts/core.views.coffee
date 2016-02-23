@@ -84,3 +84,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @productThumbnails.show(thumbnailsInstance)
             @ui.lookThumbnail.hide()
         return
+
+    module.BannerTileView::onClick = ->
+            App.vent.trigger('tracking:tile:bannerExit', @model)
+            if @model.get("redirect-url")
+                App.utils.openUrl(@model.get("redirect-url"), '_top')
+            return false # stop event propogation

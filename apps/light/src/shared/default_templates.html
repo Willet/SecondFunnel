@@ -234,7 +234,7 @@
 <script type="text/template" id="desktop_tagged_products">
     <% var orientation = (obj.orientation || "square"); %>
     <% var oneProduct = (obj.taggedProducts.length < 2); %>
-    <% var imageUrl =  mobileExpandedImage ? mobileExpandedImage.url : image.url; %>
+    <% var imageUrl = mobileExpandedImage ? mobileExpandedImage.url : image.url; %>
     <div class="cell look-image-container <%= orientation %> <% if (oneProduct) { %> one-product <% } %>">
         <div class="look-image"
             style="background-image: url('<%= imageUrl %>');">

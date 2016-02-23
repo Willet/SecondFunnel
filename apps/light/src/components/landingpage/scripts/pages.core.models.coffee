@@ -557,10 +557,10 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             # Pop-ups can have different expanded images
             # Can be image json OR ID of an image tagged to this tile
             # Template must support this
-            if @get("expandedImage")? and not _.isEmpty(@get('expandedImage'))
+            if @get("expandedImage")?
                 @set(expandedImage: module.Image.getOrCreate(@get('expandedImage')))
 
-            if @get("mobileExpandedImage")? and not _.isEmpty(@get("mobileExpandedImage"))
+            if @get("mobileExpandedImage")?
                 @set(mobileExpandedImage: module.Image.getOrCreate(@get('mobileExpandedImage')))
 
             if @get('product')? and not _.isEmpty(@get('product'))
