@@ -10,7 +10,7 @@ import apps.intentrank.serializers as ir_serializers
 from apps.intentrank.serializers.utils import SerializerError
 
 class FeedSerializerTest(TestCase):
-    fixtures = ['intentrank_models.json']
+    fixtures = ['assets_intentrank.json']
 
     def get_dump_object_test(self):
         s = ir_serializers.FeedSerializer()
