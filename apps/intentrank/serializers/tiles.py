@@ -156,23 +156,31 @@ class ImageTileSerializer(TileSerializer):
             ...
         }
         """
-        try:
-            # cleanly handles subclasses (ie: Gif uses GifSerializer)
-            image = self.get_dump_first_content_of(self.contenttype, tile)
-        except LookupError:
-            raise SerializerError('Image Tile #{} must be tagged with an image'.format(tile.id))
-
+        images = tile.separated_content['images']
         products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
                     image['tagged-products'])
 
-        images = tile.separated_content['images']
+        defaultImageId = tile.attributes.get('defaultImage') or tile.attributes.get('default-image')
+        if defaultImageId:
+            try:
+                image = [i.to_json() for i in images if i.id == defaultImageId][0]
+            except IndexError:
+                raise SerializerError("Image Tile #{} is not tagged with its \
+                                       default Image #{}".format(tile.id, defaultImageId))
+        else:
+            try:
+                # cleanly handles subclasses (ie: Gif uses GifSerializer)
+                image = self.get_dump_first_content_of(self.contenttype, tile)
+            except LookupError:
+                raise SerializerError('Image Tile #{} must be tagged with an image'.format(tile.id))
+
         expandedImageId = tile.attributes.get('expandedImage') or tile.attributes.get('expanded-image')
         expandedImage = None
         if expandedImageId:
             try:
                 expandedImage = [i.to_json() for i in images if i.id == expandedImageId][0]
             except IndexError:
-                raise SerializerError(" Collection Tile #{} is not tagged with its \
+                raise SerializerError(" Image Tile #{} is not tagged with its \
                                        expanded Image #{}".format(tile.id, expandedImageId))
 
         mobileExpandedImageId = tile.attributes.get('mobileExpandedImage') or \
@@ -182,7 +190,7 @@ class ImageTileSerializer(TileSerializer):
             try:
                 mobileExpandedImage = [i.to_json() for i in images if i.id == mobileExpandedImageId][0]
             except IndexError:
-                raise SerializerError(" Collection Tile #{} is not tagged with its \
+                raise SerializerError(" Image Tile #{} is not tagged with its \
                                        mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
 
         data = self.get_core_attributes(tile)
