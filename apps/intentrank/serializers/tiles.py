@@ -157,8 +157,6 @@ class ImageTileSerializer(TileSerializer):
         }
         """
         images = tile.separated_content['images']
-        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
-                    image['tagged-products'])
 
         defaultImageId = tile.attributes.get('defaultImage') or tile.attributes.get('default-image')
         if defaultImageId:
@@ -173,6 +171,9 @@ class ImageTileSerializer(TileSerializer):
                 image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
                 raise SerializerError('Image Tile #{} must be tagged with an image'.format(tile.id))
+
+        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
+                    image['tagged-products'])
 
         expandedImageId = tile.attributes.get('expandedImage') or tile.attributes.get('expanded-image')
         expandedImage = None
