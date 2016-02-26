@@ -3886,3 +3886,13 @@ div[data-role="editor-toolbar"] {
     width: 99%;
     padding: 5px;
 }
+
+#product-force-create {
+    opacity: 1;
+    position: relative;
+}
+
+#content-force-create {
+    opacity: 1;
+    position: relative;
+}

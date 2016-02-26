@@ -314,7 +314,7 @@ class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
 
-    def add_product(self, filters, product_id, page, category=None, priority=None):  
+    def add_product(self, filters, product_id, page, category=None, priority=None, force_create=None):  
         """
         Adds product to page, with optional category and/or priority
 
@@ -348,8 +348,11 @@ class PageViewSet(viewsets.ModelViewSet):
                 status = ("Product with ID: {0}, Name: {1}, Store: {2} is already added. "
                           "Add failed.").format(str(product_id),product.name,page.store.name)
                 raise AttributeError(status)
-            else:
-                (tile, result) = page.feed.add(product,priority=priority,category=category)
+            else:                
+                if force_create is None:
+                    (tile, result) = page.feed.add(product,priority=priority,category=category) 
+                else:
+                    (tile, result) = page.feed.add(product,priority=priority,category=category, force_create_tile=force_create) 
                 if result:
                     status = "Product with ID: {0}, Name: {1} has been added.".format(str(product_id), product.name)
                     success = True
@@ -399,7 +402,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         return (status, success)
 
-    def add_content(self, filters, content_id, page, category=None, priority=None):
+    def add_content(self, filters, content_id, page, category=None, priority=None, force_create=None):
         """
         Adds content to page, with optional category
 
@@ -434,7 +437,10 @@ class PageViewSet(viewsets.ModelViewSet):
                           "failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)
             else:
-                (tile, result) = page.feed.add(content,priority=priority,category=category) 
+                if force_create is None:
+                    (tile, result) = page.feed.add(content,priority=priority,category=category) 
+                else:
+                    (tile, result) = page.feed.add(content,priority=priority,category=category, force_create_tile=force_create) 
                 if result:
                     status = "Content with ID: {0} has been added.".format(str(content_id))
                     success = True
@@ -495,6 +501,7 @@ class PageViewSet(viewsets.ModelViewSet):
             id: product or content ID
             category: (optional) category name
             priority: (optional) priority number to assign to new tile
+            force_create: (optional) force create tiles or not
             type: what type the id is: 'product' or 'content'
 
         returns:
@@ -522,7 +529,11 @@ class PageViewSet(viewsets.ModelViewSet):
             category = data.get('category', None)
             priority = data.get('priority', 0)
             add_type = data.get('type', None)
-        
+            force_create = data.get('force_create', None)
+
+            if force_create:
+                force_create = (force_create.title() == "True")
+            
             if not obj_id:
                 status = "Missing 'id' field from input."
             elif not add_type:
@@ -554,9 +565,9 @@ class PageViewSet(viewsets.ModelViewSet):
                         # Use add_product if the type's product, else use add_content
                         try:
                             if add_type == 'product':
-                                (status, tile, success) = self.add_product(filters, obj_id, page, category, priority)
+                                (status, tile, success) = self.add_product(filters, obj_id, page, category, priority, force_create)
                             elif add_type == 'content':
-                                (status, tile, success) = self.add_content(filters, obj_id, page, category, priority)
+                                (status, tile, success) = self.add_content(filters, obj_id, page, category, priority, force_create)
                             else:
                                 raise AttributeError("Type '{}' is not a valid type (content/product only).".format(add_type))
                         except AttributeError as e:
@@ -652,18 +663,23 @@ class PageViewSet(viewsets.ModelViewSet):
             "status": status,
         }, status=status_code)
 
+# Provides patch method handler
+class TileDetail(generics.RetrieveUpdateAPIView):
+    serializer_class = TileSerializer
+    queryset = Tile.objects.all()
+
 
 class TileViewSet(viewsets.ModelViewSet):
-    queryset = Tile.objects.all()
     serializer_class = TileSerializer
+    queryset = Tile.objects.all()
 
     @list_route(methods=['post'])
-    def edit_single_priority(self, request):
+    def edit_tile_priority(self, request):
         """
         Edit the priority of a single tile
 
         inputs:
-            tile_id: ID of tile
+            id: ID of tile
             priority: new priority
 
         returns:
@@ -678,13 +694,13 @@ class TileViewSet(viewsets.ModelViewSet):
         except SyntaxError:
             data = {}
 
-        if not 'tile_id' in data:
-            return_dict['status'] = "Missing 'tile_id' field from input."
+        if not 'id' in data:
+            return_dict['status'] = "Missing 'id' field from input."
         elif not 'priority' in data:
             return_dict['status'] = "Missing 'priority' field from input."
         else:
             try:
-                tile_id = int(data['tile_id'])
+                tile_id = int(data['id'])
                 priority = int(data['priority'])
             except (TypeError, ValueError):
                 return_dict['status'] = "Expecting a number as input, but got non-number."
@@ -923,7 +939,7 @@ class TileViewSet(viewsets.ModelViewSet):
         returns:
             status: status message
         """
-
+        print "move"
         return_dict = {'status': None}
         status_code = 400
 

@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 
 from apps.assets.models import Category, Page, Product, Store, ProductImage
+from apps.api2.serializers import TileSerializer
 from apps.dashboard.models import DashBoard, UserProfile, Query
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.views import scrape
@@ -140,7 +141,7 @@ def overview(request):
     })
 
 @login_required(login_url=LOGIN_URL)
-def dashboard_manage(request, dashboard_slug):
+def dashboard_products(request, dashboard_slug):
     profile = UserProfile.objects.get(user=request.user)
     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
 
@@ -160,7 +161,7 @@ def dashboard_manage(request, dashboard_slug):
         context = RequestContext(request)
         cur_dashboard_page = cur_dashboard.page
 
-        return render(request, 'manage.html', {
+        return render(request, 'products.html', {
                 'context': context, 
                 'siteName': cur_dashboard.site_name, 
                 'url_slug': page_id,
@@ -192,14 +193,10 @@ def dashboard_tiles(request, dashboard_slug):
         allProducts = []
         all_tiles_priority = []
 
-        for t in range(0,tileMagic_count):
-            tile = tileMagic[t]
-
+        for tile in tileMagic:
             if tile.ir_cache:
                 tile = json.loads(tile.ir_cache)
-                tile_id = tile['tile-id']
-                tile_prio = tile['priority']
-                all_tiles_priority.append(tile_prio)
+                tile_id = int(tile['tile-id'])
 
                 if 'default-image' in tile:
                     default_image_dict = tile['default-image']
@@ -219,10 +216,6 @@ def dashboard_tiles(request, dashboard_slug):
                 else:
                     tile_img = tile.get('url',None)
 
-                if 'template' in tile:
-                    tile_template = tile['template'].title()
-                else:
-                    tile_template = "No template"
 
                 if 'name' in tile:
                     tile_name = tile['name']
@@ -235,25 +228,32 @@ def dashboard_tiles(request, dashboard_slug):
                     else:
                         tile_name = "No name"
             else:
-                tile_id = tile['id']
-                tile_prio = tile['priority']
+                tile_id = int(tile['id'])
                 tile_img = None
-                tile_name = "No name"
-                tile_template = tile['template'].title()
-                all_tiles_priority.append(tile_prio)
+                tile_name = tile.get('name', None)
+            
+            tile_prio = tile['priority']
+            tile_template = tile.get('template', "No template").title()
+            tagged_products = tile.get('tagged-products', [])
 
+            tile_tagged_products = []
+            for t in tagged_products:
+                tile_tagged_products.append(t.get('id',None))
+
+            all_tiles_priority.append(tile_prio)
             allProducts.append({
                 'id': tile_id, 
                 'img': tile_img,
                 'name': tile_name,
                 'template': tile_template,
                 'priority': tile_prio,
+                'tagged_products': tile_tagged_products,
             })
 
         tile_IDs = []
-        for x in range(0 , tileMagic_count - 1):
-            tile_IDs.append(allProducts[x]['id'])
-
+        for t in allProducts:
+            tile_IDs.append(t['id'])
+        
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {

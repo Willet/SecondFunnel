@@ -15,7 +15,7 @@ var Tile = Backbone.Model.extend({
     getCustomURL: function (method) {
         switch (method) {
             case 'edit_priority':
-                return api_URL + 'tile/edit_single_priority/';
+                return api_URL + 'tile/edit_tile_priority/';
             case 'swap_tile':
                 return api_URL + 'tile/swap_tile_location/';
             case 'move_tile':
@@ -31,9 +31,10 @@ var Tile = Backbone.Model.extend({
 
     changePriority: function(input) {
         var options = {
-            'url': this.getCustomURL('edit_priority')
+            'url': api_URL + 'tile/' + input.id + '/',
         };
-        return Backbone.sync.call(this, 'create', input, options);
+        console.log(options);
+        return Backbone.sync.call(this, 'patch', input, options);
     },
 
     swapTile: function(input) {
@@ -49,22 +50,28 @@ var Tile = Backbone.Model.extend({
     	}
     	return Backbone.sync.call(this, 'create', input, options)
     },
-
 });
 
 function editTile(tile_id, prio){
     var tile = new Tile({
-        tile_id: tile_id,
+        id: tile_id,
         priority: prio
     })
     result = tile.changePriority(tile);
     result.always(function() {
-        $('#result_' + tile_id).html(JSON.parse(result.responseText).status);
+        result = JSON.parse(result.responseText);
+        console.log(tile)
+        if ("id" in result)
+            status = "The priority of tile with ID: " + tile.attributes.id + 
+                     " has been changed to " + tile.attributes.priority + ". Press Refresh to see the changes";
+        else
+            status = result.priority;
+        $('#result_' + tile_id).html(status);
     })
 }
 
 function checkPrio(tile_id){
-    if (document.getElementById('result_' + tile_id).value != "")
+    if (document.getElementById('result_' + tile_id).innerHTML != "")
     	window.location.reload();
 }
 
@@ -76,7 +83,7 @@ function swap_tile_positions(tile1, tile2){
 	})
 	result = tile.swapTile(tile);
 	result.always(function(){
-		$('#swap_result').html(JSON.parse(result.responseText).status + "Press Refresh to see the changes.");
+		$('#swap_result').html(JSON.parse(result.responseText).status + " Press Refresh to see the changes.");
 	})
 }
 

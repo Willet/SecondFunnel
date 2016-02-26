@@ -10,7 +10,8 @@
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "manage.js" %}"></script>
+    <script type="text/javascript" src="{% static "products.js" %}"></script>
+    <script type="text/javascript" src="{% static "common.js" %}"></script>
 {% endblock %}
 
 {% block main %}
@@ -49,6 +50,7 @@
                             <tr style="width: 50%;">
                                 <td valign="top">
                                     <div id="addProductDiv"></div>
+                                    <input type="checkbox" id="product-force-create">Force create tile<br>
                                     <input type="submit" id="product-add-button" value="Add">
                                 </td>
                                 <td valign="top">
@@ -79,6 +81,7 @@
                             <tr style="width: 50%;">
                                 <td valign="top">
                                     <div id="addContentDiv"></div>
+                                    <input type="checkbox" id="content-force-create">Force create tile<br>
                                     <input type="submit" id="content-add-button" value="Add">
                                 </td>
                                 <td valign="top">

@@ -13,7 +13,7 @@
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
-    <script type="text/javascript" src="{% static "manage.js" %}"></script>
+    <script type="text/javascript" src="{% static "common.js" %}"></script>
 	<script src="{% static "js/jquery-ui.min.js" %}"></script>
 {% endblock %}
 
@@ -33,71 +33,7 @@
                 <!--/col-md-12-->
             </div>
             <!--/row-->
-        	<!-- Manage Forms (Add/Remove Products/Content) -->
-        	<div class="row" id="allforms">
-                <div class="col-md-12">
-                    <div class="block-web">       
-                        <table style="height: 100%; width: 100%;">  
-                            <tr style="width: 50%;">
-                                <td>   
-                                    <h3 class="content-header">
-                                        Add product with:
-                                    </h3>
-                                </td>
-                                <td>
-                                    <h3 class="content-header">
-                                        Remove product with:
-                                    </h3>
-                                </td>
-                            </tr>
-                            <tr style="width: 50%;">
-                                <td valign="top">
-                                    <div id="addProductDiv"></div>
-                                    <input type="submit" id="product-add-button" value="Add">
-                                </td>
-                                <td valign="top">
-                                    <div id="removeProductDiv"></div>
-                                    <input type="submit" id="product-remove-button" value="Remove">
-                                </td>
-                            </tr>
-                        </table>
-                        <div id="product-add-result"></div>
-                        <div id="product-remove-result"></div>
-                    </div>                    
-                    <div class="block-web">       
-                        <table style="height: 100%; width: 100%;">  
-                            <tr style="width: 50%;">
-                                <td>   
-                                    <h3 class="content-header">
-                                        Add content with:
-                                    </h3>
-                                </td>
-                                <td>
-                                    <h3 class="content-header">
-                                        Remove content with:
-                                    </h3>
-                                </td>
-                            </tr>
-                            <tr style="width: 50%;">
-                                <td valign="top">
-                                    <div id="addContentDiv"></div>
-                                    <input type="submit" id="content-add-button" value="Add">
-                                </td>
-                                <td valign="top">
-                                    <div id="removeContentDiv"></div>
-                                    <input type="submit" id="content-remove-button" value="Remove">
-                                </td>
-                            </tr>
-                        </table>
-                        <div id="content-add-result"></div>
-                        <div id="content-remove-result"></div>
-                    </div>   
-                    <!--/block-web-->
-                </div>
-                <!--/col-md-12-->
-            </div>
-            <!--/row-->
-
+        	
             <div class="block-web" id="swap-tiles">
             	<h3 class="content-header">
             		Swap tile positions
@@ -148,6 +84,7 @@
 		            						Current Priority: {{ tile.priority }}</br>
 		            						New Priority: <input type="text" id="new_priority_{{ tile.id }}">
 		            						<div id="result_{{ tile.id }}"></div>
+		            						Tagged Products IDs: {{ tile.tagged_products }}
 		            					</div>
 		            					<div class="modal-footer">
 		            						<button type="button" class="btn btn-default" onclick="editTile({{ tile.id }}, document.getElementById('new_priority_{{ tile.id }}').value)">

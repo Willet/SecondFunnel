@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from rest_framework.test import APITestCase
 
 from apps.assets.models import Tile, Page
+from apps.api2.serializers import TileSerializer
 from apps.intentrank.algorithms import ir_magic
 
 
@@ -1250,45 +1251,33 @@ class APITest(APITestCase):
         self.assertEqual(tile['feed'],9)
 
     def tile_change_prio_test(self):
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100000})
+        response = self.client.patch('/api2/tile/10/', {'priority': 100000})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100000.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 100000)
 
-    def tile_change_prio_same_test(self):
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 1})
-        self.assertEqual(response.status_code, 400)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 is already 1.')
-        self.assertEqual(t.priority, 1)
-
     def tile_change_prio_wrongID_test(self):
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 55, 'priority': 1})
+        response = self.client.patch('/api2/tile/55/', {'priority': 1})
         self.assertEqual(response.status_code, 404)
         t = Tile.objects.filter(pk=55)
-        self.assertEqual(response.data['status'], 'The tile with ID: 55 could not be found.')
+        self.assertEqual(response.data['detail'], 'Not found.')
         self.assertEqual(list(t), [])
 
     def tile_change_prio_bad_inputs_test(self):
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 'test', 'priority': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+        response = self.client.patch('/api2/tile/test/', {'priority': 1})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['detail'], 'Not found.')
 
     def tile_change_prio_bad_inputs2_test(self):
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 1, 'priority': 'test'})
+        response = self.client.patch('/api2/tile/10/', {'priority': 'test'})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
+        self.assertEqual(response.data['priority'], [u'A valid integer is required.'])
 
     def tile_change_prio_bad_inputs3_test(self):
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tileID': 1, 'priority': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'tile_id' field from input.")
-
-    def tile_change_prio_bad_inputs3_test(self):
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 1, 'prioritie': 3})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'priority' field from input.")
+        response = self.client.patch('/api2/tile/', {'priority': 'test'})
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.data['detail'], u'Method "PATCH" not allowed.')
 
     def tile_swap_tile_location_ordered_test(self):
         p = Page.objects.get(pk=8)
@@ -1322,30 +1311,30 @@ class APITest(APITestCase):
         p = Page.objects.get(pk=8)
         p_tiles = p.feed.tiles
 
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100})
+        response = self.client.patch('/api2/tile/10/', {'priority': 100})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 100)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 11, 'priority': 200})
+        response = self.client.patch('/api2/tile/11/', {'priority': 200})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=11)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 11 has been changed to 200.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 200)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 12, 'priority': 300})
+        response = self.client.patch('/api2/tile/12/', {'priority': 300})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=12)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 12 has been changed to 300.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 300)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 14, 'priority': 0})
+        response = self.client.patch('/api2/tile/14/', {'priority': 0})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=14)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 14 has been changed to 0.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 0)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 15, 'priority': 0})
+        response = self.client.patch('/api2/tile/15/', {'priority': 0})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=15)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 15 has been changed to 0.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 0)
 
         t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
@@ -1363,30 +1352,30 @@ class APITest(APITestCase):
         p = Page.objects.get(pk=8)
         p_tiles = p.feed.tiles
 
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100})
+        response = self.client.patch('/api2/tile/10/', {'priority': 100})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 100)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 11, 'priority': 200})
+        response = self.client.patch('/api2/tile/11/', {'priority': 200})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=11)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 11 has been changed to 200.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 200)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 12, 'priority': 300})
+        response = self.client.patch('/api2/tile/12/', {'priority': 300})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=12)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 12 has been changed to 300.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 300)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 14, 'priority': 0})
+        response = self.client.patch('/api2/tile/14/', {'priority': 0})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=14)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 14 has been changed to 0.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 0)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 15, 'priority': 0})
+        response = self.client.patch('/api2/tile/15/', {'priority': 0})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=15)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 15 has been changed to 0.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 0)
 
         t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
@@ -1404,32 +1393,32 @@ class APITest(APITestCase):
         p = Page.objects.get(pk=8)
         p_tiles = p.feed.tiles
 
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 10, 'priority': 100})
+        response = self.client.patch('/api2/tile/10/', {'priority': 100})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 10 has been changed to 100.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 100)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 11, 'priority': 200})
+        response = self.client.patch('/api2/tile/11/', {'priority': 200})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=11)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 11 has been changed to 200.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 200)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 12, 'priority': 300})
+        response = self.client.patch('/api2/tile/12/', {'priority': 300})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=12)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 12 has been changed to 300.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 300)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 14, 'priority': 0})
+        response = self.client.patch('/api2/tile/14/', {'priority': 0})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=14)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 14 has been changed to 0.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 0)
-        response = self.client.post('/api2/tile/edit_single_priority/', {'tile_id': 15, 'priority': 0})
+        response = self.client.patch('/api2/tile/15/', {'priority': 0})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=15)
-        self.assertEqual(response.data['status'], 'The priority of the tile with ID: 15 has been changed to 0.')
+        self.assertEqual(response.data, TileSerializer(t).data)
         self.assertEqual(t.priority, 0)
-
+        
         t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
         response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 15, 'tile_id2': 12, 'page_id': 8})
         t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))

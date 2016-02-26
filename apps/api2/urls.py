@@ -17,5 +17,6 @@ router.register(r'category', views.CategoryViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
+    url(r'users/(?P<pk>\d+)/$', views.TileDetail.as_view(), name='tile-detail'),
     url(r'^auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
