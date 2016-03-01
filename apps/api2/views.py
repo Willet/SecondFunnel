@@ -1,4 +1,5 @@
 import ast
+import json
 from multiprocessing import Process
 
 from django.db.models import Q
@@ -22,9 +23,8 @@ from apps.imageservice.utils import upload_to_cloudinary
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
 from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
-    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer, TileSerializerBulk
-
-    # ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer
+    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer, \
+    TileSerializerBulk
 
 class StoreViewSet(viewsets.ModelViewSet):
     queryset = Store.objects.all()
@@ -695,15 +695,20 @@ class ListCreateDestroyBulkUpdateAPIView(mixins.ListModelMixin,
     def bulk_update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
 
+        if 'data' in request.data:
+            data = ast.literal_eval(request.data['data'])
+        else:
+            data = request.data
+
         # restrict the update to the filtered queryset
         serializer = self.get_serializer(
             self.filter_queryset(self.get_queryset()),
-            data=request.data,
+            data=data,
             many=True,
             partial=partial,
         )
         serializer.is_valid(raise_exception=True)
-        self.perform_bulk_update(serializer)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, *args, **kwargs):
@@ -712,6 +717,7 @@ class ListCreateDestroyBulkUpdateAPIView(mixins.ListModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
 
 class TileDetailBulk(APIView):
     serializer_class = TileSerializerBulk

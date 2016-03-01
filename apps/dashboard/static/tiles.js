@@ -10,19 +10,15 @@ var TileCollection = Backbone.Collection.extend({
 
     model: Tile,
 
+    initialize: function () {
+
+    },
+
     getCustomURL: function(method){
         switch (method) {
             case 'swapTile':
                 return apiURL + 'tile/';
         }
-    },
-
-    sync: function (method, model, options) {
-        options || (options = {});
-        options.url = this.getCustomURL('swapTile');
-        console.log(options);
-        console.log(method);
-        return Backbone.sync.call(this, method, model, options);
     },
 
     swapTile: function(tileCollection, tile1_id, tile2_id){
@@ -39,9 +35,9 @@ var TileCollection = Backbone.Collection.extend({
             'url': this.getCustomURL('swapTile'),
         };
 
-        tileCollection.batch = batch;
+        tileCollection.data = batch;
 
-        return this.sync('patch', tileCollection, options)
+        return Backbone.sync.call(this, 'patch', tileCollection, options);
     },
 
     setIncreasingPriority: function(ind){
@@ -176,10 +172,11 @@ function checkPrio(tile_id){
 function swapTilePositions(tile1, tile2){
     batch = [];
     var tileCollection = new TileCollection();
-    tileCollection.swapTile(tileCollection, tile1, tile2);
-    // console.log(tiles);
-    // console.log(batch);
-
+    result = tileCollection.swapTile(tileCollection, tile1, tile2);
+    result.always(function() {
+        result = result.responseText;
+        $('#swap_result').html(result);
+    })
 }
 
 function checkOrdered(){

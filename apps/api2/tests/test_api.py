@@ -1272,7 +1272,7 @@ class APITest(APITestCase):
         self.assertEqual(t.priority, 100000)
         t = Tile.objects.get(pk=11)
         self.assertEqual(response.data[1], TileSerializer(t).data)
-        self.assertEqual(t.priority, 102)
+        self.assertEqual(t.priority, 101)
 
     def tile_change_prio_wrongID_test(self):
         response = self.client.patch('/api2/tile/55/', {'priority': 1})
