@@ -4,12 +4,18 @@ from multiprocessing import Process
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.utils.datastructures import MultiValueDictKeyError
+from django.http import Http404
+
 from rest_framework.decorators import api_view, detail_route, list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 # from rest_framework import renderers, viewsets, permissions, generics
-from rest_framework import renderers, viewsets, permissions
+from rest_framework import renderers, viewsets, permissions, mixins, status
+from rest_framework.generics import GenericAPIView
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
 from rest_framework_bulk import generics, BulkListSerializer
+from rest_framework_bulk import mixins as bulk_mixins
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 from apps.imageservice.utils import upload_to_cloudinary
@@ -667,12 +673,73 @@ class PageViewSet(viewsets.ModelViewSet):
         }, status=status_code)
 
 
-class TileDetailBulk(generics.ListBulkCreateUpdateDestroyAPIView):
+# class TileDetailBulk(generics.ListBulkCreateUpdateDestroyAPIView):
+#     serializer_class = TileSerializerBulk
+#     queryset = Tile.objects.all()
+
+class ListCreateDestroyBulkUpdateAPIView(mixins.ListModelMixin,
+                                      mixins.CreateModelMixin,
+                                      mixins.DestroyModelMixin,
+                                      bulk_mixins.BulkUpdateModelMixin,
+                                      GenericAPIView
+                                      ):
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.bulk_update(request, *args, **kwargs)
+
+    def bulk_update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+
+        # restrict the update to the filtered queryset
+        serializer = self.get_serializer(
+            self.filter_queryset(self.get_queryset()),
+            data=request.data,
+            many=True,
+            partial=partial,
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_bulk_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.bulk_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+class TileDetailBulk(APIView):
     serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
 
+    def get_object(self, pk):
+        try:
+            return Tile.objects.get(pk=pk)
+        except Tile.DoesNotExist:
+            raise Http404
 
-class TileViewSetBulk(generics.BulkModelViewSet):
+    def get(self, request, pk, format=None):
+        try:
+            serializer = TileSerializer(Tile.objects.get(pk=pk))
+        except Tile.DoesNotExist:
+            return Response({'detail': "Not found."}, status=404)        
+        return Response(serializer.data)
+
+    def patch(self, request, pk, format=None):
+        tile = self.get_object(pk)
+        serializer = TileSerializer(tile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
     serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
     list_serializer_class = BulkListSerializer

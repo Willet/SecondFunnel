@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from rest_framework_bulk import (
     BulkListSerializer,
-    BulkSerializerMixin,
-    ListBulkCreateUpdateDestroyAPIView,
+    BulkSerializerMixin
 )
 from django.contrib.auth.models import User
 

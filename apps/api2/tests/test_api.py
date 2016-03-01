@@ -1161,7 +1161,7 @@ class APITest(APITestCase):
 
     def tile_test(self):
         # response = self.client.get(reverse('tile-list'))
-        response = self.client.get(reverse('rest_framework:tile-list'))
+        response = self.client.get('/api2/tile/')
         self.assertEqual(len(response.data),6)
         tile0 = response.data[0]
         tile1 = response.data[1]
@@ -1272,7 +1272,7 @@ class APITest(APITestCase):
         self.assertEqual(t.priority, 100000)
         t = Tile.objects.get(pk=11)
         self.assertEqual(response.data[1], TileSerializer(t).data)
-        self.assertEqual(t.priority, 101)
+        self.assertEqual(t.priority, 102)
 
     def tile_change_prio_wrongID_test(self):
         response = self.client.patch('/api2/tile/55/', {'priority': 1})
@@ -1290,7 +1290,6 @@ class APITest(APITestCase):
     def tile_change_prio_bad_inputs_test(self):
         response = self.client.patch('/api2/tile/test/', {'priority': 1})
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['detail'], 'Not found.')
 
     def tile_change_prio_bad_inputs2_test(self):
         response = self.client.patch('/api2/tile/10/', {'priority': 'test'})
@@ -1304,7 +1303,6 @@ class APITest(APITestCase):
 
     def tile_error_test(self):
         response = self.client.get('/api2/tile/999/')
-        print response
         self.assertEqual(response.data,{u'detail': u'Not found.'})
         self.assertEqual(response.data[u'detail'],u'Not found.')
 

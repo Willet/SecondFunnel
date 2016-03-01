@@ -11,9 +11,8 @@
         var tilePrio = {{ tilePrio }};
         var tiles = [];
         {% for tile in tileList %}
-        	tiles.push({'id': {{ tile.id }}, 'priority': {{ tile.priority}} });
+        	tiles.push({'id': {{ tile.id }}, 'priority': {{ tile.priority }} });
         {% endfor %}
-        console.log(tiles);
     </script>
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>

@@ -187,13 +187,13 @@ def dashboard_tiles(request, dashboard_slug):
             return HttpResponseRedirect('/dashboard/')
 
         page = Page.objects.get(pk=page_id)
-        tileMagic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
-        tileMagic_count = len(tileMagic)
+        tile_magic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+        tileMagic_count = len(tile_magic)
 
-        allProducts = []
+        all_products = []
         all_tiles_priority = []
 
-        for tile in tileMagic:
+        for tile in tile_magic:
             if tile.ir_cache:
                 tile = json.loads(tile.ir_cache)
                 tile_id = int(tile['tile-id'])
@@ -241,7 +241,7 @@ def dashboard_tiles(request, dashboard_slug):
                 tile_tagged_products.append(t.get('id',None))
 
             all_tiles_priority.append(tile_prio)
-            allProducts.append({
+            all_products.append({
                 'id': tile_id, 
                 'img': tile_img,
                 'name': tile_name,
@@ -250,18 +250,18 @@ def dashboard_tiles(request, dashboard_slug):
                 'tagged_products': tile_tagged_products,
             })
 
-        tile_IDs = []
+        tile_ids = []
         tile_prio = []
         tiles = []
-        for t in allProducts:
-            tile_IDs.append(t['id'])
+        for t in all_products:
+            tile_ids.append(t['id'])
             tile_prio.append(t['priority'])
         
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {
-                'tileList': allProducts,
-                'tileIDs': tile_IDs,
+                'tileList': all_products,
+                'tileIDs': tile_ids,
                 'tilePrio': tile_prio,
                 'context': RequestContext(request), 
                 'siteName': cur_dashboard.site_name, 
