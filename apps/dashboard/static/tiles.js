@@ -3,13 +3,21 @@
 var apiURL = "http://localhost:8000/api2/";
 
 var result, ordered, tiles;
+var batch = [];
 
 var TileCollection = Backbone.Collection.extend({
     url: apiURL + 'tile/',
 
     model: Tile,
 
-    swapTile: function(tile1_id, tile2_id){
+    getCustomURL: function(method){
+        switch (method) {
+            case 'swapTile':
+                return apiURL + 'tile/';
+        }
+    },
+
+    swapTile: function(tileCollection, tile1_id, tile2_id){
         var tile1_ind = tileIDs.indexOf(parseInt(tile1_id));
         var tile2_ind = tileIDs.indexOf(parseInt(tile2_id));
 
@@ -17,11 +25,23 @@ var TileCollection = Backbone.Collection.extend({
             this.swapOrderedPriorities(tile1_ind, tile2_ind);
         else
             this.swapUnorderedPriorities(tile1_ind, tile2_ind);
+
+        console.log(batch);
+        batch = JSON.stringify(batch);
+        var options = {
+            'url': this.getCustomURL('swapTile'),
+        };
+        console.log(batch);
+        tileCollection.batch = batch;
+        console.log(tileCollection);
+        return Backbone.sync.call(this, 'patch', tileCollection, options)
     },
 
     setIncreasingPriority: function(ind){
-        for (var i = ind; i >= 0; i--)
+        for (var i = ind; i >= 0; i--) {
             tiles[i]['priority'] = tiles[i+1]['priority'] + 1;
+            batch.push(tiles[i]);
+        }
     },
 
     swapOrderedPriorities: function(tile1_ind, tile2_ind){
@@ -36,6 +56,8 @@ var TileCollection = Backbone.Collection.extend({
         tiles[tile2_ind]['priority'] = temp
 
         //Save tile1 & tile2 priority
+        batch.push(tiles[tile1_ind]);
+        batch.push(tiles[tile2_ind]);
     },
 
     swapUnorderedPriorities: function(tile1_ind, tile2_ind){
@@ -70,6 +92,7 @@ var TileCollection = Backbone.Collection.extend({
         }
 
         // save tiles(tile1_ind) priority
+        batch.push(tiles[tile1_ind]);
         
         // Now just loop from tile1 to tile with ind of 0 in list, while setting priority + 1 the next one
         this.setIncreasingPriority(tile1_ind-1);
@@ -129,7 +152,6 @@ function editTile(tile_id, prio){
     result = tile.changePriority(tile);
     result.always(function() {
         result = JSON.parse(result.responseText);
-        console.log(tile)
         if ("id" in result)
             status = "The priority of tile with ID: " + tile.attributes.id + 
                      " has been changed to " + tile.attributes.priority + ". Press Close to see the changes";
@@ -145,23 +167,23 @@ function checkPrio(tile_id){
 }
 
 function swapTilePositions(tile1, tile2){
+    batch = [];
     var tileCollection = new TileCollection();
-    console.log("---- BEFORE -----");
+    tileCollection.swapTile(tileCollection, tile1, tile2);
     console.log(tiles);
-    tileCollection.swapTile(tile1, tile2);
-    console.log("---- AFTER  -----");
-    console.log(tiles);
+    console.log(batch);
+
 }
 
 function checkOrdered(){
-        var result = true;
-        for (var i = 0; i < tiles.length-1; i++){
-            if (tiles[i]['priority'] != tiles[i+1]['priority'] + 1){
-                result = false;
-                break;
-            }
+    var result = true;
+    for (var i = 0; i < tiles.length-1; i++){
+        if (tiles[i]['priority'] != tiles[i+1]['priority'] + 1){
+            result = false;
+            break;
         }
-        return result;
+    }
+    return result;
 }
 
 $(function(){
