@@ -8,6 +8,12 @@
     <script>
         var url_slug = {{ url_slug }};
         var tileIDs = {{ tileIDs }};
+        var tilePrio = {{ tilePrio }};
+        var tiles = [];
+        {% for tile in tileList %}
+        	tiles.push({'id': {{ tile.id }}, 'priority': {{ tile.priority}} });
+        {% endfor %}
+        console.log(tiles);
     </script>
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
@@ -40,7 +46,7 @@
             	</h3>
             	Tile 1: <input type="text" id="tile1">
             	Tile 2: <input type="text" id="tile2"></br>
-            	<button type="button" class="btn btn-default" onclick="swap_tile_positions(document.getElementById('tile1').value,document.getElementById('tile2').value)">
+            	<button type="button" class="btn btn-default" onclick="swapTilePositions(document.getElementById('tile1').value,document.getElementById('tile2').value)">
 		            Swap
 		        </button>
 		        <button type="button" class="btn btn-default" onclick="window.location.reload()">

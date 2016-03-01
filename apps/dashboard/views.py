@@ -251,14 +251,18 @@ def dashboard_tiles(request, dashboard_slug):
             })
 
         tile_IDs = []
+        tile_prio = []
+        tiles = []
         for t in allProducts:
             tile_IDs.append(t['id'])
+            tile_prio.append(t['priority'])
         
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {
                 'tileList': allProducts,
                 'tileIDs': tile_IDs,
+                'tilePrio': tile_prio,
                 'context': RequestContext(request), 
                 'siteName': cur_dashboard.site_name, 
                 'url_slug': page_id,

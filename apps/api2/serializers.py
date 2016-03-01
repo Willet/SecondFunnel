@@ -1,4 +1,9 @@
 from rest_framework import serializers
+from rest_framework_bulk import (
+    BulkListSerializer,
+    BulkSerializerMixin,
+    ListBulkCreateUpdateDestroyAPIView,
+)
 from django.contrib.auth.models import User
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
@@ -57,6 +62,13 @@ class TileSerializer(serializers.ModelSerializer):
         model = Tile
         fields = ('id', 'feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
             'in_stock', 'attributes')
+
+class TileSerializerBulk(BulkSerializerMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Tile
+        fields = ('id', 'feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
+            'in_stock', 'attributes')
+        list_serializer_class = BulkListSerializer
 
 class FeedSerializer(serializers.ModelSerializer):
     class Meta:

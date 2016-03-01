@@ -1160,7 +1160,8 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u"Page with ID: 10000 not found.")
 
     def tile_test(self):
-        response = self.client.get(reverse('tile-list'))
+        # response = self.client.get(reverse('tile-list'))
+        response = self.client.get(reverse('rest_framework:tile-list'))
         self.assertEqual(len(response.data),6)
         tile0 = response.data[0]
         tile1 = response.data[1]
@@ -1236,7 +1237,7 @@ class APITest(APITestCase):
         self.assertEqual(tile5['attributes'], '{}')
 
     def tile_single_test(self):
-        response = self.client.get(reverse('tile-list')+'11/')
+        response = self.client.get('/api2/tile/11/')
         tile = response.data
         self.assertEqual(tile['id'], 11)
         self.assertEqual(tile['feed'], 9)
@@ -1251,17 +1252,39 @@ class APITest(APITestCase):
         self.assertEqual(tile['feed'],9)
 
     def tile_change_prio_test(self):
-        response = self.client.patch('/api2/tile/10/', {'priority': 100000})
+        response = self.client.patch('/api2/tile/', json.dumps([{"id":10, "priority": 100000}]), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(response.data[0], TileSerializer(t).data)
+        self.assertEqual(t.priority, 100000)
+
+        response = self.client.patch('/api2/tile/10/', {"priority": 100001})
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
         self.assertEqual(response.data, TileSerializer(t).data)
+        self.assertEqual(t.priority, 100001)
+
+    def tile_change_prio_bulk_test(self):
+        response = self.client.patch('/api2/tile/', json.dumps([{"id":10, "priority": 100000}, {"id":11, "priority":101}]), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        t = Tile.objects.get(pk=10)
+        self.assertEqual(response.data[0], TileSerializer(t).data)
         self.assertEqual(t.priority, 100000)
+        t = Tile.objects.get(pk=11)
+        self.assertEqual(response.data[1], TileSerializer(t).data)
+        self.assertEqual(t.priority, 101)
 
     def tile_change_prio_wrongID_test(self):
         response = self.client.patch('/api2/tile/55/', {'priority': 1})
         self.assertEqual(response.status_code, 404)
         t = Tile.objects.filter(pk=55)
         self.assertEqual(response.data['detail'], 'Not found.')
+        self.assertEqual(list(t), [])
+
+        response = self.client.patch('/api2/tile/', json.dumps([{"id":55, "priority": 1}]), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        t = Tile.objects.filter(pk=55)
+        self.assertEqual(response.data[0], "Could not find all objects to update.")
         self.assertEqual(list(t), [])
 
     def tile_change_prio_bad_inputs_test(self):
@@ -1274,326 +1297,14 @@ class APITest(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['priority'], [u'A valid integer is required.'])
 
-    def tile_change_prio_bad_inputs3_test(self):
-        response = self.client.patch('/api2/tile/', {'priority': 'test'})
-        self.assertEqual(response.status_code, 405)
-        self.assertEqual(response.data['detail'], u'Method "PATCH" not allowed.')
-
-    def tile_swap_tile_location_ordered_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 10, 'tile_id2': 14, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[0])
-        self.assertEqual(t_bef[1], t_aft[4])
-        self.assertEqual(t_bef[2], t_aft[2])
-        self.assertEqual(t_bef[3], t_aft[3])
-        self.assertEqual(t_bef[4], t_aft[1])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 10 has been swapped with tile with ID: 14.")
-
-    def tile_swap_tile_location_ordered2_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 14, 'tile_id2': 10, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[0])
-        self.assertEqual(t_bef[1], t_aft[4])
-        self.assertEqual(t_bef[2], t_aft[2])
-        self.assertEqual(t_bef[3], t_aft[3])
-        self.assertEqual(t_bef[4], t_aft[1])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 14 has been swapped with tile with ID: 10.")
-
-    def tile_swap_tile_location_unordered_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-
-        response = self.client.patch('/api2/tile/10/', {'priority': 100})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 100)
-        response = self.client.patch('/api2/tile/11/', {'priority': 200})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=11)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 200)
-        response = self.client.patch('/api2/tile/12/', {'priority': 300})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=12)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 300)
-        response = self.client.patch('/api2/tile/14/', {'priority': 0})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=14)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 0)
-        response = self.client.patch('/api2/tile/15/', {'priority': 0})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=15)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 0)
-
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 10, 'tile_id2': 14, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[0])
-        self.assertEqual(t_bef[1], t_aft[1])
-        self.assertEqual(t_bef[2], t_aft[3])
-        self.assertEqual(t_bef[3], t_aft[2])
-        self.assertEqual(t_bef[4], t_aft[4])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 10 has been swapped with tile with ID: 14.")
-
-    def tile_swap_tile_location_unordered2_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-
-        response = self.client.patch('/api2/tile/10/', {'priority': 100})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 100)
-        response = self.client.patch('/api2/tile/11/', {'priority': 200})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=11)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 200)
-        response = self.client.patch('/api2/tile/12/', {'priority': 300})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=12)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 300)
-        response = self.client.patch('/api2/tile/14/', {'priority': 0})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=14)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 0)
-        response = self.client.patch('/api2/tile/15/', {'priority': 0})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=15)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 0)
-
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 12, 'tile_id2': 14, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[3])
-        self.assertEqual(t_bef[1], t_aft[1])
-        self.assertEqual(t_bef[2], t_aft[2])
-        self.assertEqual(t_bef[3], t_aft[0])
-        self.assertEqual(t_bef[4], t_aft[4])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 12 has been swapped with tile with ID: 14.")
-
-    def tile_swap_tile_location_unordered3_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-
-        response = self.client.patch('/api2/tile/10/', {'priority': 100})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=10)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 100)
-        response = self.client.patch('/api2/tile/11/', {'priority': 200})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=11)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 200)
-        response = self.client.patch('/api2/tile/12/', {'priority': 300})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=12)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 300)
-        response = self.client.patch('/api2/tile/14/', {'priority': 0})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=14)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 0)
-        response = self.client.patch('/api2/tile/15/', {'priority': 0})
-        self.assertEqual(response.status_code, 200)
-        t = Tile.objects.get(pk=15)
-        self.assertEqual(response.data, TileSerializer(t).data)
-        self.assertEqual(t.priority, 0)
-        
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 15, 'tile_id2': 12, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[4])
-        self.assertEqual(t_bef[1], t_aft[1])
-        self.assertEqual(t_bef[2], t_aft[2])
-        self.assertEqual(t_bef[3], t_aft[3])
-        self.assertEqual(t_bef[4], t_aft[0])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 15 has been swapped with tile with ID: 12.")
-
-    def tile_swap_tile_location_missing_inputs_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id': 1, 'tile_id2': 2, 'page_id': 1})
+        response = self.client.patch('/api2/tile/', json.dumps([{"id":10, "priority": "test"}]), content_type='application/json')
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'tile_id1' field from input.")
-
-    def tile_swap_tile_location_missing_inputs2_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id3': 3, 'page_id': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'tile_id2' field from input.")
-
-    def tile_swap_tile_location_missing_inputs3_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 4, 'pageid': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'page_id' field from input.")
-
-    def tile_swap_tile_location_bad_inputs_letters_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': "test", 'tile_id2': 1, 'page_id': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': "test", 'page_id': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 3, 'page_id': "test"})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
-
-    def tile_swap_tile_location_bad_inputs_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 1, 'page_id': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "'tile_id1' cannot be equal to 'tile_id2'.")
-
-    def tile_swap_tile_location_bad_inputs2_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 1, 'tile_id2': 2, 'page_id': 1000})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The page with ID: 1000 could not be found.")
-
-    def tile_swap_tile_location_bad_inputs3_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 999, 'tile_id2': 11, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 999 could not be found.")
-
-    def tile_swap_tile_location_bad_inputs4_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 11, 'tile_id2': 123, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 123 could not be found.")
-
-    def tile_swap_tile_location_bad_inputs5_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 11, 'tile_id2': 12, 'page_id': 17})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 11 is not part of the page with ID: 17.")
-
-    def tile_swap_tile_location_bad_inputs6_test(self):
-        response = self.client.post('/api2/tile/swap_tile_location/', {'tile_id1': 11, 'tile_id2': 13, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 13 is not part of the page with ID: 8.")
-
-    def tile_move_tile_to_position_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 0, 'tile_id': 10, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[1])
-        self.assertEqual(t_bef[1], t_aft[2])
-        self.assertEqual(t_bef[2], t_aft[3])
-        self.assertEqual(t_bef[3], t_aft[4])
-        self.assertEqual(t_bef[4], t_aft[0])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 10 has been moved to index 0.")
-
-    def tile_move_tile_to_position2_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 4, 'tile_id': 15, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[4])
-        self.assertEqual(t_bef[1], t_aft[0])
-        self.assertEqual(t_bef[2], t_aft[1])
-        self.assertEqual(t_bef[3], t_aft[2])
-        self.assertEqual(t_bef[4], t_aft[3])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 15 has been moved to index 4.")
-
-    def tile_move_tile_to_position3_test(self):
-        p = Page.objects.get(pk=8)
-        p_tiles = p.feed.tiles
-        t_bef = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 3, 'tile_id': 14, 'page_id': 8})
-        t_aft = list(ir_magic(p_tiles, num_results=p_tiles.count()))
-        self.assertEqual(t_bef[0], t_aft[0])
-        self.assertEqual(t_bef[1], t_aft[3])
-        self.assertEqual(t_bef[2], t_aft[1])
-        self.assertEqual(t_bef[3], t_aft[2])
-        self.assertEqual(t_bef[4], t_aft[4])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], "The tile with ID: 14 has been moved to index 3.")
-
-    def tile_move_tile_to_position_missing_inputs_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index1': 11, 'tile_id': 13, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'index' field from input.")
-
-    def tile_move_tile_to_position_missing_inputs2_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 11, 'tile_id1': 13, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'tile_id' field from input.")
-
-    def tile_move_tile_to_position_missing_inputs3_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 11, 'tile_id': 13, 'page_id1': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "Missing 'page_id' field from input.")
-
-    def tile_move_tile_to_position_bad_inputs_letters_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': "test", 'tile_id': 1, 'page_id': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': "test", 'page_id': 1})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 3, 'page_id': "test"})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], 'Expecting a number as input, but got non-number.')
-
-    def tile_move_tile_to_position_bad_inputs_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 1, 'page_id': 9})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The page with ID: 9 could not be found.")
-
-    def tile_move_tile_to_position_bad_inputs2_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 1, 'page_id': 19})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The page with ID: 19 does not have a feed or the feed has no tiles.")
-
-    def tile_move_tile_to_position_bad_inputs3_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 133, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 133 could not be found.")
-
-    def tile_move_tile_to_position_bad_inputs4_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 1, 'tile_id': 13, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 13 is not part of the page with ID: 8.")
-
-    def tile_move_tile_to_position_bad_inputs5_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 4, 'tile_id': 10, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The tile with ID: 10 is already at index 4.")
-
-    def tile_move_tile_to_position_bad_inputs6_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 100, 'tile_id': 10, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The index 100 is out of range of the tile list.")
-
-    def tile_move_tile_to_position_bad_inputs7_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': -1, 'tile_id': 10, 'page_id': 8})
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['status'], "The index -1 is out of range of the tile list.")
-
-    def tile_move_tile_to_position_bad_inputs_test(self):
-        response = self.client.post('/api2/tile/move_tile_to_position/', {'index': 11, 'tile_id': 13, 'page_id': 8})
+        t = Tile.objects.filter(pk=10)
+        self.assertEqual(response.data[0]['priority'], [u'A valid integer is required.'])
 
     def tile_error_test(self):
-        response = self.client.get(reverse('tile-list')+'999/')
+        response = self.client.get('/api2/tile/999/')
+        print response
         self.assertEqual(response.data,{u'detail': u'Not found.'})
         self.assertEqual(response.data[u'detail'],u'Not found.')
 

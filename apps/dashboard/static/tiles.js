@@ -1,25 +1,95 @@
 "use strict";
 
-var api_URL = "http://localhost:8000/api2/";
+var apiURL = "http://localhost:8000/api2/";
 
-var result;
+var result, ordered, tiles;
+
+var TileCollection = Backbone.Collection.extend({
+    url: apiURL + 'tile/',
+
+    model: Tile,
+
+    swapTile: function(tile1_id, tile2_id){
+        var tile1_ind = tileIDs.indexOf(parseInt(tile1_id));
+        var tile2_ind = tileIDs.indexOf(parseInt(tile2_id));
+
+        if (ordered)
+            this.swapOrderedPriorities(tile1_ind, tile2_ind);
+        else
+            this.swapUnorderedPriorities(tile1_ind, tile2_ind);
+    },
+
+    setIncreasingPriority: function(ind){
+        for (var i = ind; i >= 0; i--)
+            tiles[i]['priority'] = tiles[i+1]['priority'] + 1;
+    },
+
+    swapOrderedPriorities: function(tile1_ind, tile2_ind){
+        // Swap the priority of the tiles
+        var temp = tiles[tile1_ind]['priority']
+        tiles[tile1_ind]['priority'] = tiles[tile2_ind]['priority']
+        tiles[tile2_ind]['priority'] = temp
+
+        // Swap the tiles in tileIDs
+        temp = tiles[tile1_ind]['priority']
+        tiles[tile1_ind]['priority'] = tiles[tile2_ind]['priority']
+        tiles[tile2_ind]['priority'] = temp
+
+        //Save tile1 & tile2 priority
+    },
+
+    swapUnorderedPriorities: function(tile1_ind, tile2_ind){
+        var temp;
+
+        // Make sure that tile1_ind is the tile on the left, tile1_ind is the tile on the right
+        if (tile1_ind > tile2_ind) {
+            temp = tile1_ind;
+            tile1_ind = tile2_ind;
+            tile2_ind = temp;
+        }
+
+        // Swap Tile1 and Tile2 in list
+        temp = tiles[tile1_ind];
+        tiles[tile1_ind] = tiles[tile2_ind];
+        tiles[tile2_ind] = temp;
+
+        temp = tile1_ind;
+        tile1_ind = tile2_ind;
+        tile2_ind = temp;
+
+        // Tile1 is now swapped with Tile2, so just need to set priorities. Tile1 is now on the right, Tile2 is on left
+
+        // Set tile1's priority to the one 1 to the right's +1
+        if (tile1_ind == tiles.length - 1) {
+            // This means tile1 is now at the end of the list so just set priority = 1
+            tiles[tile1_ind]['priority'] = 1;
+        }
+        else {
+            // This means tile1 is not at the end of the list so there are still things on the right of it
+            tiles[tile1_ind]['priority'] = tiles[tile1_ind + 1]['priority'] + 1;
+        }
+
+        // save tiles(tile1_ind) priority
+        
+        // Now just loop from tile1 to tile with ind of 0 in list, while setting priority + 1 the next one
+        this.setIncreasingPriority(tile1_ind-1);
+    },
+});
 
 var Tile = Backbone.Model.extend({
     defaults: {},
 
-    urlRoot: api_URL,
+    urlRoot: apiURL,
 
     initialize: function () {
     },
 
     getCustomURL: function (method) {
         switch (method) {
-            case 'edit_priority':
-                return api_URL + 'tile/edit_tile_priority/';
             case 'swap_tile':
-                return api_URL + 'tile/swap_tile_location/';
+                return apiURL + 'tile/swap_tile_location/';
             case 'move_tile':
-                return api_URL + 'tile/move_tile_to_position/';
+                return apiURL + 'tile/move_tile_to_position/';
         }
     },
 
@@ -31,9 +101,8 @@ var Tile = Backbone.Model.extend({
 
     changePriority: function(input) {
         var options = {
-            'url': api_URL + 'tile/' + input.id + '/',
+            'url': apiURL + 'tile/' + input.id + '/',
         };
-        console.log(options);
         return Backbone.sync.call(this, 'patch', input, options);
     },
 
@@ -63,7 +132,7 @@ function editTile(tile_id, prio){
         console.log(tile)
         if ("id" in result)
             status = "The priority of tile with ID: " + tile.attributes.id + 
-                     " has been changed to " + tile.attributes.priority + ". Press Refresh to see the changes";
+                     " has been changed to " + tile.attributes.priority + ". Press Close to see the changes";
         else
             status = result.priority;
         $('#result_' + tile_id).html(status);
@@ -75,16 +144,24 @@ function checkPrio(tile_id){
     	window.location.reload();
 }
 
-function swap_tile_positions(tile1, tile2){
-	var tile = new Tile({
-		tile_id1: tile1,
-		tile_id2: tile2,
-		page_id: url_slug,
-	})
-	result = tile.swapTile(tile);
-	result.always(function(){
-		$('#swap_result').html(JSON.parse(result.responseText).status + " Press Refresh to see the changes.");
-	})
+function swapTilePositions(tile1, tile2){
+    var tileCollection = new TileCollection();
+    console.log("---- BEFORE -----");
+    console.log(tiles);
+    tileCollection.swapTile(tile1, tile2);
+    console.log("---- AFTER  -----");
+    console.log(tiles);
+}
+
+function checkOrdered(){
+        var result = true;
+        for (var i = 0; i < tiles.length-1; i++){
+            if (tiles[i]['priority'] != tiles[i+1]['priority'] + 1){
+                result = false;
+                break;
+            }
+        }
+        return result;
 }
 
 $(function(){
@@ -109,4 +186,5 @@ $(function(){
 			});
 		},
 	});
+    ordered = checkOrdered();
 })

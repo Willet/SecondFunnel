@@ -295,6 +295,7 @@ THIRD_PARTY_APPS = (
     'south',
     'django_extensions',
     'rest_framework',
+    'rest_framework_bulk',
     'ajax_forms',
     'compressor',
     'corsheaders',
