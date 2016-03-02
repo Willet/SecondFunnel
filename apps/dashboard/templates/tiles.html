@@ -6,9 +6,7 @@
 
 {% block scripts %}
     <script>
-        var url_slug = {{ url_slug }};
         var tileIDs = {{ tileIDs }};
-        var tilePrio = {{ tilePrio }};
         var tiles = [];
         {% for tile in tileList %}
         	tiles.push({'id': {{ tile.id }}, 'priority': {{ tile.priority }} });
@@ -39,7 +37,7 @@
             </div>
             <!--/row-->
         	
-            <div class="block-web" id="swap-tiles">
+            <div class="block-web" id="swapTiles">
             	<h3 class="content-header">
             		Swap tile positions
             	</h3>
@@ -51,7 +49,7 @@
 		        <button type="button" class="btn btn-default" onclick="window.location.reload()">
 		        	Refresh
 		        </button>
-		        <div id="swap_result"></div>
+		        <div id="swapResult"></div>
             </div>
 
 		    <!-- Prioritize/Re-order tiles -->
@@ -59,7 +57,7 @@
 		        <h3 class="content-header">
 		            List of current tiles
 		        </h3>
-		        <div id="move_tiles_result"></div>
+		        <div id="moveTilesResult"></div>
 		        <div id="all-tiles">
 		            {% for tile in tileList %}
 		        	<div class='tile-list' class="sortable">
@@ -107,8 +105,6 @@
 		            {% endfor %}
 	        	</div>
 		    </div>
-
-
 		</div>
 	</div>
 

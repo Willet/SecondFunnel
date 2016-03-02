@@ -15,13 +15,9 @@ router.register(r'page', views.PageViewSet)
 router.register(r'feed', views.FeedViewSet)
 router.register(r'category', views.CategoryViewSet)
 
-# router2 = BulkRouter()
-# router2.register(r'tile', views.TileViewSetBulk)
-
 urlpatterns = patterns(
 	'',
     url(r'^', include(router.urls)),
-    # url(r'^', include(router2.url)),
     url(r'^tile/$', views.TileViewSetBulk.as_view()),
     url(r'^tile/(?P<pk>[0-9]+)/$', views.TileDetailBulk.as_view()),
 )

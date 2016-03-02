@@ -1,8 +1,5 @@
 from rest_framework import serializers
-from rest_framework_bulk import (
-    BulkListSerializer,
-    BulkSerializerMixin
-)
+from rest_framework_bulk import BulkListSerializer, BulkSerializerMixin
 from django.contrib.auth.models import User
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category

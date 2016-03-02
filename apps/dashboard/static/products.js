@@ -10,6 +10,7 @@ var Product = Backbone.Model.extend({
     urlRoot: api_URL,
 
     initialize: function () {
+        
     },
 
     getCustomURL: function (method) {
@@ -50,6 +51,7 @@ var Content = Backbone.Model.extend({
     urlRoot: api_URL,
 
     initialize: function () {
+
     },
 
     getCustomURL: function (method) {
@@ -93,6 +95,7 @@ var Page = Backbone.Model.extend({
     urlRoot: api_URL,
 
     initialize: function () {
+
     },
 
     getCustomURL: function (method) {
@@ -129,12 +132,14 @@ var Page = Backbone.Model.extend({
 
 function productManage(page, method, selection){
     var searchString = new Product();
+    console.log(searchString);
     if (selection == 'URL')
         searchString.set({url: page.attributes.num});
     if (selection == 'ID')
         searchString.set({id: page.attributes.num});
     if (selection == 'SKU')
         searchString.set({sku: page.attributes.num});
+    console.log(searchString);
 
     result = searchString.search(searchString);
     result.always(function(){
@@ -145,7 +150,6 @@ function productManage(page, method, selection){
                 id: JSON.parse(result.responseText).ids[0],
                 force_create: (document.getElementById('product-force-create').value == "on").toString(),
             })
-            console.log(page);
             if (method == 'product-add') {
                 result = page.add(page);
                 result.always(function() {

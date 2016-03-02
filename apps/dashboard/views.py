@@ -191,7 +191,6 @@ def dashboard_tiles(request, dashboard_slug):
         tileMagic_count = len(tile_magic)
 
         all_products = []
-        all_tiles_priority = []
 
         for tile in tile_magic:
             if tile.ir_cache:
@@ -240,7 +239,6 @@ def dashboard_tiles(request, dashboard_slug):
             for t in tagged_products:
                 tile_tagged_products.append(t.get('id',None))
 
-            all_tiles_priority.append(tile_prio)
             all_products.append({
                 'id': tile_id, 
                 'img': tile_img,
@@ -251,21 +249,16 @@ def dashboard_tiles(request, dashboard_slug):
             })
 
         tile_ids = []
-        tile_prio = []
-        tiles = []
         for t in all_products:
             tile_ids.append(t['id'])
-            tile_prio.append(t['priority'])
         
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {
                 'tileList': all_products,
                 'tileIDs': tile_ids,
-                'tilePrio': tile_prio,
                 'context': RequestContext(request), 
                 'siteName': cur_dashboard.site_name, 
-                'url_slug': page_id,
                 'page': cur_dashboard_page,
             })
 

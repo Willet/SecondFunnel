@@ -5,39 +5,11 @@ var apiURL = "http://localhost:8000/api2/";
 var result, ordered, tiles;
 var batch = [];
 
-var TileCollection = Backbone.Collection.extend({
-    url: apiURL + 'tile/',
-
-    model: Tile,
+var TileCollection = Backbone.Model.extend({
+    defaults: {},
 
     initialize: function () {
 
-    },
-
-    getCustomURL: function(method){
-        switch (method) {
-            case 'swapTile':
-                return apiURL + 'tile/';
-        }
-    },
-
-    swapTile: function(tileCollection, tile1_id, tile2_id){
-        var tile1_ind = tileIDs.indexOf(parseInt(tile1_id));
-        var tile2_ind = tileIDs.indexOf(parseInt(tile2_id));
-
-        if (ordered)
-            this.swapOrderedPriorities(tile1_ind, tile2_ind);
-        else
-            this.swapUnorderedPriorities(tile1_ind, tile2_ind);
-
-        batch = JSON.stringify(batch);
-        var options = {
-            'url': this.getCustomURL('swapTile'),
-        };
-
-        tileCollection.data = batch;
-
-        return Backbone.sync.call(this, 'patch', tileCollection, options);
     },
 
     setIncreasingPriority: function(ind){
@@ -47,76 +19,137 @@ var TileCollection = Backbone.Collection.extend({
         }
     },
 
-    swapOrderedPriorities: function(tile1_ind, tile2_ind){
+    swapOrderedPriorities: function(tile1Ind, tile2Ind){
         // Swap the priority of the tiles
-        var temp = tiles[tile1_ind]['priority']
-        tiles[tile1_ind]['priority'] = tiles[tile2_ind]['priority']
-        tiles[tile2_ind]['priority'] = temp
+        var temp = tiles[tile1Ind]['priority'];
+        tiles[tile1Ind]['priority'] = tiles[tile2Ind]['priority'];
+        tiles[tile2Ind]['priority'] = temp;
 
         // Swap the tiles in tileIDs
-        temp = tiles[tile1_ind]['priority']
-        tiles[tile1_ind]['priority'] = tiles[tile2_ind]['priority']
-        tiles[tile2_ind]['priority'] = temp
+        temp = tiles[tile1Ind]['priority'];
+        tiles[tile1Ind]['priority'] = tiles[tile2Ind]['priority'];
+        tiles[tile2Ind]['priority'] = temp;
 
         //Save tile1 & tile2 priority
-        batch.push(tiles[tile1_ind]);
-        batch.push(tiles[tile2_ind]);
+        batch.push(tiles[tile1Ind]);
+        batch.push(tiles[tile2Ind]);
     },
 
-    swapUnorderedPriorities: function(tile1_ind, tile2_ind){
+    swapUnorderedPriorities: function(tile1Ind, tile2Ind){
         var temp;
 
-        // Make sure that tile1_ind is the tile on the left, tile1_ind is the tile on the right
-        if (tile1_ind > tile2_ind) {
-            temp = tile1_ind;
-            tile1_ind = tile2_ind;
-            tile2_ind = temp;
+        // Make sure that tile1Ind is the tile on the left, tile1Ind is the tile on the right
+        if (tile1Ind > tile2Ind) {
+            temp = tile1Ind;
+            tile1Ind = tile2Ind;
+            tile2Ind = temp;
         }
 
         // Swap Tile1 and Tile2 in list
-        temp = tiles[tile1_ind];
-        tiles[tile1_ind] = tiles[tile2_ind];
-        tiles[tile2_ind] = temp;
+        temp = tiles[tile1Ind];
+        tiles[tile1Ind] = tiles[tile2Ind];
+        tiles[tile2Ind] = temp;
 
-        temp = tile1_ind;
-        tile1_ind = tile2_ind;
-        tile2_ind = temp;
+        temp = tile1Ind;
+        tile1Ind = tile2Ind;
+        tile2Ind = temp;
 
         // Tile1 is now swapped with Tile2, so just need to set priorities. Tile1 is now on the right, Tile2 is on left
 
         // Set tile1's priority to the one 1 to the right's +1
-        if (tile1_ind == tiles.length - 1) {
+        if (tile1Ind == tiles.length - 1) {
             // This means tile1 is now at the end of the list so just set priority = 1
-            tiles[tile1_ind]['priority'] = 1;
+            tiles[tile1Ind]['priority'] = 1;
         }
         else {
             // This means tile1 is not at the end of the list so there are still things on the right of it
-            tiles[tile1_ind]['priority'] = tiles[tile1_ind + 1]['priority'] + 1;
+            tiles[tile1Ind]['priority'] = tiles[tile1Ind + 1]['priority'] + 1;
         }
 
-        // save tiles(tile1_ind) priority
-        batch.push(tiles[tile1_ind]);
+        // save tiles(tile1Ind) priority
+        batch.push(tiles[tile1Ind]);
         
         // Now just loop from tile1 to tile with ind of 0 in list, while setting priority + 1 the next one
-        this.setIncreasingPriority(tile1_ind-1);
+        this.setIncreasingPriority(tile1Ind-1);
+    },
+
+    swapTile: function(tileCollection, tile1ID, tile2ID){
+        batch = [];
+
+        var tile1Ind = tileIDs.indexOf(parseInt(tile1ID));
+        var tile2Ind = tileIDs.indexOf(parseInt(tile2ID));
+
+        if (ordered)
+            this.swapOrderedPriorities(tile1Ind, tile2Ind);
+        else
+            this.swapUnorderedPriorities(tile1Ind, tile2Ind);
+
+        batch = JSON.stringify(batch);
+        var options = {
+            'url': apiURL + 'tile/',
+        };
+
+        tileCollection.set({data: batch});
+
+        return Backbone.sync.call(this, 'patch', tileCollection, options);
+    },
+
+    moveTileToPosition: function(tileCollection, index, tileID){
+        batch = [];
+
+        // First check if the index we're moving to is on the left or right of original tile index
+        // Then insert/delete appropriately
+        var tileInd = tileIDs.indexOf(parseInt(tileID));
+
+        if (index < tileInd){
+            tiles.splice(index, 0, tiles[tileInd]);
+            tiles.splice(tileInd + 1, 1);
+        }
+        else{
+            tiles.splice(index + 1, 0, tiles[tileInd]);
+            tiles.splice(tileInd, 1);
+        }
+        // Set the starting point for re-numbering the priority to be the one on the right most
+        var startPoint = 0;
+
+        if (index > tileInd) {
+            startPoint = index;
+        }
+        else {
+            startPoint = tileInd;
+        }
+
+        if (startPoint == tiles.length - 1){
+            // This means the starting point is now at the end of the list so just set priority = 1
+            tiles[startPoint] = 1;
+        }
+        else {
+            // This means the starting point is not at the end of the list so just set priority = element on the right + 1
+            // This makes sure that the starting point will always be at this spot
+            tiles[startPoint]['priority'] = tiles[startPoint + 1]['priority'] + 1;
+        }
+
+        batch.push(tiles[startPoint]);
+
+        // Go from starting point to the beginning of the list, while setting the priorities for each tile
+        this.setIncreasingPriority(startPoint-1);
+
+        batch = JSON.stringify(batch);
+
+        var options = {
+            'url': apiURL + 'tile/',
+        };
+
+        tileCollection.set({data: batch});
+
+        return Backbone.sync.call(this, 'patch', tileCollection, options);
     },
 });
 
 var Tile = Backbone.Model.extend({
     defaults: {},
 
-    urlRoot: apiURL,
-
     initialize: function () {
-    },
-
-    getCustomURL: function (method) {
-        switch (method) {
-            case 'swap_tile':
-                return apiURL + 'tile/swap_tile_location/';
-            case 'move_tile':
-                return apiURL + 'tile/move_tile_to_position/';
-        }
     },
 
     sync: function (method, model, options) {
@@ -131,25 +164,11 @@ var Tile = Backbone.Model.extend({
         };
         return Backbone.sync.call(this, 'patch', input, options);
     },
-
-    swapTile: function(input) {
-    	var options = {
-    		'url': this.getCustomURL('swap_tile')
-    	}
-    	return Backbone.sync.call(this, 'create', input, options)
-    },
-
-    moveTile: function(input) {
-    	var options = {
-    		'url': this.getCustomURL('move_tile')
-    	}
-    	return Backbone.sync.call(this, 'create', input, options)
-    },
 });
 
-function editTile(tile_id, prio){
+function editTile(tileID, prio){
     var tile = new Tile({
-        id: tile_id,
+        id: tileID,
         priority: prio
     })
     result = tile.changePriority(tile);
@@ -160,22 +179,28 @@ function editTile(tile_id, prio){
                      " has been changed to " + tile.attributes.priority + ". Press Close to see the changes";
         else
             status = result.priority;
-        $('#result_' + tile_id).html(status);
+        $('#result_' + tileID).html(status);
     })
 }
 
-function checkPrio(tile_id){
-    if (document.getElementById('result_' + tile_id).innerHTML != "")
+function checkPrio(tileID){
+    if (document.getElementById('result_' + tileID).innerHTML != "")
     	window.location.reload();
 }
 
 function swapTilePositions(tile1, tile2){
-    batch = [];
+    $('#swapResult').html("Loading...");
     var tileCollection = new TileCollection();
     result = tileCollection.swapTile(tileCollection, tile1, tile2);
     result.always(function() {
-        result = result.responseText;
-        $('#swap_result').html(result);
+        if (result.responseJSON.length != 0){
+            status = "The tile with ID: " + tile1 + " has been swapped with tile with ID: "
+                    + tile2 + ". Press Refresh to see the changes.";
+        }
+        else {
+            status = "Swapping failed due to an error.";
+        }
+        $('#swapResult').html(status);
     })
 }
 
@@ -193,22 +218,26 @@ function checkOrdered(){
 $(function(){
 	$('#all-tiles').sortable({
 		start: function(event, ui){
-			$('#move_tiles_result').html("");
-			var start_pos = ui.item.index();
-			ui.item.data('start_pos', start_pos);
+			$('#moveTilesResult').html("");
+			var startPos = ui.item.index();
+			ui.item.data('startPos', startPos);
 		},
 		update: function(event, ui){
-			$('#move_tiles_result').html("Loading...");
-			var start_pos = ui.item.data('start_pos');
-			var end_pos = ui.item.index();
-			var tile = new Tile({
-				index: end_pos,
-				tile_id: tileIDs[start_pos],
-				page_id: url_slug
-			});
-			result = tile.moveTile(tile);
+			$('#moveTilesResult').html("Loading...");
+			var startPos = ui.item.data('startPos');
+			var endPos = ui.item.index();
+            var tileCollection = new TileCollection();
+
+            result = tileCollection.moveTileToPosition(tileCollection, endPos, tileIDs[startPos]);
 			result.always(function(){
-				$('#move_tiles_result').html(JSON.parse(result.responseText).status);
+                if (result.responseJSON.length != 0){
+                    status = "The tile with ID: " + tileIDs[startPos] + " has been moved to index: "
+                            + endPos + ". Press Refresh to see the new tile priorities.";
+                }
+                else {
+                    status = "Moving failed due to an error.";
+                }
+				$('#moveTilesResult').html(status);
 			});
 		},
 	});
