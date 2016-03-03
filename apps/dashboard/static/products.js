@@ -132,14 +132,12 @@ var Page = Backbone.Model.extend({
 
 function productManage(page, method, selection){
     var searchString = new Product();
-    console.log(searchString);
     if (selection == 'URL')
         searchString.set({url: page.attributes.num});
     if (selection == 'ID')
         searchString.set({id: page.attributes.num});
     if (selection == 'SKU')
         searchString.set({sku: page.attributes.num});
-    console.log(searchString);
 
     result = searchString.search(searchString);
     result.always(function(){

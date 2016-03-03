@@ -8,6 +8,8 @@
     <script>
         var tileIDs = {{ tileIDs }};
         var tiles = [];
+        var completeTiles = [];
+        var pageID = {{ pageID }};
         {% for tile in tileList %}
         	tiles.push({'id': {{ tile.id }}, 'priority': {{ tile.priority }} });
         {% endfor %}
@@ -52,12 +54,19 @@
 		        <div id="swapResult"></div>
             </div>
 
+            <div class="block-web">
+		        <h3 class="content-header">
+		            Backbone view List of tiles
+		        </h3>    
+		                
+		    </div>
 		    <!-- Prioritize/Re-order tiles -->
 		    <div class="block-web">
 		        <h3 class="content-header">
 		            List of current tiles
 		        </h3>
 		        <div id="moveTilesResult"></div>
+
 		        <div id="all-tiles">
 		            {% for tile in tileList %}
 		        	<div class='tile-list' class="sortable">

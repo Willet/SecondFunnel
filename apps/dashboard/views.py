@@ -257,6 +257,7 @@ def dashboard_tiles(request, dashboard_slug):
         return render(request, 'tiles.html', {
                 'tileList': all_products,
                 'tileIDs': tile_ids,
+                'pageID': page_id,
                 'context': RequestContext(request), 
                 'siteName': cur_dashboard.site_name, 
                 'page': cur_dashboard_page,

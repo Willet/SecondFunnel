@@ -1,6 +1,5 @@
 from django.conf.urls import patterns, include, url
 from rest_framework.routers import DefaultRouter
-from rest_framework_bulk.routes import BulkRouter
 import views
 
 router = DefaultRouter()
@@ -18,6 +17,6 @@ router.register(r'category', views.CategoryViewSet)
 urlpatterns = patterns(
 	'',
     url(r'^', include(router.urls)),
-    url(r'^tile/$', views.TileViewSetBulk.as_view()),
+    url(r'^tile$', views.TileViewSetBulk.as_view()),
     url(r'^tile/(?P<pk>[0-9]+)/$', views.TileDetailBulk.as_view()),
 )

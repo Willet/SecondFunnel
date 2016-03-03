@@ -4,12 +4,55 @@ var apiURL = "http://localhost:8000/api2/";
 
 var result, ordered, tiles;
 var batch = [];
+var tileCollection;
 
-var TileCollection = Backbone.Model.extend({
+var Tile = Backbone.Model.extend({
     defaults: {},
 
     initialize: function () {
+    },
 
+    sync: function(method, model, options){
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.Model.sync.apply(arguments);
+    },
+
+    changePriority: function(input) {
+        var options = {
+            'url': apiURL + 'tile/' + input.id + '/',
+        };
+        return Backbone.sync.call(this, 'patch', input, options);
+    },
+});
+
+var TileCollection = Backbone.Collection.extend({
+    defaults: {},
+
+    url: apiURL + 'page/' + pageID + '/retrieve_tiles/',
+
+    model: Tile,
+
+    initialize: function () {
+
+    },
+
+    parse: function(response) {
+        return response;
+    },
+
+    getCustomURL: function(method){
+        switch (method) {
+            case 'swapTile':
+                return apiURL + 'tile/';
+            case 'moveTile':
+                return apiURL + 'tile/';
+        }
+    },
+
+    sync: function(method, model, options){
+        options || (options = {});
+        return Backbone.sync.apply(this, arguments);
     },
 
     setIncreasingPriority: function(ind){
@@ -79,12 +122,17 @@ var TileCollection = Backbone.Model.extend({
         var tile1Ind = tileIDs.indexOf(parseInt(tile1ID));
         var tile2Ind = tileIDs.indexOf(parseInt(tile2ID));
 
+        if ((tile1Ind == -1) || (tile2Ind == -1)){
+            throw "Tile 1 or Tile 2 is not a tile on this page";
+        }
+
         if (ordered)
             this.swapOrderedPriorities(tile1Ind, tile2Ind);
         else
             this.swapUnorderedPriorities(tile1Ind, tile2Ind);
 
         batch = JSON.stringify(batch);
+
         var options = {
             'url': apiURL + 'tile/',
         };
@@ -146,24 +194,8 @@ var TileCollection = Backbone.Model.extend({
     },
 });
 
-var Tile = Backbone.Model.extend({
-    defaults: {},
+var TileView = Backbone.View.extend({
 
-    initialize: function () {
-    },
-
-    sync: function (method, model, options) {
-        options || (options = {});
-        options.url = this.getCustomURL(method.toLowerCase());
-        return Backbone.sync.call(this, method, model, options);
-    },
-
-    changePriority: function(input) {
-        var options = {
-            'url': apiURL + 'tile/' + input.id + '/',
-        };
-        return Backbone.sync.call(this, 'patch', input, options);
-    },
 });
 
 function editTile(tileID, prio){
@@ -190,18 +222,23 @@ function checkPrio(tileID){
 
 function swapTilePositions(tile1, tile2){
     $('#swapResult').html("Loading...");
-    var tileCollection = new TileCollection();
-    result = tileCollection.swapTile(tileCollection, tile1, tile2);
-    result.always(function() {
-        if (result.responseJSON.length != 0){
-            status = "The tile with ID: " + tile1 + " has been swapped with tile with ID: "
-                    + tile2 + ". Press Refresh to see the changes.";
-        }
-        else {
-            status = "Swapping failed due to an error.";
-        }
-        $('#swapResult').html(status);
-    })
+    var tileColl = new TileCollection();
+    try {
+        result = tileColl.swapTile(tileColl, tile1, tile2);
+        result.always(function() {
+            if (result.responseJSON.length != 0){
+                status = "The tile with ID: " + tile1 + " has been swapped with tile with ID: "
+                        + tile2 + ". Press Refresh to see the changes.";
+            }
+            else {
+                status = "Swapping failed due to an error.";
+            }
+            $('#swapResult').html(status);
+        })
+    }
+    catch (e){
+        $('#swapResult').html(e);
+    }
 }
 
 function checkOrdered(){
@@ -242,4 +279,8 @@ $(function(){
 		},
 	});
     ordered = checkOrdered();
+    tileCollection = new TileCollection();
+    tileCollection.fetch().done(function(){
+        console.log(tileCollection);
+    });
 })

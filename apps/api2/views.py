@@ -3,26 +3,27 @@ from multiprocessing import Process
 
 from django.db.models import Q
 from django.contrib.auth.models import User
-from django.utils.datastructures import MultiValueDictKeyError
 from django.http import Http404
+from django.shortcuts import get_object_or_404
+from django.utils.datastructures import MultiValueDictKeyError
 
-from rest_framework import renderers, viewsets, permissions, mixins, status
+from rest_framework import renderers, viewsets, permissions, status, filters
 from rest_framework.decorators import api_view, detail_route, list_route
-from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_bulk import generics, BulkListSerializer
-from rest_framework_bulk import mixins as bulk_mixins
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
+from apps.dashboard.models import DashBoard, UserProfile
 from apps.imageservice.utils import upload_to_cloudinary
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
 from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
     ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer, \
     TileSerializerBulk
+from .generics import ListCreateDestroyBulkUpdateAPIView
 
 class StoreViewSet(viewsets.ModelViewSet):
     queryset = Store.objects.all()
@@ -670,68 +671,54 @@ class PageViewSet(viewsets.ModelViewSet):
             "status": status,
         }, status=status_code)
 
+    @detail_route(methods=['get'])
+    def retrieve_tiles(self, request, pk):
+        """
+        Returns all the tiles on the page
 
-class ListCreateDestroyBulkUpdateAPIView(mixins.ListModelMixin,
-                                      mixins.CreateModelMixin,
-                                      mixins.DestroyModelMixin,
-                                      bulk_mixins.BulkUpdateModelMixin,
-                                      GenericAPIView
-                                      ):
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+        inputs: 
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.bulk_update(request, *args, **kwargs)
-
-    def bulk_update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-
-        if 'data' in request.data:
-            data = ast.literal_eval(request.data['data'])
+        returns:
+            serialized list of all tiles on the page
+        """
+        try:
+            page = Page.objects.get(pk=pk)
+        except Page.DoesNotExist:
+            status = "Page with ID: {} not found.".format(pk)
+            status_code = 404
         else:
-            data = request.data
+            tile_magic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+            status = []
+            for t in tile_magic:
+                status.append(TileSerializer(t).data)
+            status_code = 200
 
-        # restrict the update to the filtered queryset
-        serializer = self.get_serializer(
-            self.filter_queryset(self.get_queryset()),
-            data=data,
-            many=True,
-            partial=partial,
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request, *args, **kwargs):
-        kwargs['partial'] = True
-        return self.bulk_update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+        return Response(status, status=status_code)
 
 
 class TileDetailBulk(APIView):
     serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
 
-    def get_object(self, pk):
-        try:
-            return Tile.objects.get(pk=pk)
-        except Tile.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk, format=None):
-        try:
-            serializer = TileSerializer(Tile.objects.get(pk=pk))
-        except Tile.DoesNotExist:
-            return Response({'detail': "Not found."}, status=404)        
-        return Response(serializer.data)
+        profile = UserProfile.objects.get(user=self.request.user)
+        dashboards = profile.dashboards.all()
+        tile = get_object_or_404(Tile, pk=pk)
+
+        status = "Not allowed."
+        status_code = 400
+
+        for d in dashboards:
+            page = Page.objects.get(pk=d.page_id)
+            if page.feed.id == tile.feed.id:
+                status = TileSerializer(tile).data
+                status_code = 200
+                break
+
+        return Response(status, status_code)
 
     def patch(self, request, pk, format=None):
-        tile = self.get_object(pk)
+        tile = get_object_or_404(Tile, pk=pk)
         serializer = TileSerializer(tile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -743,6 +730,48 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
     serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
     list_serializer_class = BulkListSerializer
+
+    def get(self, request):
+        request_get = request.GET
+
+        status_code = 400
+
+        if request_get == {}:
+            return Response("Not allowed.", status=status_code)
+
+        if 'page' in request_get:
+            profile = UserProfile.objects.get(user=self.request.user)
+            dashboards = profile.dashboards.all()
+            
+            tiles = None
+
+            for d in dashboards:
+                page_id = d.page_id
+                try:
+                    request_id = int(request_get['page'])
+                except TypeError:
+                    status = "Page ID must be an int."
+                else:
+                    if page_id == request_id:
+                        page = Page.objects.get(pk=request_id)
+                        tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+                        break
+
+            if tiles is not None:
+                serialized_tiles = []
+                for t in tiles:
+                    serialized_tiles.append(TileSerializer(t).data)
+                
+                status = serialized_tiles
+                status_code = 200
+            else:
+                status = "No tiles found."
+                status_code = 404
+
+        else:
+            status = "Not allowed."
+
+        return Response(status, status_code)
 
 
 class FeedViewSet(viewsets.ModelViewSet):
