@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from rest_framework_bulk import mixins as bulk_mixins
 
-class CustomBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
+class PatchBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
     # Overriding the built-in bulk_update to allow for user to send PATCH requests
     # through a client like httpie. 
     def bulk_update(self, request, *args, **kwargs):
@@ -39,7 +39,7 @@ class CustomBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
 class ListCreateDestroyBulkUpdateAPIView(mixins.ListModelMixin,
                                       mixins.CreateModelMixin,
                                       mixins.DestroyModelMixin,
-                                      CustomBulkUpdateModelMixin,
+                                      PatchBulkUpdateModelMixin,
                                       GenericAPIView
                                       ):
     def get(self, request, *args, **kwargs):

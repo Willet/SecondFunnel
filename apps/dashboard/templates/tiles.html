@@ -8,11 +8,14 @@
     <script>
         var tileIDs = {{ tileIDs }};
         var tiles = [];
+        var tileImages = [];
         var completeTiles = [];
         var pageID = {{ pageID }};
         {% for tile in tileList %}
         	tiles.push({'id': {{ tile.id }}, 'priority': {{ tile.priority }} });
         {% endfor %}
+
+        //tileImages = JSON.parse("{{ tileImagesNames|safe }}");
     </script>
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
@@ -58,8 +61,54 @@
 		        <h3 class="content-header">
 		            Backbone view List of tiles
 		        </h3>    
-		                
+
+		        <div id="backbone-tiles">
+		        	<script type="text/template" id="tile-template">
+	        			<div class='tile-list' class="sortable">
+				        <a href="#<%= id %>" role="button" data-toggle="modal">
+				        	<img src="{% static "black.gif" %}" alt={{ tile.id }}>
+				        </a>
+			            	<div class='tile-info'>
+			            		<%= template %> </br>
+			            		Priority: <%= priority %> </br>
+			            		ID: <%= id %> </br>
+			            		<%= name %> </br>
+
+			            		<!-- Modal -->
+			            		<div class="modal fade" id="<%= id %>" role="dialog">
+			            			<div class="modal-dialog">
+			            				<!-- Modal Content-->
+			            				<div class="modal-content">
+			            					<div class="modal-header">
+			            						<button type="button" class="close" data-dismiss="modal">&times;</button>
+			            						<h4 class="modal-title"><%= name %></h4>
+			            					</div>
+			            					<div class="modal-body">
+			            						Current Priority: <%= priority %></br>
+			            						New Priority: <input type="text" id="new_priority">
+			            						<div id="result"></div>
+			            						Tagged Products IDs: <%= name %>
+			            					</div>
+			            					<div class="modal-footer">
+			            						<button type="button" class="btn btn-default">
+			            							Change Priority
+			            						</button>
+			            						<button type="button" class="btn btn-default" data-dismiss="modal">
+			            							Close
+			            						</button>
+			            					</div>
+			            				</div>
+			            			</div>
+			            		</div>
+			            	</div>
+			        	</div>
+
+		        	</script>
+		        </div>  
 		    </div>
+
+
+
 		    <!-- Prioritize/Re-order tiles -->
 		    <div class="block-web">
 		        <h3 class="content-header">
@@ -71,7 +120,8 @@
 		            {% for tile in tileList %}
 		        	<div class='tile-list' class="sortable">
 				        <a href="#{{ tile.id }}" role="button" data-toggle="modal">
-				        	<img src={{ tile.img }} alt={{ tile.id }}>
+				        	<!-- <img src={{ tile.img }} alt={{ tile.id }}> -->
+				        	<img src="{% static "black.gif" %}" alt={{ tile.id }}>
 				        </a>
 		            	<div class='tile-info'>
 		            		{{ tile.template }} </br> 
@@ -83,10 +133,8 @@
 		            		ID: {{ tile.id }} </br>
 		            		{{ tile.name }}
 
-		            		<!-- Modal -->
 		            		<div class="modal fade" id="{{ tile.id }}" role="dialog">
 		            			<div class="modal-dialog">
-		            				<!-- Modal Content-->
 		            				<div class="modal-content">
 		            					<div class="modal-header">
 		            						<button type="button" class="close" data-dismiss="modal">&times;</button>

@@ -29,7 +29,7 @@ var Tile = Backbone.Model.extend({
 var TileCollection = Backbone.Collection.extend({
     defaults: {},
 
-    url: apiURL + 'page/' + pageID + '/retrieve_tiles/',
+    url: apiURL + 'tile?page=' + pageID,
 
     model: Tile,
 
@@ -44,9 +44,9 @@ var TileCollection = Backbone.Collection.extend({
     getCustomURL: function(method){
         switch (method) {
             case 'swapTile':
-                return apiURL + 'tile/';
+                return apiURL + 'tile';
             case 'moveTile':
-                return apiURL + 'tile/';
+                return apiURL + 'tile';
         }
     },
 
@@ -134,7 +134,7 @@ var TileCollection = Backbone.Collection.extend({
         batch = JSON.stringify(batch);
 
         var options = {
-            'url': apiURL + 'tile/',
+            'url': apiURL + 'tile',
         };
 
         tileCollection.set({data: batch});
@@ -185,7 +185,7 @@ var TileCollection = Backbone.Collection.extend({
         batch = JSON.stringify(batch);
 
         var options = {
-            'url': apiURL + 'tile/',
+            'url': apiURL + 'tile',
         };
 
         tileCollection.set({data: batch});
@@ -195,7 +195,33 @@ var TileCollection = Backbone.Collection.extend({
 });
 
 var TileView = Backbone.View.extend({
+    template: _.template($('#tile-template').html()),
 
+    render: function(){
+        this.$el.html(this.template(this.model.attributes));
+        return this;
+    },
+});
+
+var TilesView = Backbone.View.extend({
+    el: "#backbone-tiles",
+
+    initialize: function() {
+        this.render();
+    },
+
+    render: function(){
+        this.$el.html('');
+
+        tileCollection.each(function(model){
+            var tileView = new TileView({
+                model: model
+            });
+            this.$el.append(tileView.render().el);
+        }.bind(this));
+
+        return this;
+    },
 });
 
 function editTile(tileID, prio){
@@ -281,6 +307,17 @@ $(function(){
     ordered = checkOrdered();
     tileCollection = new TileCollection();
     tileCollection.fetch().done(function(){
-        console.log(tileCollection);
+        // for (var i = 0; i < tileImages.length; i++){
+        //     tileCollection
+        // }
+        var tilesView = new TilesView;
+    });
+    $('#backbone-tiles').sortable({
+        start: function(event, ui){
+
+        },
+        update: function(event, ui){
+            
+        },
     });
 })

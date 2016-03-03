@@ -734,42 +734,39 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
     def get(self, request):
         request_get = request.GET
 
+        status = "Missing page parameter."
         status_code = 400
 
-        if request_get == {}:
-            return Response("Not allowed.", status=status_code)
-
-        if 'page' in request_get:
-            profile = UserProfile.objects.get(user=self.request.user)
-            dashboards = profile.dashboards.all()
-            
-            tiles = None
-
-            for d in dashboards:
-                page_id = d.page_id
-                try:
-                    request_id = int(request_get['page'])
-                except TypeError:
-                    status = "Page ID must be an int."
-                else:
-                    if page_id == request_id:
-                        page = Page.objects.get(pk=request_id)
-                        tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
-                        break
-
-            if tiles is not None:
-                serialized_tiles = []
-                for t in tiles:
-                    serialized_tiles.append(TileSerializer(t).data)
+        if not request_get == {}:
+            if 'page' in request_get:
+                profile = UserProfile.objects.get(user=self.request.user)
+                dashboards = profile.dashboards.all()
                 
-                status = serialized_tiles
-                status_code = 200
-            else:
-                status = "No tiles found."
-                status_code = 404
+                tiles = None
 
-        else:
-            status = "Not allowed."
+                for d in dashboards:
+                    page_id = d.page_id
+                    try:
+                        request_id = int(request_get['page'])
+                    except ValueError:
+                        pass
+                    else:
+                        if page_id == request_id:
+                            page = Page.objects.get(pk=request_id)
+                            tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+                            break
+                            
+                if tiles is not None:
+                    serialized_tiles = []
+                    for t in tiles:
+                        serialized_tiles.append(TileSerializer(t).data)
+                    status = serialized_tiles
+                    status_code = 200
+                else:
+                    status = "No tiles found."
+                    status_code = 404
+            else:
+                status = "Not allowed."
 
         return Response(status, status_code)
 
