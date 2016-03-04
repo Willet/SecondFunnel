@@ -14,6 +14,10 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function toTitleCase(str){
+    return str.split(" ").map(function(i){return i[0].toUpperCase() + i.substring(1).toLowerCase()}).join(" ");
+}
+
 $(document).ready(function(){
     //var Forms = new formView();
     $.ajaxSetup({

@@ -25,6 +25,7 @@ from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, 
     TileSerializerBulk
 from .generics import ListCreateDestroyBulkUpdateAPIView
 
+
 class StoreViewSet(viewsets.ModelViewSet):
     queryset = Store.objects.all()
     serializer_class = StoreSerializer
@@ -755,7 +756,7 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                             page = Page.objects.get(pk=request_id)
                             tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
                             break
-                            
+
                 if tiles is not None:
                     serialized_tiles = []
                     for t in tiles:

@@ -221,7 +221,7 @@ def dashboard_tiles(request, dashboard_slug):
                 else:
                     if tile['template'] == 'product':
                         try:
-                            tile_name = Product.objects.get(sku=tile['product']['sku']).name
+                            tile_name = Product.objects.get(store=page.store_id,sku=tile['product']['sku']).name
                         except Product.DoesNotExist:
                             tile_name = "No name"
                     else:
@@ -229,11 +229,17 @@ def dashboard_tiles(request, dashboard_slug):
             else:
                 tile_id = int(tile['id'])
                 tile_img = None
-                tile_name = tile.get('name', None)
+                tile_name = tile['name']
             
             tile_prio = tile['priority']
-            tile_template = tile.get('template', "No template").title()
-            tagged_products = tile.get('tagged-products', [])
+            tile_template = tile['template'].title()
+            
+            if type(tile) is dict:
+                tagged_products = tile.get('tagged-products',[])
+            else:
+                tagged_products = tile['tagged-products']
+                if tagged_products is None:
+                    tagged_products = []
 
             tile_tagged_products = []
             for t in tagged_products:
@@ -257,8 +263,6 @@ def dashboard_tiles(request, dashboard_slug):
         cur_dashboard_page = cur_dashboard.page
 
         return render(request, 'tiles.html', {
-                'tileList': all_products,
-                'tileIDs': tile_ids,
                 'tileImagesNames': tile_images_names,
                 'pageID': page_id,
                 'context': RequestContext(request), 
