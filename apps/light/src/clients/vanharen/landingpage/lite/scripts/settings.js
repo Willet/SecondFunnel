@@ -45,15 +45,15 @@
   ],
   "categoryHome":false,
   "gaAccountNumber":"UA-23764505-33",
-  "mobileHome":{
-    "category":"so-sweet-dames-mobile"
-  },
   "social_buttons":null,
   "generateHeroArea":true,
   "useAffiliateLinks":false,
   "column_width":341,
   "home":{
-    "category":"so-sweet-dames"
+    "category":"all"
+  },
+  "mobileHome":{
+    "category":"all-mobile"
   },
   "masonry":{
     "tileAspectRatio":1,
@@ -64,6 +64,12 @@
   "categories":[
     {
       "subCategories":[
+        {
+          "previewTile":34437,
+          "displayName":"All Trends",
+          "name":"all",
+          "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-so-sweet-dames.jpg"
+        },
         {
           "label":"Dames"
         },
