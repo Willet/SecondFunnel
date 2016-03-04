@@ -68,7 +68,7 @@
           "label":"Dames"
         },
         {
-          "previewTile":34438,
+          "previewTile":34437,
           "displayName":"So Sweet",
           "name":"so-sweet-dames",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-so-sweet-dames.jpg"
@@ -101,7 +101,7 @@
           "label":"Heren"
         },
         {
-          "previewTile":34437,
+          "previewTile":34438,
           "displayName":"Mix & Match",
           "name":"mix-and-match-heren",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-mix-and-match-heren.jpg"
