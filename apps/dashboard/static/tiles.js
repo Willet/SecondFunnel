@@ -2,10 +2,10 @@
 
 var apiURL = "http://localhost:8000/api2/";
 
-var tileCollection;   //Collection of all tiles
-var tiles;            //Array of all tile as models
-var result, ordered; 
-var batch = [];
+var tileCollection,   //Collection of all tiles
+    tiles,            //Array of all tile as models
+    result, ordered,
+    batch = [];
 
 var Tile = Backbone.Model.extend({
     defaults: {},
@@ -61,7 +61,7 @@ var TileCollection = Backbone.Collection.extend({
         tileCollection.fetch().done(function(){
             tiles = tileCollection.models;
             var tilesView = new TileCollectionView;
-            ordered = checkOrdered();
+            ordered = tileCollection.checkOrdered();
             $('#backbone-tiles').sortable({
                 start: function(event, ui){
                     $('#moveTilesResult').html("");
@@ -265,6 +265,17 @@ var TileCollection = Backbone.Collection.extend({
             result = tileCollection.fetchAndRender();
         })
     },
+
+    checkOrdered: function(){
+        result = true;
+        for (var i = 0; i < tileCollection.length-1; i++){
+            if (tiles[i].attributes.priority != tiles[i+1].attributes.priority + 1){
+                result = false;
+                break;
+            }
+        }
+        return result;
+    },
 });
 
 var TileView = Backbone.View.extend({
@@ -319,28 +330,33 @@ var TileCollectionView = Backbone.View.extend({
     },
 });
 
-function swapTilePositions(tile1, tile2){
-    var tileSwapper = new TileCollection();
-    try {
-        tileSwapper.swapTile(tileSwapper, tile1, tile2);
-    }
-    catch (e) {
-        $('#swapResult').html(e);
-    }
-}
+var SwapView = Backbone.View.extend({
+    el: $('#swapTiles'),
 
-function checkOrdered(){
-    var result = true;
-    for (var i = 0; i < tileCollection.length-1; i++){
-        if (tiles[i].attributes.priority != tiles[i+1].attributes.priority + 1){
-            result = false;
-            break;
+    events: {
+        "click #swapButton": "swapTilePositions",
+        "click #refreshButton": "refreshPage",
+    },
+
+    swapTilePositions: function(){
+        var tile1 = document.getElementById('tile1').value;
+        var tile2 = document.getElementById('tile2').value;
+        var tileSwapper = new TileCollection();
+        try {
+            tileSwapper.swapTile(tileSwapper, tile1, tile2);
         }
-    }
-    return result;
-}
+        catch (e) {
+            $('#swapResult').html(e);
+        }
+    },
+
+    refreshPage: function(){
+        window.location.reload();
+    },
+})
 
 $(function(){
+    var swapView = new SwapView();
     tileCollection = new TileCollection();
     tileCollection.fetchAndRender();
 })

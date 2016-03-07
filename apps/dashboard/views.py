@@ -188,7 +188,6 @@ def dashboard_tiles(request, dashboard_slug):
 
         page = Page.objects.get(pk=page_id)
         tile_magic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
-        tileMagic_count = len(tile_magic)
 
         all_products = []
 
@@ -233,7 +232,7 @@ def dashboard_tiles(request, dashboard_slug):
             
             tile_prio = tile['priority']
             tile_template = tile['template'].title()
-            
+
             if type(tile) is dict:
                 tagged_products = tile.get('tagged-products',[])
             else:

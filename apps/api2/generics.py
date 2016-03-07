@@ -12,8 +12,6 @@ class PatchBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
     def bulk_update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
 
-        print request.data
-
         if isinstance(request.data, list):
             data = request.data[0]
         else:

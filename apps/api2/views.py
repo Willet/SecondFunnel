@@ -682,17 +682,13 @@ class PageViewSet(viewsets.ModelViewSet):
         returns:
             serialized list of all tiles on the page
         """
-        try:
-            page = Page.objects.get(pk=pk)
-        except Page.DoesNotExist:
-            status = "Page with ID: {} not found.".format(pk)
-            status_code = 404
-        else:
-            tile_magic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
-            status = []
-            for t in tile_magic:
-                status.append(TileSerializer(t).data)
-            status_code = 200
+        page = get_object_or_404(Page, pk=pk)
+
+        tile_magic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+        status = []
+        for t in tile_magic:
+            status.append(TileSerializer(t).data)
+        status_code = 200
 
         return Response(status, status=status_code)
 
@@ -710,7 +706,7 @@ class TileDetailBulk(APIView):
         status_code = 400
 
         for d in dashboards:
-            page = Page.objects.get(pk=d.page_id)
+            page = get_object_or_404(Page, pk=d.page_id)
             if page.feed.id == tile.feed.id:
                 status = TileSerializer(tile).data
                 status_code = 200
@@ -719,12 +715,27 @@ class TileDetailBulk(APIView):
         return Response(status, status_code)
 
     def patch(self, request, pk, format=None):
+        profile = UserProfile.objects.get(user=self.request.user)
+        dashboards = profile.dashboards.all()
         tile = get_object_or_404(Tile, pk=pk)
-        serializer = TileSerializer(tile, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        status = "Not allowed"
+        status_code = 400
+        
+        for d in dashboards:
+            page = get_object_or_404(Page, pk=d.page_id)
+            tiles = page.feed.tiles.all()
+            if page.feed.id == tile.feed.id: 
+                serializer = TileSerializer(tile, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    status = serializer.data
+                    status_code = 200
+                else:
+                    status = serializer.errors
+                break
+
+        return Response(status, status=status_code)
 
 
 class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
