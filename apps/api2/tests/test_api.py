@@ -1160,8 +1160,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u"Page with ID: 10000 not found.")
 
     def tile_test(self):
-        # response = self.client.get(reverse('tile-list'))
-        response = self.client.get('/api2/tile/')
+        response = self.client.get('/api2/tile?page=9')
         self.assertEqual(len(response.data),6)
         tile0 = response.data[0]
         tile1 = response.data[1]
@@ -1252,7 +1251,7 @@ class APITest(APITestCase):
         self.assertEqual(tile['feed'],9)
 
     def tile_change_prio_test(self):
-        response = self.client.patch('/api2/tile/', json.dumps([{"id":10, "priority": 100000}]), content_type='application/json')
+        response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}]), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
         self.assertEqual(response.data[0], TileSerializer(t).data)
@@ -1265,7 +1264,7 @@ class APITest(APITestCase):
         self.assertEqual(t.priority, 100001)
 
     def tile_change_prio_bulk_test(self):
-        response = self.client.patch('/api2/tile/', json.dumps([{"id":10, "priority": 100000}, {"id":11, "priority":101}]), content_type='application/json')
+        response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}, {"id":11, "priority": 101}]), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
         self.assertEqual(response.data[0], TileSerializer(t).data)
@@ -1281,7 +1280,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['detail'], 'Not found.')
         self.assertEqual(list(t), [])
 
-        response = self.client.patch('/api2/tile/', json.dumps([{"id":55, "priority": 1}]), content_type='application/json')
+        response = self.client.patch('/api2/tile', json.dumps([{"id":55, "priority": 1}]), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         t = Tile.objects.filter(pk=55)
         self.assertEqual(response.data[0], "Could not find all objects to update.")
@@ -1296,7 +1295,7 @@ class APITest(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['priority'], [u'A valid integer is required.'])
 
-        response = self.client.patch('/api2/tile/', json.dumps([{"id":10, "priority": "test"}]), content_type='application/json')
+        response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": "test"}]), content_type='application/json')
         self.assertEqual(response.status_code, 400)
         t = Tile.objects.filter(pk=10)
         self.assertEqual(response.data[0]['priority'], [u'A valid integer is required.'])

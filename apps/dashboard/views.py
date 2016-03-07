@@ -15,7 +15,7 @@ from django.views.decorators.http import require_POST
 
 from apps.assets.models import Category, Page, Product, Store, ProductImage
 from apps.api2.serializers import TileSerializer
-from apps.dashboard.models import DashBoard, UserProfile, Query
+from apps.dashboard.models import Dashboard, UserProfile, Query
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.views import scrape
 
@@ -52,8 +52,8 @@ def get_data(request):
         if 'dashboard' in request_get:
             dashboard_id = request_get['dashboard']
         try:
-            cur_dashboard_page = DashBoard.objects.get(pk=dashboard_id).page
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            cur_dashboard_page = Dashboard.objects.get(pk=dashboard_id).page
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return error("Dashboard error, multiple or no dashboards found")
 
         # Determine if user can view dashboard
@@ -118,8 +118,8 @@ def dashboard(request, dashboard_slug):
     else:
         context_dict = {}
         try:
-            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            cur_dashboard = Dashboard.objects.get(pk=dashboard_id)
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
         context_dict['dashboard_id'] = cur_dashboard.pk
         context_dict['siteName'] = cur_dashboard.site_name
@@ -154,8 +154,8 @@ def dashboard_products(request, dashboard_slug):
         return HttpResponseRedirect('/dashboard/')
     else:
         try:
-            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            cur_dashboard = Dashboard.objects.get(pk=dashboard_id)
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
         
         context = RequestContext(request)
@@ -182,16 +182,16 @@ def dashboard_tiles(request, dashboard_slug):
         return HttpResponseRedirect('/dashboard/')
     else:
         try:
-            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            cur_dashboard = Dashboard.objects.get(pk=dashboard_id)
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
 
         page = Page.objects.get(pk=page_id)
-        tile_magic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+        ordered_tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
 
         all_products = []
 
-        for tile in tile_magic:
+        for tile in ordered_tiles:
             if tile.ir_cache:
                 tile = json.loads(tile.ir_cache)
                 tile_id = int(tile['tile-id'])

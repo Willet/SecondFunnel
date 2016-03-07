@@ -16,7 +16,7 @@ from rest_framework.reverse import reverse
 from rest_framework_bulk import generics, BulkListSerializer
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
-from apps.dashboard.models import DashBoard, UserProfile
+from apps.dashboard.models import Dashboard, UserProfile
 from apps.imageservice.utils import upload_to_cloudinary
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
@@ -684,9 +684,9 @@ class PageViewSet(viewsets.ModelViewSet):
         """
         page = get_object_or_404(Page, pk=pk)
 
-        tile_magic = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+        ordered_tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
         status = []
-        for t in tile_magic:
+        for t in ordered_tiles:
             status.append(TileSerializer(t).data)
         status_code = 200
 
@@ -716,24 +716,19 @@ class TileDetailBulk(APIView):
 
     def patch(self, request, pk, format=None):
         profile = UserProfile.objects.get(user=self.request.user)
-        dashboards = profile.dashboards.all()
         tile = get_object_or_404(Tile, pk=pk)
 
-        status = "Not allowed"
+        status = {"detail": "Not allowed"}
         status_code = 400
         
-        for d in dashboards:
-            page = get_object_or_404(Page, pk=d.page_id)
-            tiles = page.feed.tiles.all()
-            if page.feed.id == tile.feed.id: 
-                serializer = TileSerializer(tile, data=request.data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
-                    status = serializer.data
-                    status_code = 200
-                else:
-                    status = serializer.errors
-                break
+        if Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile):
+            serializer = TileSerializer(tile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                status = serializer.data
+                status_code = 200
+            else:
+                status = serializer.errors
 
         return Response(status, status=status_code)
 

@@ -20,8 +20,6 @@ class PatchBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
         if 'data' in data:
             data = ast.literal_eval(data['data'])
 
-        print data
-
         # restrict the update to the filtered queryset
         serializer = self.get_serializer(
             self.filter_queryset(self.get_queryset()),

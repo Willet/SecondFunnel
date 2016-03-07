@@ -12,6 +12,7 @@ from apiclient.discovery import build
 from apiclient.errors import HttpError
 from oauth2client.client import SignedJwtAssertionCredentials
 
+from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
@@ -355,7 +356,7 @@ class Campaign(models.Model):
         return name
 
 
-class DashBoard(models.Model):
+class Dashboard(models.Model):
     """
     The analytics information for a given site.
     Each dashboard is for a single page, which is a single campaign.
@@ -380,7 +381,7 @@ class UserProfile(models.Model):
     Extends the user model to store information on which dashboards each user can view.
     """
     user = models.OneToOneField(User)
-    dashboards = models.ManyToManyField(DashBoard)
+    dashboards = models.ManyToManyField(Dashboard, related_name="userprofiles")
 
     def __unicode__(self):
         username = "null"
