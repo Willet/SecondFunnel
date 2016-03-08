@@ -103,6 +103,12 @@
                             <span>Get Details</span>
                             <br/>
                             <span class="tile-name"><%= obj.product.get('name') %></span>
+                            <% (function (obj) { %>
+                            <% /* context is product */ %>
+                            <div class="price">
+                                <% include("product_price_template") %>
+                            </div>
+                            <% })(obj.product.attributes) %>
                         <% } else if (obj.template === "image") { %>
                             <span>Get Details</span>
                             <br/>
