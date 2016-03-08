@@ -3896,3 +3896,13 @@ div[data-role="editor-toolbar"] {
     opacity: 1;
     position: relative;
 }
+
+#backbone-tiles .ui-selecting{
+    background: #FECA40; 
+}
+
+#backbone-tiles .ui-selected { 
+    background: #FF0000; 
+    color: white; 
+}
+

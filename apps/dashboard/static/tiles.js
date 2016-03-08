@@ -76,6 +76,7 @@ var TileCollection = Backbone.Collection.extend({
                     tileMover.moveTileToPosition(tileMover, endPos, tiles[startPos].attributes.id);
                 },
             });
+            $('#backbone-tiles').selectable();
         });
     },
 
