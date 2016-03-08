@@ -3,6 +3,7 @@
 var apiURL = "http://localhost:8000/api2/";
 
 var tileCollection,   //Collection of all tiles
+    tilesView,        //View of all tiles
     tiles,            //Array of all tile as models
     result, ordered,
     batch = [];
@@ -56,30 +57,6 @@ var TileCollection = Backbone.Collection.extend({
         }
     },
 
-    fetchAndRender: function(){
-        tileCollection = new TileCollection();
-        tileCollection.fetch().done(function(){
-            tiles = tileCollection.models;
-            var tilesView = new TileCollectionView;
-            ordered = tileCollection.checkOrdered();
-            $('#backbone-tiles').sortable({
-                start: function(event, ui){
-                    $('#moveTilesResult').html("");
-                    var startPos = ui.item.index();
-                    ui.item.data('startPos', startPos);
-                },
-                update: function(event, ui){
-                    $('#moveTilesResult').html("Loading...");
-                    var startPos = ui.item.data('startPos');
-                    var endPos = ui.item.index();
-                    var tileMover = new TileCollection();
-                    tileMover.moveTileToPosition(tileMover, endPos, tiles[startPos].attributes.id);
-                },
-            });
-            $('#backbone-tiles').selectable();
-        });
-    },
-
     setIncreasingPriority: function(ind){
         for (var i = ind; i >= 0; i--) {
             tiles[i].attributes.priority = tiles[i+1].attributes.priority + 1;
@@ -87,6 +64,7 @@ var TileCollection = Backbone.Collection.extend({
                 'id': tiles[i].attributes.id, 
                 'priority': tiles[i].attributes.priority
             });
+            tileCollection.models[i].set({priority: tiles[i].attributes.priority});
         }
     },
 
@@ -97,10 +75,12 @@ var TileCollection = Backbone.Collection.extend({
             'id': tiles[tile1Ind].attributes.id, 
             'priority': tiles[tile2Ind].attributes.priority
         });
+        tileCollection.models[tile1Ind].set({priority: tiles[tile2Ind].attributes.priority});
         batch.push({
             'id': tiles[tile2Ind].attributes.id, 
             'priority': tiles[tile1Ind].attributes.priority
         });
+        tileCollection.models[tile2Ind].set({priority: tiles[tile1Ind].attributes.priority});
     },
 
     swapUnorderedPriorities: function(tile1Ind, tile2Ind){
@@ -117,6 +97,10 @@ var TileCollection = Backbone.Collection.extend({
         temp = tiles[tile1Ind];
         tiles[tile1Ind] = tiles[tile2Ind];
         tiles[tile2Ind] = temp;
+
+        temp = tileCollection.models[tile1Ind];
+        tileCollection.models[tile1Ind] = tileCollection.models[tile2Ind];
+        tileCollection.models[tile2Ind] = temp;
 
         temp = tileImagesNames[tile1Ind];
         tileImagesNames[tile1Ind] = tileImagesNames[tile2Ind];
@@ -143,6 +127,7 @@ var TileCollection = Backbone.Collection.extend({
             'id': tiles[tile1Ind].attributes.id, 
             'priority': tiles[tile1Ind].attributes.priority
         });
+        tileCollection.models[tile1Ind].set({priority: tiles[tile1Ind].attributes.priority});
 
         // Now just loop from tile1 to tile with ind of 0 in list, while setting priority + 1 the next one
         this.setIncreasingPriority(tile1Ind-1);
@@ -184,7 +169,6 @@ var TileCollection = Backbone.Collection.extend({
                     status = "Swapping failed due to an error.";
                 }
                 $('#swapResult').html(status);
-                result = tileCollection.fetchAndRender();
             })
         }
         catch (e){
@@ -263,7 +247,6 @@ var TileCollection = Backbone.Collection.extend({
                 status = "Move failed due to an error.";
             }
             $('#moveTilesResult').html(status);
-            result = tileCollection.fetchAndRender();
         })
     },
 
@@ -282,9 +265,11 @@ var TileCollection = Backbone.Collection.extend({
 var TileView = Backbone.View.extend({
     template: _.template($('#tile-template').html()),
 
-    className: 'tile-list sortable',
+    className: 'tile-list sortable selectable',
 
     initialize: function(ind){
+        _.bindAll(this, "render");
+        this.model.bind('change', this.render);
         this.img = tileImagesNames[ind.ind].img;
         this.name = tileImagesNames[ind.ind].name;
     },
@@ -326,7 +311,24 @@ var TileCollectionView = Backbone.View.extend({
             });
             this.$el.append(tileView.render().el);
         }.bind(this));
+        
+        $('#backbone-tiles').sortable({
+            start: function(event, ui){
+                $('#moveTilesResult').html("");
+                var startPos = ui.item.index();
+                ui.item.data('startPos', startPos);
+            },
+            update: function(event, ui){
+                $('#moveTilesResult').html("Loading...");
+                var startPos = ui.item.data('startPos');
+                var endPos = ui.item.index();
+                var tileMover = new TileCollection();
+                tileMover.moveTileToPosition(tileMover, endPos, tiles[startPos].attributes.id);
+            },
+        });
+        $('#backbone-tiles').selectable(
 
+        );
         return this;
     },
 });
@@ -356,8 +358,19 @@ var SwapView = Backbone.View.extend({
     },
 })
 
+function collectionFetch(){
+    tileCollection.fetch().done(function(){
+        tiles = tileCollection.models;
+        ordered = tileCollection.checkOrdered();
+    });
+}
+
 $(function(){
     var swapView = new SwapView();
     tileCollection = new TileCollection();
-    tileCollection.fetchAndRender();
+    tileCollection.fetch().done(function(){
+        tiles = tileCollection.models;
+        ordered = tileCollection.checkOrdered();
+        tilesView = new TileCollectionView;
+    });
 })
