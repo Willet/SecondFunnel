@@ -105,9 +105,9 @@ class BannerTileSerializerTest(TestCase):
         t.content.add(i)
         data = s.get_dump_object(t)
         self.assertEqual(data['default-image'], i.to_json())
-        self.assertIsNone(data['redirect-url']) # shouldn't this be a required field?
 
-    def get_dump_object_product_test(self):
+    def get_dump_object_product_image_test(self):
+        # Banner tile tries to use a product image if there is not images
         s =  BannerTileSerializer()
         t = Tile.objects.get(pk=10)
         with self.assertRaises(SerializerError):
@@ -122,7 +122,21 @@ class BannerTileSerializerTest(TestCase):
         p.product_images.add(i)
         data = s.get_dump_object(t)
         self.assertEqual(data['default-image'], i.to_json())
-        self.assertIsNone(data['redirect-url']) # again, required?
+
+    def get_dump_object_redirect_test(self):
+        s =  BannerTileSerializer()
+        t = Tile.objects.get(pk=10)
+        i = Image.objects.get(pk=6)
+        t.content.add(i)
+        data = s.get_dump_object(t)
+        self.assertTrue('redirectUrl' not in data)
+        t.attributes['redirect_url'] = 'http://www.facebook.com'
+        data = s.get_dump_object(t)
+        self.assertEqual(data['redirectUrl'], t.attributes['redirect_url'])
+        del t.attributes['redirect_url']
+        t.attributes['redirect-url'] = 'http://www.google.com'
+        data = s.get_dump_object(t)
+        self.assertEqual(data['redirectUrl'], t.attributes['redirect-url'])
 
 class CollectionTileSerializerTest(TestCase):
     fixtures = ['assets_models.json']

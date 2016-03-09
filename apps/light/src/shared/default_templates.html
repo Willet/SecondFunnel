@@ -121,6 +121,7 @@
     <div class='relative'>
         <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= obj.caption %>" />
     </div>
+    <% if (obj['redirectUrl']) { %>
     <div class="overlay">
         <div class='table'>
             <div class='cell'>
@@ -134,6 +135,7 @@
             </div>
         </div>
     </div>
+    <% } %>
 </script>
 
 <script type="text/template" id="gif_tile_template">

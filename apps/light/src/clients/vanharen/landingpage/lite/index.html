@@ -82,7 +82,7 @@
             <div class='relative'>
                 <img class="focus" src="<%= obj.defaultImage.url %>" />
             </div>
-            <% if (obj['redirect-url']) { %>
+            <% if (obj['redirectUrl']) { %>
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
@@ -93,9 +93,6 @@
                     </div>
                 </div>
             </div>
-            <% } %>
-            <% if (App.option("debug", 0) > 1) { %>
-                <span class="type"><%= obj["content-type"] %></span>
             <% } %>
         </script>
 
@@ -117,9 +114,6 @@
                     </div>
                 </div>
             </div>
-            <% if (App.option("debug", 0) > 1) { %>
-                <span class="type"><%= obj["content-type"] %></span>
-            <% } %>
         </script>
 
         <script type="text/template" id="preview_container_template">
