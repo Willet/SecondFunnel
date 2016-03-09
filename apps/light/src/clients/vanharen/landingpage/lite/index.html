@@ -349,6 +349,28 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     </script>
 
+    <!-- vanHaren tracking -->
+    <script type="text/javascript">
+        //<![CDATA[
+        window.emosTrackVersion = 2;
+        //]]>
+    </script>
+    <script type="text/javascript" src="http://www.vanharen.nl/NL/nl/corp/js/emos2.js"></script>
+    <script type="text/javascript">
+        //<![CDATA[
+        var emospro = {};
+        emospro.pageId = '/NL/nl/trendspage/spring/home.jsp';
+        emospro.siteid ='OnlineShop';
+        emospro.langid ='nl';
+        emospro.countryid ='nl';
+        emospro.content ='Spring/Trendspage';
+
+        window.emosPropertiesEvent(emospro);
+        //]]>
+    </script>
+    
+    <img height="1" width="1" border="0" src="https://tracking.metalyzer.com/deichmann/nl/page.php?ref=&site/NL/nl/trendspage/spring/home">
+
     <img src="{% url 'apps.tracking.views.pixel' %}"/>
     <div>
         @@include('shared/default_templates.html')

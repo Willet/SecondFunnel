@@ -242,7 +242,7 @@
             style="background-image: url('<%= imageUrl %>');">
         </div>
     </div>
-    <% if (obj.taggedProducts.length > 1) { %>
+    <% if (!oneProduct) { %>
     <div class="cell shop <%= orientation %>">
         <div class="product-thumbnails"></div>
     </div>

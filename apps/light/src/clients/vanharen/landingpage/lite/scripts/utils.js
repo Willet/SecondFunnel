@@ -30,7 +30,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
     module.addUrlTrackingParameters = function (url) {
         var params = {
-            "campaign":   "TRENDSPAGE"
+            "campaign":   "TRENDSPAGE",
+            "category":   App.intentRank.currentCategory()
         };
         return module.urlAddParams(url, _.extend({}, params, App.option("page:urlParams")));
     };
