@@ -270,6 +270,11 @@ body {
 
     .table {
         max-height: 760px;
+        /* Eliminate space between inline-block elements */
+        font-size: 0;
+        .cell {
+            font-size: 14px;
+        }
     }
 
     .cell {
@@ -287,8 +292,11 @@ body {
         padding: 0;
         &.square,
         &.portrait {
-            width: 49%;
+            width: 50%;
             height: 100%;
+            &.one-product {
+                width: 64%;
+            }
         }
         &.landscape {
             width: 63%;
@@ -894,6 +902,32 @@ ul.price {
         width: 50%;
         &.wide {
             width: 100%;
+            min-height: 200px;
+            .product-shot {
+                padding: 0 3%;
+                ul.label {
+                    li {
+                        font-size: 12px;
+                        line-height: 18px;
+                    }
+                }
+                ul.price {
+                    top: 0;
+                    right: 3%;
+                    li.current {
+                        font-size: 36px;
+                        line-height: 36px;
+                        sup {
+                            top: -11px;
+                        }
+                    }
+                }
+                div {
+                    position: relative;
+                    margin-top: calc(3% - 60px);
+                    z-index: -1;
+                }
+            }
         }
         &.full {
             width: 100%;
