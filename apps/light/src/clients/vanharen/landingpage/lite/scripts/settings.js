@@ -38,6 +38,14 @@
         {
           "displayName":"Mix & Match",
           "name":"mix-and-match-heren-mobile"
+        },
+        {
+          "displayName":"City Style",
+          "name":"city-style-heren-mobile"
+        },
+        {
+          "displayName":"Light & Easy",
+          "name":"light-and-easy-heren-mobile"
         }
       ],
       "displayName":"Kies jouw trend hier"
@@ -46,14 +54,14 @@
   "categoryHome":false,
   "gaAccountNumber":"UA-23764505-33",
   "mobileHome":{
-    "category":"so-sweet-dames-mobile"
+    "category":"all-mobile"
   },
   "social_buttons":null,
   "generateHeroArea":true,
   "useAffiliateLinks":false,
   "column_width":341,
   "home":{
-    "category":"so-sweet-dames"
+    "category":"all"
   },
   "masonry":{
     "tileAspectRatio":1,
@@ -65,10 +73,16 @@
     {
       "subCategories":[
         {
+          "previewTile":34437,
+          "displayName":"All Trends",
+          "name":"all",
+          "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-so-sweet-dames.jpg"
+        },
+        {
           "label":"Dames"
         },
         {
-          "previewTile":34438,
+          "previewTile":34437,
           "displayName":"So Sweet",
           "name":"so-sweet-dames",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-so-sweet-dames.jpg"
@@ -101,10 +115,22 @@
           "label":"Heren"
         },
         {
-          "previewTile":34437,
+          "previewTile":34438,
           "displayName":"Mix & Match",
           "name":"mix-and-match-heren",
           "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-mix-and-match-heren.jpg"
+        },
+        {
+          "previewTile":34729,
+          "displayName":"City Style",
+          "name":"city-style-heren",
+          "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-city-style-heren.jpg"
+        },
+        {
+          "previewTile":34730,
+          "displayName":"Light & Easy",
+          "name":"light-and-easy-heren",
+          "heroImage":"http://images.secondfunnel.com/store/vanharen/spring/desktop-hero-light-and-easy-heren.jpg"
         }
       ],
       "displayName":""
