@@ -52,7 +52,7 @@ def get_data(request):
         if 'dashboard' in request_get:
             dashboard_id = request_get['dashboard']
         try:
-            cur_dashboard_page = Dashboard.objects.get(pk=dashboard_id).page
+            dashboard_page = Dashboard.objects.get(pk=dashboard_id).page
         except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return error("Dashboard error, multiple or no dashboards found")
 
@@ -74,7 +74,7 @@ def get_data(request):
                 return error('Multiple queries found, or query does not exist')
             # execute query and set response
             # success case
-            response = query.get_response(cur_dashboard_page)
+            response = query.get_response(dashboard_page)
             return HttpResponse(response, content_type='application/json')
         else:  # query id not included in request
             return error('Query ID was not included in request')
@@ -109,7 +109,7 @@ def dashboard(request, dashboard_slug):
     dashboards = profile.dashboards.all()
     dashboard = dashboards.filter(page__url_slug=dashboard_slug).first()
     if not dashboard:
-        return HttpResponseRedirect('/dashboard')
+        return HttpResponseRedirect('/dashboard/')
     dashboard_id = dashboard.id
 
     if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
@@ -118,11 +118,11 @@ def dashboard(request, dashboard_slug):
     else:
         context_dict = {}
         try:
-            cur_dashboard = Dashboard.objects.get(pk=dashboard_id)
+            dashboard = Dashboard.objects.get(pk=dashboard_id)
         except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
-        context_dict['dashboard_id'] = cur_dashboard.pk
-        context_dict['siteName'] = cur_dashboard.site_name
+        context_dict['dashboard_id'] = dashboard.pk
+        context_dict['siteName'] = dashboard.site_name
         context_dict['dashboard_slug'] = dashboard_slug
         return render(request, 'dashboard.html', context_dict)
 
@@ -146,7 +146,7 @@ def dashboard_products(request, dashboard_slug):
     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
 
     if not dashboard:
-        return HttpResponseRedirect('/dashboard')
+        return HttpResponseRedirect('/dashboard/')
     dashboard_id = dashboard.first().id
     page_id = dashboard.first().page_id
 
@@ -154,35 +154,35 @@ def dashboard_products(request, dashboard_slug):
         return HttpResponseRedirect('/dashboard/')
     else:
         try:
-            cur_dashboard = Dashboard.objects.get(pk=dashboard_id)
+            dashboard = Dashboard.objects.get(pk=dashboard_id)
         except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
         
         context = RequestContext(request)
-        cur_dashboard_page = cur_dashboard.page
+        dashboard_page = dashboard.page
 
         return render(request, 'products.html', {
                 'context': context, 
-                'siteName': cur_dashboard.site_name, 
+                'siteName': dashboard.site_name, 
                 'url_slug': page_id,
-                'page': cur_dashboard_page
+                'page': dashboard_page
             })
 
 @login_required(login_url=LOGIN_URL)
 def dashboard_tiles(request, dashboard_slug):
     profile = UserProfile.objects.get(user=request.user)
-    dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
+    dashboards = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
 
-    if not dashboard:
-        return HttpResponseRedirect('/dashboard')
-    dashboard_id = dashboard.first().id
-    page_id = dashboard.first().page_id
+    if not dashboards:
+        return HttpResponseRedirect('/dashboard/')
+    dashboard_id = dashboards.first().id
+    page_id = dashboards.first().page_id
 
     if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
         return HttpResponseRedirect('/dashboard/')
     else:
         try:
-            cur_dashboard = Dashboard.objects.get(pk=dashboard_id)
+            dashboard = Dashboard.objects.get(pk=dashboard_id)
         except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
 
@@ -259,14 +259,14 @@ def dashboard_tiles(request, dashboard_slug):
             tile_ids.append(t['id'])
             tile_images_names.append({'img': t['img'], 'name': t['name']})
         
-        cur_dashboard_page = cur_dashboard.page
+        dashboard_page = dashboard.page
 
         return render(request, 'tiles.html', {
                 'tileImagesNames': tile_images_names,
                 'pageID': page_id,
                 'context': RequestContext(request), 
-                'siteName': cur_dashboard.site_name, 
-                'page': cur_dashboard_page,
+                'siteName': dashboard.site_name, 
+                'page': dashboard_page,
             })
 
 def user_login(request):

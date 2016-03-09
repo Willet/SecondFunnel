@@ -25,11 +25,15 @@ var Tile = Backbone.Model.extend({
             result = JSON.parse(result.responseText);
             if ("id" in result)
                 status = "The priority of tile with ID: " + model.id + 
-                         " has been changed to " + model.attributes.priority + ". Press Close to see the changes.";
+                         " has been changed to " + model.get('priority') + ". Press Close to see the changes.";
             else
                 status = result.priority;
             $('#result_' + model.id).html(status);
         });
+    },
+
+    deleteTile: function() {
+
     },
 });
 
@@ -59,28 +63,30 @@ var TileCollection = Backbone.Collection.extend({
 
     setIncreasingPriority: function(ind){
         for (var i = ind; i >= 0; i--) {
-            tiles[i].attributes.priority = tiles[i+1].attributes.priority + 1;
+            tiles[i].set('priority', tiles[i+1].get('priority') + 1);
             batch.push({
-                'id': tiles[i].attributes.id, 
-                'priority': tiles[i].attributes.priority
+                'id': tiles[i].get('id'), 
+                'priority': tiles[i].get('priority')
             });
-            tileCollection.models[i].set({priority: tiles[i].attributes.priority});
+            tileCollection.models[i].set({priority: tiles[i].get('priority')});
         }
     },
 
     swapOrderedPriorities: function(tile1Ind, tile2Ind){
         // Since we're re-fetching and re-rendering the tiles after swapping
         // Just need to add the tile id and new priorities to batch array
+        var tile1Priority = tiles[tile1Ind].get('priority');
+        var tile2Priority = tiles[tile2Ind].get('priority')
         batch.push({
-            'id': tiles[tile1Ind].attributes.id, 
-            'priority': tiles[tile2Ind].attributes.priority
+            'id': tiles[tile1Ind].get('id'), 
+            'priority': tile2Priority
         });
-        tileCollection.models[tile1Ind].set({priority: tiles[tile2Ind].attributes.priority});
+        tileCollection.models[tile1Ind].set({priority: tile2Priority});
         batch.push({
-            'id': tiles[tile2Ind].attributes.id, 
-            'priority': tiles[tile1Ind].attributes.priority
+            'id': tiles[tile2Ind].get('id'), 
+            'priority': tile1Priority
         });
-        tileCollection.models[tile2Ind].set({priority: tiles[tile1Ind].attributes.priority});
+        tileCollection.models[tile2Ind].set({priority: tile1Priority});
     },
 
     swapUnorderedPriorities: function(tile1Ind, tile2Ind){
@@ -115,19 +121,19 @@ var TileCollection = Backbone.Collection.extend({
         // Set tile1's priority to the one 1 to the right's +1
         if (tile1Ind == tiles.length - 1) {
             // This means tile1 is now at the end of the list so just set priority = 1
-            tiles[tile1Ind].attributes.priority = 1;
+            tiles[tile1Ind].set({'priority': 1});
         }
         else {
             // This means tile1 is not at the end of the list so there are still things on the right of it
-            tiles[tile1Ind].attributes.priority = tiles[tile1Ind + 1].attributes.priority + 1;
+            tiles[tile1Ind].set({'priority': tiles[tile1Ind + 1].get('priority') + 1});
         }
 
         // save tiles(tile1Ind) id and priority to batch array
         batch.push({
-            'id': tiles[tile1Ind].attributes.id, 
-            'priority': tiles[tile1Ind].attributes.priority
+            'id': tiles[tile1Ind].get('id'), 
+            'priority': tiles[tile1Ind].get('priority')
         });
-        tileCollection.models[tile1Ind].set({priority: tiles[tile1Ind].attributes.priority});
+        tileCollection.models[tile1Ind].set({priority: tiles[tile1Ind].get('priority')});
 
         // Now just loop from tile1 to tile with ind of 0 in list, while setting priority + 1 the next one
         this.setIncreasingPriority(tile1Ind-1);
@@ -138,8 +144,8 @@ var TileCollection = Backbone.Collection.extend({
 
         batch = [];
 
-        var tile1Ind = this.objectIndexOf(tileCollection, 'id', parseInt(tile1ID));
-        var tile2Ind = this.objectIndexOf(tileCollection, 'id', parseInt(tile2ID));
+        var tile1Ind = tileCollection.findIndexWhere({'id': parseInt(tile1ID)});
+        var tile2Ind = tileCollection.findIndexWhere({'id': parseInt(tile2ID)});
 
         try {
             if ( (tile1Ind == -1) || (tile2Ind == -1) )
@@ -176,21 +182,11 @@ var TileCollection = Backbone.Collection.extend({
         }
     },
 
-    objectIndexOf: function(list, attribute, value) {
-        var model;
-        for (var i = 0; i < list.length; i++) {
-            model = tiles[i];
-            if (model.attributes[attribute] == value)
-                return i;
-        }
-        return -1;
-    },
-
     moveTileToPosition: function(moveTileCollection, index, tileID) {
         batch = [];
         // First check if the index we're moving to is on the left or right of original tile index
         // Then insert/delete appropriately
-        var tileInd = this.objectIndexOf(tileCollection, 'id', parseInt(tileID));
+        var tileInd = tileCollection.findIndexWhere({'id': parseInt(tileID)});
 
         if (index < tileInd){
             tiles.splice(index, 0, tiles[tileInd]);
@@ -214,16 +210,16 @@ var TileCollection = Backbone.Collection.extend({
 
         if (startPoint == tiles.length - 1)
             // This means the starting point is now at the end of the list so just set priority = 1
-            tiles[startPoint].attributes.priority = 1;
+            tiles[startPoint].set({'priority': 1});
         else 
             // This means the starting point is not at the end of the list so just set priority = element on the right + 1
             // This makes sure that the starting point will always be at this spot
-            tiles[startPoint].attributes.priority = tiles[startPoint + 1].attributes.priority + 1;
+            tiles[startPoint].set({'priority': tiles[startPoint + 1].get('priority') + 1});
 
         // save tiles(startPoint) id and priority to batch array
         batch.push({
-            'id': tiles[startPoint].attributes.id, 
-            'priority': tiles[startPoint].attributes.priority
+            'id': tiles[startPoint].get('id'), 
+            'priority': tiles[startPoint].get('priority')
         });
 
         // Go from starting point to the beginning of the list, while setting the priorities for each tile
@@ -232,7 +228,7 @@ var TileCollection = Backbone.Collection.extend({
         batch = JSON.stringify(batch);
 
         var options = {
-            'url': apiURL + 'tile',
+            'url': this.getCustomURL('moveTile'),
         };
 
         moveTileCollection.set({data: batch});
@@ -253,23 +249,23 @@ var TileCollection = Backbone.Collection.extend({
     checkOrdered: function(){
         result = true;
         for (var i = 0; i < tileCollection.length-1; i++){
-            if (tiles[i].attributes.priority != tiles[i+1].attributes.priority + 1){
+            if (tiles[i].get('priority') != tiles[i+1].get('priority') + 1){
                 result = false;
                 break;
             }
         }
         return result;
     },
+
+    findIndexWhere: _.compose(Backbone.Collection.prototype.indexOf, Backbone.Collection.prototype.findWhere),
 });
 
 var TileView = Backbone.View.extend({
     template: _.template($('#tile-template').html()),
 
-    className: 'tile-list sortable selectable',
+    className: 'tile-list sortable',
 
     initialize: function(ind){
-        _.bindAll(this, "render");
-        this.model.bind('change', this.render);
         this.img = tileImagesNames[ind.ind].img;
         this.name = tileImagesNames[ind.ind].name;
     },
@@ -299,12 +295,13 @@ var TileCollectionView = Backbone.View.extend({
 
     initialize: function() {
         this.render();
+        this.collection.on('change reset add remove', _.debounce(this.render, 100), this);
     },
 
     render: function(){
         this.$el.html('');
 
-        tileCollection.each(function(model, index){
+        this.collection.each(function(model, index){
             var tileView = new TileView({
                 model: model,
                 ind: index,
@@ -323,12 +320,9 @@ var TileCollectionView = Backbone.View.extend({
                 var startPos = ui.item.data('startPos');
                 var endPos = ui.item.index();
                 var tileMover = new TileCollection();
-                tileMover.moveTileToPosition(tileMover, endPos, tiles[startPos].attributes.id);
+                tileMover.moveTileToPosition(tileMover, endPos, tiles[startPos].get('id'));
             },
         });
-        $('#backbone-tiles').selectable(
-
-        );
         return this;
     },
 });
@@ -358,19 +352,13 @@ var SwapView = Backbone.View.extend({
     },
 })
 
-function collectionFetch(){
-    tileCollection.fetch().done(function(){
-        tiles = tileCollection.models;
-        ordered = tileCollection.checkOrdered();
-    });
-}
-
 $(function(){
     var swapView = new SwapView();
     tileCollection = new TileCollection();
     tileCollection.fetch().done(function(){
         tiles = tileCollection.models;
         ordered = tileCollection.checkOrdered();
-        tilesView = new TileCollectionView;
+        tilesView = new TileCollectionView({ collection: tileCollection });
+        tilesView.render();
     });
 })
