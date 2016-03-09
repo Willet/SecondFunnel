@@ -12,6 +12,7 @@ var Page = require('landingpage'),
 
 // Import client customizations
 App.module('utils', require('./utils'));
+App.module('tracker', require('./tracker'));
 App.module('core', require('./core.views'));
 App.module('core', require('./core.models'));
 
