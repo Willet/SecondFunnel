@@ -5,6 +5,6 @@
 module.exports = (module, App, Backbone, Marionette, $, _) ->
     module.BannerTileView::onClick = ->
             App.vent.trigger('tracking:product:buyClick', @model)
-            if @model.get("redirect-url")
-                App.utils.openUrl @model.get("redirect-url")
+            if @model.get("redirectUrl")
+                App.utils.openUrl @model.get("redirectUrl")
             return

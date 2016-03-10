@@ -22,7 +22,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#giftcard_tile_template"
 
         onClick: (ev) ->
-            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            url = App.utils.addUrlTrackingParameters( @model.get("redirectUrl") )
             window.open url, App.utils.openInWindow()
             return
 
@@ -31,7 +31,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#tumblr_tile_template"
 
         onClick: (ev) ->
-            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            url = App.utils.addUrlTrackingParameters( @model.get("redirectUrl") )
             window.open url, App.utils.openInWindow()
             return
 
@@ -40,7 +40,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         template: "#banner_tile_template"
 
         onClick: (ev) ->
-            url = App.utils.addUrlTrackingParameters( @model.get("redirect-url") )
+            url = App.utils.addUrlTrackingParameters( @model.get("redirectUrl") )
             window.open url, App.utils.openInWindow()
             return
 

@@ -87,6 +87,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.BannerTileView::onClick = ->
             App.vent.trigger('tracking:tile:bannerExit', @model)
-            if @model.get("redirect-url")
-                App.utils.openUrl(@model.get("redirect-url"), '_top')
+            if @model.get("redirectUrl")
+                App.utils.openUrl(@model.get("redirectUrl"), '_top')
             return false # stop event propogation

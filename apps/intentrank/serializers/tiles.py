@@ -245,13 +245,14 @@ class BannerTileSerializer(TileSerializer):
     def get_dump_object(self, tile):
         """
         returns {
-            'redirect-url':
+            'redirectUrl':
             'default-image': image OR product product-image
             ...
         }
         """
         redirect_url = (tile.attributes.get('redirect_url') or
-                        tile.attributes.get('redirect-url'))
+                        tile.attributes.get('redirect-url') or
+                        tile.attributes.get('redirectUrl'))
 
         # Needs one image
         # We prefer content over products
@@ -275,10 +276,9 @@ class BannerTileSerializer(TileSerializer):
                                            or a product with an image".format(tile.id))
 
         data = self.get_core_attributes(tile)
-        data.update({
-            'default-image': image,
-            'redirect-url': redirect_url,
-        })
+        data['default-image'] = image
+        if redirect_url:
+            data['redirectUrl'] = redirect_url
         return data
 
 
