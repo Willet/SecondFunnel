@@ -3867,6 +3867,7 @@ div[data-role="editor-toolbar"] {
     outline: 2px solid black;
     overflow: hidden;
     padding-bottom: 32%;
+    display: block;
 }
 
 .tile-list img {
@@ -3887,6 +3888,15 @@ div[data-role="editor-toolbar"] {
     padding: 5px;
 }
 
+.tile-list .handle {
+    background: #EDEDED;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    padding: 8px;
+}
+
 #product-force-create {
     opacity: 1;
     position: relative;
@@ -3898,10 +3908,10 @@ div[data-role="editor-toolbar"] {
 }
 
 #backbone-tiles .ui-selecting{
-    background: #FECA40; 
+    background: #000000;  /* while highlighting */
 }
 
 #backbone-tiles .ui-selected { 
-    background: #4074fe; 
+    background: #4074fe;  /* selected */
 }
 

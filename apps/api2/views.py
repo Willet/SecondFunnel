@@ -322,7 +322,7 @@ class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
 
-    def add_product(self, filters, product_id, page, category=None, priority=None, force_create=False):  
+    def add_product(self, filters, product_id, page, category=None, priority=None, force_create_tile=False):  
         """
         Adds product to page, with optional category and/or priority
 
@@ -357,7 +357,7 @@ class PageViewSet(viewsets.ModelViewSet):
                           "Add failed.").format(str(product_id),product.name,page.store.name)
                 raise AttributeError(status)
             else:                
-                (tile, result) = page.feed.add(product,priority=priority,category=category, force_create_tile=force_create) 
+                (tile, result) = page.feed.add(product,priority=priority,category=category, force_create_tile=force_create_tile) 
                 if result:
                     status = "Product with ID: {0}, Name: {1} has been added.".format(str(product_id), product.name)
                     success = True
@@ -407,7 +407,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         return (status, success)
 
-    def add_content(self, filters, content_id, page, category=None, priority=None, force_create=False):
+    def add_content(self, filters, content_id, page, category=None, priority=None, force_create_tile=False):
         """
         Adds content to page, with optional category
 
@@ -442,7 +442,7 @@ class PageViewSet(viewsets.ModelViewSet):
                           "failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)
             else:
-                (tile, result) = page.feed.add(content, priority=priority, category=category, force_create_tile=force_create) 
+                (tile, result) = page.feed.add(content, priority=priority, category=category, force_create_tile=force_create_tile) 
                 if result:
                     status = "Content with ID: {0} has been added.".format(str(content_id))
                     success = True
@@ -503,7 +503,7 @@ class PageViewSet(viewsets.ModelViewSet):
             id: product or content ID
             category: (optional) category name
             priority: (optional) priority number to assign to new tile
-            force_create: (optional) force create tiles or not
+            force_create_tile: (optional) force create tiles or not
             type: what type the id is: 'product' or 'content'
 
         returns:
@@ -531,9 +531,8 @@ class PageViewSet(viewsets.ModelViewSet):
             category = data.get('category', None)
             priority = data.get('priority', 0)
             add_type = data.get('type', None)
-            force_create = data.get('force_create', "False")
 
-            force_create = (force_create.title() == "True")
+            force_create_tile = bool(data.get('force_create_tile') in ["True", "true"])
             
             if not obj_id:
                 status = "Missing 'id' field from input."
@@ -566,9 +565,9 @@ class PageViewSet(viewsets.ModelViewSet):
                         # Use add_product if the type's product, else use add_content
                         try:
                             if add_type == 'product':
-                                (status, tile, success) = self.add_product(filters, obj_id, page, category, priority, force_create)
+                                (status, tile, success) = self.add_product(filters, obj_id, page, category, priority, force_create_tile)
                             elif add_type == 'content':
-                                (status, tile, success) = self.add_content(filters, obj_id, page, category, priority, force_create)
+                                (status, tile, success) = self.add_content(filters, obj_id, page, category, priority, force_create_tile)
                             else:
                                 raise AttributeError("Type '{}' is not a valid type (content/product only).".format(add_type))
                         except AttributeError as e:

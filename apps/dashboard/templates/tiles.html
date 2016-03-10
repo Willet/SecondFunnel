@@ -57,8 +57,9 @@
                     List of tiles
                 </h3>    
                 <div id="moveTilesResult"></div>
-                <div id="backbone-tiles">
+                <ul id="backbone-tiles">
                     <script type="text/template" id="tile-template">
+                        <div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>
                         <a href="#<%= id %>" role="button" data-toggle="modal">
                             <img src="<%= this.img %>" alt={{ tile.id }}>
                         </a>
@@ -70,7 +71,6 @@
                                 Priority: <%= priority %> </br>
                             <% } %>
                             ID: <%= id %> </br>
-                            Placeholder: <%= placeholder %> </br>
                             <%= this.name %> </br>
 
                             <div class="modal fade" id="<%= id %>" role="dialog">
@@ -90,12 +90,6 @@
                                             <button type="button" id="editTile" class="btn btn-default">
                                                 Change Priority
                                             </button>
-                                            <button type="button" id="duplicateTile" class="btn btn-default">
-                                                Duplicate Tile
-                                            </button>
-                                            <button type="button" id="deleteTile" class="btn btn-default">
-                                                Delete Tile
-                                            </button>
                                             <button type="button" id="checkPrio"  class="btn btn-default" data-dismiss="modal">
                                                 Close
                                             </button>
@@ -105,7 +99,7 @@
                             </div>
                         </div>
                     </script>
-                </div>  
+                </ul>  
             </div>
         </div>
     </div>
