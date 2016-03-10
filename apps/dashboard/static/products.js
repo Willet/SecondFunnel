@@ -10,6 +10,7 @@ var Product = Backbone.Model.extend({
     urlRoot: api_URL,
 
     initialize: function () {
+        
     },
 
     getCustomURL: function (method) {
@@ -50,6 +51,7 @@ var Content = Backbone.Model.extend({
     urlRoot: api_URL,
 
     initialize: function () {
+
     },
 
     getCustomURL: function (method) {
@@ -93,6 +95,7 @@ var Page = Backbone.Model.extend({
     urlRoot: api_URL,
 
     initialize: function () {
+
     },
 
     getCustomURL: function (method) {
@@ -143,6 +146,7 @@ function productManage(page, method, selection){
             page = new Page({
                 type: "product",
                 id: JSON.parse(result.responseText).ids[0],
+                force_create: (document.getElementById('product-force-create').value == "on").toString(),
             })
             if (method == 'product-add') {
                 result = page.add(page);
@@ -211,6 +215,7 @@ function contentManage(page, method, selection){
             page = new Page({
                 type: "content",
                 id: JSON.parse(result.responseText).ids[0],
+                force_create: (document.getElementById('content-force-create').value == "on").toString(),
             })
             if (method == 'content-add') {
                 result = page.add(page);
@@ -384,26 +389,3 @@ $('#content-remove-button').click(function(){
 
     contentManage(page,'content-remove', selection);
 })
-
-// Used to get CSRF Token Cookie so django will allow us to use do API calls
-function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie != '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
-            if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-$(document).ready(function(){
-    //var Forms = new formView();
-    $.ajaxSetup({
-        headers: { "X-CSRFToken": getCookie("csrftoken")}
-    });
-});

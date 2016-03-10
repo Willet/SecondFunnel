@@ -21,15 +21,15 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'dashboard', ['KeenIOMetricsQuery'])
 
-        # Deleting field 'DashBoard.data_ids'
+        # Deleting field 'Dashboard.data_ids'
         db.delete_column(u'dashboard_dashboard', 'data_ids')
 
-        # Adding field 'DashBoard.page'
+        # Adding field 'Dashboard.page'
         db.add_column(u'dashboard_dashboard', 'page',
                       self.gf('django.db.models.fields.related.ForeignKey')(default=None, null=True, blank=False, to=orm['assets.Page']),
                       keep_default=False)
 
-        # Removing M2M table for field campaigns on 'DashBoard'
+        # Removing M2M table for field campaigns on 'Dashboard'
         db.delete_table(db.shorten_name(u'dashboard_dashboard_campaigns'))
 
 
@@ -37,15 +37,15 @@ class Migration(SchemaMigration):
         # Deleting model 'KeenIOMetricsQuery'
         db.delete_table(u'dashboard_keeniometricsquery')
 
-        # Adding field 'DashBoard.data_ids'
+        # Adding field 'Dashboard.data_ids'
         db.add_column(u'dashboard_dashboard', 'data_ids',
                       self.gf('jsonfield.fields.JSONField')(default={}),
                       keep_default=False)
 
-        # Deleting field 'DashBoard.page'
+        # Deleting field 'Dashboard.page'
         db.delete_column(u'dashboard_dashboard', 'page_id')
 
-        # Adding M2M table for field campaigns on 'DashBoard'
+        # Adding M2M table for field campaigns on 'Dashboard'
         m2m_table_name = db.shorten_name(u'dashboard_dashboard_campaigns')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
@@ -163,7 +163,7 @@ class Migration(SchemaMigration):
             u'query_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['dashboard.Query']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'dashboard.dashboard': {
-            'Meta': {'object_name': 'DashBoard'},
+            'Meta': {'object_name': 'Dashboard'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'page': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'null': 'True', 'blank': 'False', 'to': u"orm['assets.Page']"}),
             'queries': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.Query']", 'symmetrical': 'False'}),
@@ -190,7 +190,7 @@ class Migration(SchemaMigration):
         },
         u'dashboard.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
-            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.DashBoard']", 'symmetrical': 'False'}),
+            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.Dashboard']", 'symmetrical': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
         }

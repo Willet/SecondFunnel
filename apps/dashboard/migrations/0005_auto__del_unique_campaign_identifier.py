@@ -125,7 +125,7 @@ class Migration(SchemaMigration):
             u'query_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['dashboard.Query']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'dashboard.dashboard': {
-            'Meta': {'object_name': 'DashBoard'},
+            'Meta': {'object_name': 'Dashboard'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'page': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['assets.Page']", 'null': 'True'}),
             'queries': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.Query']", 'symmetrical': 'False'}),
@@ -152,7 +152,7 @@ class Migration(SchemaMigration):
         },
         u'dashboard.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
-            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.DashBoard']", 'symmetrical': 'False'}),
+            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.Dashboard']", 'symmetrical': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
         }

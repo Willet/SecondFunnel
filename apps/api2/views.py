@@ -1,19 +1,28 @@
-import ast
+import ast, json
 from multiprocessing import Process
 
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import renderers, viewsets, permissions, generics
+
+from rest_framework import renderers, viewsets, permissions, status
 from rest_framework.decorators import api_view, detail_route, list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.views import APIView
+from rest_framework_bulk import generics, BulkListSerializer
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
+from apps.dashboard.models import Dashboard, UserProfile
 from apps.imageservice.utils import upload_to_cloudinary
+from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
 from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
-    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer
+    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer, \
+    TileSerializerBulk
+from .generics import ListCreateDestroyBulkUpdateAPIView
 
 
 class StoreViewSet(viewsets.ModelViewSet):
@@ -313,7 +322,7 @@ class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
 
-    def add_product(self, filters, product_id, page, category=None, priority=None):  
+    def add_product(self, filters, product_id, page, category=None, priority=None, force_create_tile=False):  
         """
         Adds product to page, with optional category and/or priority
 
@@ -347,8 +356,8 @@ class PageViewSet(viewsets.ModelViewSet):
                 status = ("Product with ID: {0}, Name: {1}, Store: {2} is already added. "
                           "Add failed.").format(str(product_id),product.name,page.store.name)
                 raise AttributeError(status)
-            else:
-                (tile, result) = page.feed.add(product,priority=priority,category=category)
+            else:                
+                (tile, result) = page.feed.add(product,priority=priority,category=category, force_create_tile=force_create_tile) 
                 if result:
                     status = "Product with ID: {0}, Name: {1} has been added.".format(str(product_id), product.name)
                     success = True
@@ -398,7 +407,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         return (status, success)
 
-    def add_content(self, filters, content_id, page, category=None, priority=None):
+    def add_content(self, filters, content_id, page, category=None, priority=None, force_create_tile=False):
         """
         Adds content to page, with optional category
 
@@ -433,7 +442,7 @@ class PageViewSet(viewsets.ModelViewSet):
                           "failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)
             else:
-                (tile, result) = page.feed.add(content,priority=priority,category=category) 
+                (tile, result) = page.feed.add(content, priority=priority, category=category, force_create_tile=force_create_tile) 
                 if result:
                     status = "Content with ID: {0} has been added.".format(str(content_id))
                     success = True
@@ -494,6 +503,7 @@ class PageViewSet(viewsets.ModelViewSet):
             id: product or content ID
             category: (optional) category name
             priority: (optional) priority number to assign to new tile
+            force_create_tile: (optional) force create tiles or not
             type: what type the id is: 'product' or 'content'
 
         returns:
@@ -521,7 +531,9 @@ class PageViewSet(viewsets.ModelViewSet):
             category = data.get('category', None)
             priority = data.get('priority', 0)
             add_type = data.get('type', None)
-        
+
+            force_create_tile = bool(data.get('force_create_tile') in ["True", "true"])
+            
             if not obj_id:
                 status = "Missing 'id' field from input."
             elif not add_type:
@@ -553,9 +565,9 @@ class PageViewSet(viewsets.ModelViewSet):
                         # Use add_product if the type's product, else use add_content
                         try:
                             if add_type == 'product':
-                                (status, tile, success) = self.add_product(filters, obj_id, page, category, priority)
+                                (status, tile, success) = self.add_product(filters, obj_id, page, category, priority, force_create_tile)
                             elif add_type == 'content':
-                                (status, tile, success) = self.add_content(filters, obj_id, page, category, priority)
+                                (status, tile, success) = self.add_content(filters, obj_id, page, category, priority, force_create_tile)
                             else:
                                 raise AttributeError("Type '{}' is not a valid type (content/product only).".format(add_type))
                         except AttributeError as e:
@@ -652,9 +664,117 @@ class PageViewSet(viewsets.ModelViewSet):
         }, status=status_code)
 
 
-class TileViewSet(viewsets.ModelViewSet):
+class TileDetail(APIView):
+    serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
-    serializer_class = TileSerializer
+
+    def get(self, request, pk, format=None):
+        """
+        Returns the serialized tile
+
+        inputs: 
+
+        returns:
+            serialized tile
+        """        
+        profile = UserProfile.objects.get(user=self.request.user)
+        dashboards = profile.dashboards.all()
+        tile = get_object_or_404(Tile, pk=pk)
+
+        status = "Not allowed."
+        status_code = 400
+
+        tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
+
+        if tile_in_user_dashboards:
+            status = TileSerializer(tile).data
+            status_code = 200
+
+        return Response(status, status_code)
+
+    def patch(self, request, pk, format=None):
+        """
+        Patches the tile with pk given to new attribute
+
+        inputs: 
+            one of the tile attributes (ex priority)
+
+        returns:
+            serialized tile
+        """        
+        profile = UserProfile.objects.get(user=self.request.user)
+        tile = get_object_or_404(Tile, pk=pk)
+
+        status = {"detail": "Not allowed"}
+        status_code = 400
+        
+        tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
+
+        if tile_in_user_dashboards:
+            serializer = TileSerializer(tile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                status = serializer.data
+                status_code = 200
+            else:
+                status = serializer.errors
+
+        return Response(status, status=status_code)
+
+
+class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
+    serializer_class = TileSerializerBulk
+    queryset = Tile.objects.all()
+    list_serializer_class = BulkListSerializer
+
+    def get(self, request):
+        """
+        Returns the serialized tile
+
+        inputs: 
+
+        returns:
+            serialized tile or status message of errors
+        """        
+        request_get = request.GET
+
+        status = "Missing page parameter."
+        status_code = 400
+
+        if not request_get == {}:
+            if 'page' in request_get:
+                profile = UserProfile.objects.get(user=self.request.user)
+                dashboards = profile.dashboards.all()
+                
+                tiles = None
+
+                try:
+                    request_id = int(request_get['page'])
+                except ValueError:
+                    pass
+                else:
+                    try:
+                        page = Page.objects.get(pk=request_id)
+                    except Page.DoesNotExist:
+                        pass
+                    else:
+                        page_in_user_dashboard = bool(Dashboard.objects.filter(userprofiles=profile, page=page).count())
+                        if page_in_user_dashboard:
+                            tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+
+                if tiles is not None:
+                    serialized_tiles = []
+                    for t in tiles:
+                        serialized_tiles.append(TileSerializer(t).data)
+                    status = serialized_tiles
+                    status_code = 200
+                else:
+                    status = "No tiles found."
+                    status_code = 404
+            else:
+                status = "Not allowed."
+
+        return Response(status, status_code)
 
 
 class FeedViewSet(viewsets.ModelViewSet):

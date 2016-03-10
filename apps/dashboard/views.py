@@ -1,4 +1,5 @@
 import json
+import collections
 import requests
 from time import sleep
 
@@ -12,8 +13,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 
-from apps.assets.models import Category, Page, Product, Store
-from apps.dashboard.models import DashBoard, UserProfile, Query
+from apps.assets.models import Category, Page, Product, Store, ProductImage
+from apps.api2.serializers import TileSerializer
+from apps.dashboard.models import Dashboard, UserProfile, Query
+from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.views import scrape
 
 LOGIN_URL = '/dashboard/login'
@@ -49,8 +52,8 @@ def get_data(request):
         if 'dashboard' in request_get:
             dashboard_id = request_get['dashboard']
         try:
-            cur_dashboard_page = DashBoard.objects.get(pk=dashboard_id).page
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            dashboard_page = Dashboard.objects.get(pk=dashboard_id).page
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return error("Dashboard error, multiple or no dashboards found")
 
         # Determine if user can view dashboard
@@ -71,7 +74,7 @@ def get_data(request):
                 return error('Multiple queries found, or query does not exist')
             # execute query and set response
             # success case
-            response = query.get_response(cur_dashboard_page)
+            response = query.get_response(dashboard_page)
             return HttpResponse(response, content_type='application/json')
         else:  # query id not included in request
             return error('Query ID was not included in request')
@@ -106,7 +109,7 @@ def dashboard(request, dashboard_slug):
     dashboards = profile.dashboards.all()
     dashboard = dashboards.filter(page__url_slug=dashboard_slug).first()
     if not dashboard:
-        return HttpResponseRedirect('/dashboard')
+        return HttpResponseRedirect('/dashboard/')
     dashboard_id = dashboard.id
 
     if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
@@ -115,11 +118,11 @@ def dashboard(request, dashboard_slug):
     else:
         context_dict = {}
         try:
-            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            dashboard = Dashboard.objects.get(pk=dashboard_id)
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
-        context_dict['dashboard_id'] = cur_dashboard.pk
-        context_dict['siteName'] = cur_dashboard.site_name
+        context_dict['dashboard_id'] = dashboard.pk
+        context_dict['siteName'] = dashboard.site_name
         context_dict['dashboard_slug'] = dashboard_slug
         return render(request, 'dashboard.html', context_dict)
 
@@ -138,30 +141,132 @@ def overview(request):
     })
 
 @login_required(login_url=LOGIN_URL)
-def dashboard_manage(request, dashboard_slug):
+def dashboard_products(request, dashboard_slug):
     profile = UserProfile.objects.get(user=request.user)
     dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
 
     if not dashboard:
-        return HttpResponseRedirect('/dashboard')
+        return HttpResponseRedirect('/dashboard/')
     dashboard_id = dashboard.first().id
+    page_id = dashboard.first().page_id
 
     if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
         return HttpResponseRedirect('/dashboard/')
     else:
         try:
-            cur_dashboard = DashBoard.objects.get(pk=dashboard_id)
-        except (DashBoard.MultipleObjectsReturned, DashBoard.DoesNotExist):
+            dashboard = Dashboard.objects.get(pk=dashboard_id)
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
+        
         context = RequestContext(request)
-        cur_dashboard_page = cur_dashboard.page
+        dashboard_page = dashboard.page
 
-        return render(request, 'manage.html', {
+        return render(request, 'products.html', {
                 'context': context, 
-                'siteName': cur_dashboard.site_name, 
-                'status': '',
-                'url_slug': dashboard.first().page_id,
-                'page': cur_dashboard_page
+                'siteName': dashboard.site_name, 
+                'url_slug': page_id,
+                'page': dashboard_page
+            })
+
+@login_required(login_url=LOGIN_URL)
+def dashboard_tiles(request, dashboard_slug):
+    profile = UserProfile.objects.get(user=request.user)
+    dashboards = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
+
+    if not dashboards:
+        return HttpResponseRedirect('/dashboard/')
+    dashboard_id = dashboards.first().id
+    page_id = dashboards.first().page_id
+
+    if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
+        return HttpResponseRedirect('/dashboard/')
+    else:
+        try:
+            dashboard = Dashboard.objects.get(pk=dashboard_id)
+        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
+            return HttpResponseRedirect('/dashboard/')
+
+        page = Page.objects.get(pk=page_id)
+        ordered_tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
+
+        all_products = []
+
+        for tile in ordered_tiles:
+            if tile.ir_cache:
+                tile = json.loads(tile.ir_cache)
+                tile_id = int(tile['tile-id'])
+
+                if 'default-image' in tile:
+                    default_image_dict = tile['default-image']
+                    if type(default_image_dict) is dict:
+                        if 'url' in default_image_dict:
+                            tile_img = default_image_dict['url']
+                        else:
+                            try:
+                                tile_img = ProductImage.objects.get(id=default_image_dict['id']).url
+                            except ProductImage.DoesNotExist:
+                                tile_img = default_image_dict['url']
+                    else:
+                        try:
+                            tile_img = ProductImage.objects.get(id=default_image_dict).url
+                        except ProductImage.DoesNotExist:
+                            tile_img = tile['images'][0]['url']
+                else:
+                    tile_img = tile.get('url',None)
+
+
+                if 'name' in tile:
+                    tile_name = tile['name']
+                else:
+                    if tile['template'] == 'product':
+                        try:
+                            tile_name = Product.objects.get(store=page.store_id,sku=tile['product']['sku']).name
+                        except Product.DoesNotExist:
+                            tile_name = "No name"
+                    else:
+                        tile_name = "No name"
+            else:
+                tile_id = int(tile['id'])
+                tile_img = None
+                tile_name = tile['name']
+            
+            tile_prio = tile['priority']
+            tile_template = tile['template'].title()
+
+            if type(tile) is dict:
+                tagged_products = tile.get('tagged-products',[])
+            else:
+                tagged_products = tile['tagged-products']
+                if tagged_products is None:
+                    tagged_products = []
+
+            tile_tagged_products = []
+            for t in tagged_products:
+                tile_tagged_products.append(t.get('id',None))
+
+            all_products.append({
+                'id': tile_id, 
+                'img': tile_img,
+                'name': tile_name,
+                'template': tile_template,
+                'priority': tile_prio,
+                'tagged_products': tile_tagged_products,
+            })
+
+        tile_ids = []
+        tile_images_names = []
+        for t in all_products:
+            tile_ids.append(t['id'])
+            tile_images_names.append({'img': t['img'], 'name': t['name']})
+        
+        dashboard_page = dashboard.page
+
+        return render(request, 'tiles.html', {
+                'tileImagesNames': tile_images_names,
+                'pageID': page_id,
+                'context': RequestContext(request), 
+                'siteName': dashboard.site_name, 
+                'page': dashboard_page,
             })
 
 def user_login(request):

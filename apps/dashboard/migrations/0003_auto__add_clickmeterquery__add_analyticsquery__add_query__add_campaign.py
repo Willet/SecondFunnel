@@ -45,24 +45,24 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'dashboard', ['Campaign'])
 
-        # Deleting field 'DashBoard.timeStamp'
+        # Deleting field 'Dashboard.timeStamp'
         db.delete_column(u'dashboard_dashboard', 'timeStamp')
 
-        # Deleting field 'DashBoard.table_id'
+        # Deleting field 'Dashboard.table_id'
         db.delete_column(u'dashboard_dashboard', 'table_id')
 
-        # Deleting field 'DashBoard.quicklook_today'
+        # Deleting field 'Dashboard.quicklook_today'
         db.delete_column(u'dashboard_dashboard', 'quicklook_today')
 
-        # Deleting field 'DashBoard.quicklook_total'
+        # Deleting field 'Dashboard.quicklook_total'
         db.delete_column(u'dashboard_dashboard', 'quicklook_total')
 
-        # Adding field 'DashBoard.data_ids'
+        # Adding field 'Dashboard.data_ids'
         db.add_column(u'dashboard_dashboard', 'data_ids',
                       self.gf('jsonfield.fields.JSONField')(default={}),
                       keep_default=False)
 
-        # Adding M2M table for field queries on 'DashBoard'
+        # Adding M2M table for field queries on 'Dashboard'
         m2m_table_name = db.shorten_name(u'dashboard_dashboard_queries')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
@@ -71,7 +71,7 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['dashboard_id', 'query_id'])
 
-        # Adding M2M table for field campaigns on 'DashBoard'
+        # Adding M2M table for field campaigns on 'Dashboard'
         m2m_table_name = db.shorten_name(u'dashboard_dashboard_campaigns')
         db.create_table(m2m_table_name, (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
@@ -94,33 +94,33 @@ class Migration(SchemaMigration):
         # Deleting model 'Campaign'
         db.delete_table(u'dashboard_campaign')
 
-        # Adding field 'DashBoard.timeStamp'
+        # Adding field 'Dashboard.timeStamp'
         db.add_column(u'dashboard_dashboard', 'timeStamp',
                       self.gf('django.db.models.fields.DateTimeField')(auto_now=True, default=datetime.datetime(2014, 6, 16, 0, 0), blank=True),
                       keep_default=False)
 
-        # Adding field 'DashBoard.table_id'
+        # Adding field 'Dashboard.table_id'
         db.add_column(u'dashboard_dashboard', 'table_id',
                       self.gf('django.db.models.fields.IntegerField')(default=0),
                       keep_default=False)
 
-        # Adding field 'DashBoard.quicklook_today'
+        # Adding field 'Dashboard.quicklook_today'
         db.add_column(u'dashboard_dashboard', 'quicklook_today',
                       self.gf('jsonfield.fields.JSONField')(default={}, blank=True),
                       keep_default=False)
 
-        # Adding field 'DashBoard.quicklook_total'
+        # Adding field 'Dashboard.quicklook_total'
         db.add_column(u'dashboard_dashboard', 'quicklook_total',
                       self.gf('jsonfield.fields.JSONField')(default={}, blank=True),
                       keep_default=False)
 
-        # Deleting field 'DashBoard.data_ids'
+        # Deleting field 'Dashboard.data_ids'
         db.delete_column(u'dashboard_dashboard', 'data_ids')
 
-        # Removing M2M table for field queries on 'DashBoard'
+        # Removing M2M table for field queries on 'Dashboard'
         db.delete_table(db.shorten_name(u'dashboard_dashboard_queries'))
 
-        # Removing M2M table for field campaigns on 'DashBoard'
+        # Removing M2M table for field campaigns on 'Dashboard'
         db.delete_table(db.shorten_name(u'dashboard_dashboard_campaigns'))
 
 
@@ -183,7 +183,7 @@ class Migration(SchemaMigration):
             u'query_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['dashboard.Query']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'dashboard.dashboard': {
-            'Meta': {'object_name': 'DashBoard'},
+            'Meta': {'object_name': 'Dashboard'},
             'campaigns': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.Campaign']", 'symmetrical': 'False', 'blank': 'True'}),
             'data_ids': ('jsonfield.fields.JSONField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -200,7 +200,7 @@ class Migration(SchemaMigration):
         },
         u'dashboard.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
-            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.DashBoard']", 'symmetrical': 'False'}),
+            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.Dashboard']", 'symmetrical': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
         }
