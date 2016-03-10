@@ -1,6 +1,6 @@
 "use strict";
 
-var apiURL = "http://" + window.location.host + "/api2/"`;
+var apiURL = "http://" + window.location.host + "/api2/";
 
 var tileCollection,   //Collection of all tiles
     tilesView,        //View of all tiles
