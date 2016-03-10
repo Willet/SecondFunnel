@@ -1,6 +1,6 @@
 "use strict";
 
-var apiURL = "http://localhost:8000/api2/";
+var apiURL = "http://" + window.location.host + "/api2/"`;
 
 var tileCollection,   //Collection of all tiles
     tilesView,        //View of all tiles
@@ -112,7 +112,7 @@ var TileCollection = Backbone.Collection.extend({
         // Since we're re-fetching and re-rendering the tiles after swapping
         // Just need to add the tile id and new priorities to batch array
         var tile1Priority = tiles[tile1Ind].get('priority');
-        var tile2Priority = tiles[tile2Ind].get('priority')
+        var tile2Priority = tiles[tile2Ind].get('priority');
         batch.push({
             'id': tiles[tile1Ind].get('id'), 
             'priority': tile2Priority
