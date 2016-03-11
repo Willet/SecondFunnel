@@ -36,21 +36,6 @@
                 <!--/col-md-12-->
             </div>
             <!--/row-->
-            
-            <div class="block-web" id="swapTiles">
-                <h3 class="content-header">
-                    Swap tile positions
-                </h3>
-                Tile 1: <input type="text" id="tile1">
-                Tile 2: <input type="text" id="tile2"></br>
-                <button type="button" class="btn btn-default" id="swapButton">
-                    Swap
-                </button>
-                <button type="button" class="btn btn-default" id="refreshButton">
-                    Refresh
-                </button>
-                <div id="swapResult"></div>
-            </div>
 
             <div class="block-web">
                 <h3 class="content-header">
@@ -60,8 +45,8 @@
                 <ul id="backbone-tiles">
                     <script type="text/template" id="tile-template">
                         <div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>
-                        <a href="#<%= id %>" role="button" data-toggle="modal">
-                            <img src="<%= this.img %>" alt={{ tile.id }}>
+                        <a href="#modal_<%= id %>" role="button" data-toggle="modal">
+                            <img src="<%= img %>" alt={{ tile.id }}>
                         </a>
                         <div class='tile-info'>
                             <%= toTitleCase(template) %> </br>
@@ -71,14 +56,14 @@
                                 Priority: <%= priority %> </br>
                             <% } %>
                             ID: <%= id %> </br>
-                            <%= this.name %> </br>
+                            <%= name %> </br>
 
-                            <div class="modal fade" id="<%= id %>" role="dialog">
+                            <div class="modal" id="modal_<%= id %>" role="dialog">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                            <h4 class="modal-title"><%= this.name %> </br></h4>
+                                            <h4 class="modal-title"><%= name %> </br></h4>
                                         </div>
                                         <div class="modal-body">
                                             Current Priority: <%= priority %></br>
@@ -87,10 +72,10 @@
                                             Tagged Products IDs: <%= name %>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" id="editTile" class="btn btn-default">
+                                            <button type="button" id="editTile" class="btn btn-default" data-dismiss="modal">
                                                 Change Priority
                                             </button>
-                                            <button type="button" id="checkPrio"  class="btn btn-default" data-dismiss="modal">
+                                            <button type="button" id="closeButton"  class="btn btn-default" data-dismiss="modal">
                                                 Close
                                             </button>
                                         </div>

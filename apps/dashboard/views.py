@@ -253,10 +253,8 @@ def dashboard_tiles(request, dashboard_slug):
                 'tagged_products': tile_tagged_products,
             })
 
-        tile_ids = []
         tile_images_names = []
         for t in all_products:
-            tile_ids.append(t['id'])
             tile_images_names.append({'img': t['img'], 'name': t['name']})
         
         dashboard_page = dashboard.page
