@@ -27,10 +27,10 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['userprofile_id', 'dashboard_id'])
 
-        # Deleting field 'DashBoard.site'
+        # Deleting field 'Dashboard.site'
         db.delete_column(u'dashboard_dashboard', 'site')
 
-        # Adding field 'DashBoard.site_name'
+        # Adding field 'Dashboard.site_name'
         db.add_column(u'dashboard_dashboard', 'site_name',
                       self.gf('django.db.models.fields.CharField')(default='site', max_length=128),
                       keep_default=False)
@@ -51,15 +51,15 @@ class Migration(SchemaMigration):
         db.delete_table(db.shorten_name(u'dashboard_userprofile_dashboards'))
 
 
-        # User chose to not deal with backwards NULL issues for 'DashBoard.site'
-        raise RuntimeError("Cannot reverse this migration. 'DashBoard.site' and its values cannot be restored.")
+        # User chose to not deal with backwards NULL issues for 'Dashboard.site'
+        raise RuntimeError("Cannot reverse this migration. 'Dashboard.site' and its values cannot be restored.")
         
-        # The following code is provided here to aid in writing a correct migration        # Adding field 'DashBoard.site'
+        # The following code is provided here to aid in writing a correct migration        # Adding field 'Dashboard.site'
         db.add_column(u'dashboard_dashboard', 'site',
                       self.gf('django.db.models.fields.CharField')(max_length=128),
                       keep_default=False)
 
-        # Deleting field 'DashBoard.site_name'
+        # Deleting field 'Dashboard.site_name'
         db.delete_column(u'dashboard_dashboard', 'site_name')
 
 
@@ -101,7 +101,7 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'dashboard.dashboard': {
-            'Meta': {'object_name': 'DashBoard'},
+            'Meta': {'object_name': 'Dashboard'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'quicklook_today': ('jsonfield.fields.JSONField', [], {'default': '{}', 'blank': 'True'}),
             'quicklook_total': ('jsonfield.fields.JSONField', [], {'default': '{}', 'blank': 'True'}),
@@ -111,7 +111,7 @@ class Migration(SchemaMigration):
         },
         u'dashboard.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
-            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.DashBoard']", 'symmetrical': 'False'}),
+            'dashboards': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['dashboard.Dashboard']", 'symmetrical': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
         }

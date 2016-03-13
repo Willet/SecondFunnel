@@ -316,11 +316,26 @@
       "name": "TestPage2",
       "url_slug": "other_test_page",
       "store": 1,
+      "feed": 13,
       "theme": 6,
       "theme_settings": {"color": "red","font": "italic"},
       "description": "TestPage2 Description",
       "legal_copy": "Store webpage",
       "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Page",
+    "pk": 19,
+    "fields": {
+      "name": "TestPage3",
+      "url_slug": "other_other_test_page",
+      "store": 1,
+      "theme": 6,
+      "theme_settings": {"color": "yellow","font": "underlined"},
+      "description": "TestPage3 Description",
+      "legal_copy": "Store2 webpage",
+      "updated_at": "2015-11-19 00:43:26"
     }
   },
   {
@@ -367,6 +382,7 @@
     "fields": {
       "template": "default",
       "feed": 9,
+      "priority": 1,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -376,6 +392,37 @@
     "fields": {
       "template": "default",
       "feed": 9,
+      "priority": 2,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tile",
+    "pk": 12,
+    "fields": {
+      "template": "default",
+      "feed": 9,
+      "priority": 3,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tile",
+    "pk": 14,
+    "fields": {
+      "template": "default",
+      "feed": 9,
+      "priority": 4,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Tile",
+    "pk": 15,
+    "fields": {
+      "template": "default",
+      "feed": 9,
+      "priority": 5,
       "updated_at": "2015-11-18 00:43:26"
     }
   },

@@ -8,7 +8,7 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'DashBoard'
+        # Adding model 'Dashboard'
         db.create_table(u'dashboard_dashboard', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('site', self.gf('django.db.models.fields.CharField')(max_length=128)),
@@ -17,7 +17,7 @@ class Migration(SchemaMigration):
             ('quicklook_total', self.gf('jsonfield.fields.JSONField')(default='{}', blank=True)),
             ('quicklook_today', self.gf('jsonfield.fields.JSONField')(default='{}', blank=True)),
         ))
-        db.send_create_signal(u'dashboard', ['DashBoard'])
+        db.send_create_signal(u'dashboard', ['Dashboard'])
 
         # Adding model 'CredentialsModel'
         db.create_table(u'dashboard_credentialsmodel', (
@@ -28,7 +28,7 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting model 'DashBoard'
+        # Deleting model 'Dashboard'
         db.delete_table(u'dashboard_dashboard')
 
         # Deleting model 'CredentialsModel'
@@ -78,7 +78,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'primary_key': 'True'})
         },
         u'dashboard.dashboard': {
-            'Meta': {'object_name': 'DashBoard'},
+            'Meta': {'object_name': 'Dashboard'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'quicklook_today': ('jsonfield.fields.JSONField', [], {'default': "'{}'", 'blank': 'True'}),
             'quicklook_total': ('jsonfield.fields.JSONField', [], {'default': "'{}'", 'blank': 'True'}),
