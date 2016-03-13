@@ -67,12 +67,38 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // Initialize IntentRank
             // will create new discovery feed
-            var homeCat = App.option('page:home:category', '');
-            if (App.support.mobile() && App.option('page:mobileHome:category', '')) {
-                homeCat = App.option('page:mobileHome:category');
+            var cat, viewportCat = null,
+                homeCat = App.option('page:home:category', ''),
+                initCat = App.option('page:init:category', null);
+
+            if (initCat) {
+                // Deep linking to a specific category, see if a better viewport
+                // version of this category exists
+                if (App.support.mobile()) {
+                    // Mobile categories have loaded
+                    if (!_.contains(initCat, "-mobile")) {
+                        // Mobile but init category doesn't contain '-mobile'
+                        // See if there is a mobile-specific category
+                        viewportCat = initCat + "-mobile";
+                    }
+                } else if (_.contains(initCat, "-mobile")) {
+                    // Desktop but init category contains '-mobile'
+                    viewportCat = initCat.replace("-mobile", '');
+                }
+                if (viewportCat && App.categories.categoryExists(viewportCat)) {
+                    // Re-direct to the viewprot version of this category
+                    App.vent.on('afterInit', function () {
+                        App.router.navigate("category/" + viewportCat, { "trigger": true });
+                    });
+                }
+            } else {
+                if (App.support.mobile() && App.option('page:mobileHome:category')) {
+                    // Mobile & a mobile home category exists
+                    homeCat = App.option('page:mobileHome:category');
+                }
             }
             App.intentRank.initialize({
-                'category': App.option('page:init:category', homeCat),
+                'category': initCat || homeCat,
                 'trigger': true
             });
 
