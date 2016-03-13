@@ -67,7 +67,7 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
 
             // Initialize IntentRank
             // will create new discovery feed
-            var cat, viewportCat = null,
+            var viewportCat,
                 homeCat = App.option('page:home:category', ''),
                 initCat = App.option('page:init:category', null);
 
