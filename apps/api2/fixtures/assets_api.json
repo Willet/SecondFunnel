@@ -426,7 +426,7 @@
       "updated_at": "2015-11-18 00:43:26"
     }
   },
-    {
+  {
     "model": "assets.Tile",
     "pk": 13,
     "fields": {
@@ -435,7 +435,7 @@
       "updated_at": "2015-11-18 00:43:26"
     }
   },
-    {
+  {
     "model": "assets.Theme",
     "pk": 5,
     "fields": {
@@ -444,13 +444,38 @@
       "updated_at": "2015-11-18 00:43:26"
     }
   },
-    {
+  {
     "model": "assets.Theme",
     "pk": 6,
     "fields": {
       "name": "Theme6",
       "template": 2,
       "updated_at": "2015-11-11 11:11:11"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "testuser",
+      "is_staff": true
+    }
+  },
+  {
+    "pk": 2,
+    "model": "dashboard.userprofile",
+    "fields": {
+      "user": 1,
+      "dashboards": [1]
+    }
+  },
+  {
+    "pk": 1,
+    "model": "dashboard.dashboard",
+    "fields": {
+      "site_name": "Gap Summer Sales",
+      "page": 8,
+      "queries": []
     }
   }
 ]

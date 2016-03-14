@@ -1,11 +1,15 @@
 import json
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 from rest_framework.test import APITestCase
 
 from apps.assets.models import Tile, Page
 from apps.api2.serializers import TileSerializer
 from apps.intentrank.algorithms import ir_magic
+
+
+from apps.dashboard.models import Dashboard, UserProfile, Query
 
 
 class APITest(APITestCase):
@@ -1160,31 +1164,35 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u"Page with ID: 10000 not found.")
 
     def tile_test(self):
-        response = self.client.get('/api2/tile?page=9')
-        self.assertEqual(len(response.data),6)
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
+        response = self.client.get('/api2/tile?page=8')
+        self.assertEqual(len(response.data),5)
         tile0 = response.data[0]
         tile1 = response.data[1]
         tile2 = response.data[2]
         tile3 = response.data[3]
         tile4 = response.data[4]
-        tile5 = response.data[5]
 
-        self.assertEqual(tile0['id'], 10)
+        self.assertEqual(tile0['id'], 15)
         self.assertEqual(tile0['feed'], 9)
         self.assertEqual(tile0['template'], u'default')
         self.assertEqual(tile0['products'], [])
-        self.assertEqual(tile0['priority'], 1)
+        self.assertEqual(tile0['priority'], 5)
         self.assertEqual(tile0['clicks'], 0)
         self.assertEqual(tile0['views'], 0)
         self.assertEqual(tile0['placeholder'], False)
         self.assertEqual(tile0['in_stock'], True)
         self.assertEqual(tile0['attributes'], '{}')
 
-        self.assertEqual(tile1['id'], 11)
+        self.assertEqual(tile1['id'], 14)
         self.assertEqual(tile1['feed'], 9)
         self.assertEqual(tile1['template'], u'default')
         self.assertEqual(tile1['products'], [])
-        self.assertEqual(tile1['priority'], 2)
+        self.assertEqual(tile1['priority'], 4)
         self.assertEqual(tile1['clicks'], 0)
         self.assertEqual(tile1['views'], 0)
         self.assertEqual(tile1['placeholder'], False)
@@ -1202,40 +1210,34 @@ class APITest(APITestCase):
         self.assertEqual(tile2['in_stock'], True)
         self.assertEqual(tile2['attributes'], '{}')
 
-        self.assertEqual(tile3['id'], 14)
+        self.assertEqual(tile3['id'], 11)
         self.assertEqual(tile3['feed'], 9)
         self.assertEqual(tile3['template'], u'default')
         self.assertEqual(tile3['products'], [])
-        self.assertEqual(tile3['priority'], 4)
+        self.assertEqual(tile3['priority'], 2)
         self.assertEqual(tile3['clicks'], 0)
         self.assertEqual(tile3['views'], 0)
         self.assertEqual(tile3['placeholder'], False)
         self.assertEqual(tile3['in_stock'], True)
         self.assertEqual(tile3['attributes'], '{}')
 
-        self.assertEqual(tile4['id'], 15)
+        self.assertEqual(tile4['id'], 10)
         self.assertEqual(tile4['feed'], 9)
         self.assertEqual(tile4['template'], u'default')
         self.assertEqual(tile4['products'], [])
-        self.assertEqual(tile4['priority'], 5)
+        self.assertEqual(tile4['priority'], 1)
         self.assertEqual(tile4['clicks'], 0)
         self.assertEqual(tile4['views'], 0)
         self.assertEqual(tile4['placeholder'], False)
         self.assertEqual(tile4['in_stock'], True)
         self.assertEqual(tile4['attributes'], '{}')
 
-        self.assertEqual(tile5['id'], 13)
-        self.assertEqual(tile5['feed'], 13)
-        self.assertEqual(tile5['template'], u'default')
-        self.assertEqual(tile5['products'], [])
-        self.assertEqual(tile5['priority'], 0)
-        self.assertEqual(tile5['clicks'], 0)
-        self.assertEqual(tile5['views'], 0)
-        self.assertEqual(tile5['placeholder'], False)
-        self.assertEqual(tile5['in_stock'], True)
-        self.assertEqual(tile5['attributes'], '{}')
-
     def tile_single_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.get('/api2/tile/11/')
         tile = response.data
         self.assertEqual(tile['id'], 11)
@@ -1251,7 +1253,13 @@ class APITest(APITestCase):
         self.assertEqual(tile['feed'],9)
 
     def tile_change_prio_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}]), content_type='application/json')
+        print response
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
         self.assertEqual(response.data[0], TileSerializer(t).data)
@@ -1264,7 +1272,13 @@ class APITest(APITestCase):
         self.assertEqual(t.priority, 100001)
 
     def tile_change_prio_bulk_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}, {"id":11, "priority": 101}]), content_type='application/json')
+        print response
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
         self.assertEqual(response.data[0], TileSerializer(t).data)
@@ -1274,6 +1288,11 @@ class APITest(APITestCase):
         self.assertEqual(t.priority, 101)
 
     def tile_change_prio_wrongID_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile/55/', {'priority': 1})
         self.assertEqual(response.status_code, 404)
         t = Tile.objects.filter(pk=55)
@@ -1287,10 +1306,20 @@ class APITest(APITestCase):
         self.assertEqual(list(t), [])
 
     def tile_change_prio_bad_inputs_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile/test/', {'priority': 1})
         self.assertEqual(response.status_code, 404)
 
     def tile_change_prio_bad_inputs2_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+        
         response = self.client.patch('/api2/tile/10/', {'priority': 'test'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['priority'], [u'A valid integer is required.'])
@@ -1301,6 +1330,11 @@ class APITest(APITestCase):
         self.assertEqual(response.data[0]['priority'], [u'A valid integer is required.'])
 
     def tile_error_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+        
         response = self.client.get('/api2/tile/999/')
         self.assertEqual(response.data,{u'detail': u'Not found.'})
         self.assertEqual(response.data[u'detail'],u'Not found.')

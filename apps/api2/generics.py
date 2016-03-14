@@ -8,17 +8,22 @@ from rest_framework_bulk import mixins as bulk_mixins
 
 class PatchBulkUpdateModelMixin(bulk_mixins.BulkUpdateModelMixin):
     # Overriding the built-in bulk_update to allow for user to send PATCH requests
-    # through a client like httpie. 
+    #     through a client like httpie. 
     def bulk_update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
 
-        if isinstance(request.data, list):
-            data = request.data[0]
-        else:
-            data = request.data
+        data = request.data
 
+        # Handle backbone patch request type ie [{u'data': u'[{"id":1111,"priority":1234}]'}]
+        #    or single data input ie [{"id":1111,"priority":1234}]
+        if type(data) is list and len(data) == 1:
+            data = data[0]
+        # Handle backbone patch request type ie {u'data': u'[{"id":1111,"priority":1234}]'}
         if 'data' in data:
             data = ast.literal_eval(data['data'])
+        # Handle single data input ie {"id":1111,"priority":1234}
+        if type(data) is dict:
+            data = [data]
 
         # restrict the update to the filtered queryset
         serializer = self.get_serializer(
