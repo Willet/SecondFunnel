@@ -1259,7 +1259,6 @@ class APITest(APITestCase):
         self.client.login(username='testuser', password='testpassword')
 
         response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}]), content_type='application/json')
-        print response
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
         self.assertEqual(response.data[0], TileSerializer(t).data)
@@ -1278,7 +1277,6 @@ class APITest(APITestCase):
         self.client.login(username='testuser', password='testpassword')
 
         response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}, {"id":11, "priority": 101}]), content_type='application/json')
-        print response
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
         self.assertEqual(response.data[0], TileSerializer(t).data)
