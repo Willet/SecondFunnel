@@ -185,82 +185,10 @@ def dashboard_tiles(request, dashboard_slug):
             dashboard = Dashboard.objects.get(pk=dashboard_id)
         except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
             return HttpResponseRedirect('/dashboard/')
-
-        page = Page.objects.get(pk=page_id)
-        ordered_tiles = ir_magic(page.feed.tiles, num_results=page.feed.tiles.count())
-
-        all_products = []
-
-        for tile in ordered_tiles:
-            if tile.ir_cache:
-                tile = json.loads(tile.ir_cache)
-                tile_id = int(tile['tile-id'])
-
-                if 'default-image' in tile:
-                    default_image_dict = tile['default-image']
-                    if type(default_image_dict) is dict:
-                        if 'url' in default_image_dict:
-                            tile_img = default_image_dict['url']
-                        else:
-                            try:
-                                tile_img = ProductImage.objects.get(id=default_image_dict['id']).url
-                            except ProductImage.DoesNotExist:
-                                tile_img = default_image_dict['url']
-                    else:
-                        try:
-                            tile_img = ProductImage.objects.get(id=default_image_dict).url
-                        except ProductImage.DoesNotExist:
-                            tile_img = tile['images'][0]['url']
-                else:
-                    tile_img = tile.get('url',None)
-
-
-                if 'name' in tile:
-                    tile_name = tile['name']
-                else:
-                    if tile['template'] == 'product':
-                        try:
-                            tile_name = Product.objects.get(store=page.store_id,sku=tile['product']['sku']).name
-                        except Product.DoesNotExist:
-                            tile_name = "No name"
-                    else:
-                        tile_name = "No name"
-            else:
-                tile_id = int(tile['id'])
-                tile_img = None
-                tile_name = tile['name']
-            
-            tile_prio = tile['priority']
-            tile_template = tile['template'].title()
-
-            if type(tile) is dict:
-                tagged_products = tile.get('tagged-products',[])
-            else:
-                tagged_products = tile['tagged-products']
-                if tagged_products is None:
-                    tagged_products = []
-
-            tile_tagged_products = []
-            for t in tagged_products:
-                tile_tagged_products.append(t.get('id',None))
-
-            all_products.append({
-                'id': tile_id, 
-                'img': tile_img,
-                'name': tile_name,
-                'template': tile_template,
-                'priority': tile_prio,
-                'tagged_products': tile_tagged_products,
-            })
-
-        tile_images_names = []
-        for t in all_products:
-            tile_images_names.append({'img': t['img'], 'name': t['name']})
         
         dashboard_page = dashboard.page
 
         return render(request, 'tiles.html', {
-                'tileImagesNames': tile_images_names,
                 'pageID': page_id,
                 'context': RequestContext(request), 
                 'siteName': dashboard.site_name, 

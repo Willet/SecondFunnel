@@ -7,10 +7,6 @@
 {% block scripts %}
     <script>
         var pageID = {{ pageID }};
-		var tileImagesNames = [];
-        {% for t in tileImagesNames %}
-            tileImagesNames.push({'img': '{{ t.img }}', 'name': '{{ t.name }}' });
-        {% endfor %}
     </script>
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
@@ -46,7 +42,7 @@
                     <script type="text/template" id="tile-template">
                         <div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>
                         <a href="#modal_<%= id %>" role="button" data-toggle="modal">
-                            <img src="<%= img %>" alt={{ tile.id }}>
+                            <img src="<%= default_image %>" alt={{ tile.id }}>
                         </a>
                         <div class='tile-info'>
                             <%= toTitleCase(template) %> </br>
@@ -69,7 +65,6 @@
                                             Current Priority: <%= priority %></br>
                                             New Priority: <input type="text" id="new_priority_<%= id %>">
                                             <div id="result_<%= id %>"></div>
-                                            Tagged Products IDs: <%= name %>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" id="editTile" class="btn btn-default" data-dismiss="modal">

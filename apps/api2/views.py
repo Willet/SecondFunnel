@@ -765,7 +765,19 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                 if tiles is not None:
                     serialized_tiles = []
                     for t in tiles:
-                        serialized_tiles.append(TileSerializer(t).data)
+                        serialized_data = TileSerializer(t).data
+                        if t['template'] == 'product':
+                            product =  t['products'].first()
+                            serialized_data['default_image'] = product.default_image.url
+                            serialized_data['name'] = product.name
+                        else:
+                            content = t['content'].first()
+                            serialized_data['default_image'] = content.url
+                            if content.name is None:
+                                serialized_data['name'] = 'No name'
+                            else:
+                                serialized_data['name'] = content.name
+                        serialized_tiles.append(serialized_data)
                     status = serialized_tiles
                     status_code = 200
                 else:
