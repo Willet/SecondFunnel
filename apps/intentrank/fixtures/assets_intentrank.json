@@ -126,6 +126,19 @@
     "fields": {
       "url": "/content.jpg",
       "source": "upload",
+      "name": "first image",
+      "description": "is this necessary?",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 8,
+    "fields": {
+      "url": "/content.png",
+      "source": "upload",
+      "name": "second image",
       "store": 1,
       "updated_at": "2015-11-18 00:43:26"
     }
@@ -136,7 +149,18 @@
     "fields": {
       "url": "/content.jpg",
       "source": "upload",
-      "store": 14,
+      "name": "funny gif",
+      "store": 1,
+      "updated_at": "2015-11-18 00:43:26"
+    }
+  },
+  {
+    "model": "assets.Content",
+    "pk": 18,
+    "fields": {
+      "url": "/content.mov",
+      "source": "upload",
+      "store": 1,
       "updated_at": "2015-11-18 00:43:26"
     }
   },
@@ -144,45 +168,42 @@
     "model": "assets.Image",
     "pk": 6,
     "fields": {
-      "url": "/content.jpg",
-      "source": "upload",
-      "source_url": "test.com/image.jpg",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "source_url": "test.com/image.jpg"
+    }
+  },
+  {
+    "model": "assets.Image",
+    "pk": 8,
+    "fields": {
+      "file_type": "png",
+      "file_checksum": "124235235",
+      "width": 300,
+      "height": 400,
+      "dominant_color": "#000",
+      "source_url": "test.com/image.png"
     }
   },
   {
     "model": "assets.Image",
     "pk": 16,
     "fields": {
-      "url": "/content.jpg",
-      "source": "upload",
-      "source_url": "test.com/image.gif",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "source_url": "test.com/image.gif"
     }
   },
   {
     "model": "assets.Gif",
     "pk": 16,
     "fields": {
-      "url": "/content.jpg",
-      "gif_url": "/content.gif",
-      "source": "upload",
-      "source_url": "test.com/image.gif",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "gif_url": "/content.gif"
     }
   },
   {
     "model": "assets.Video",
-    "pk": 6,
+    "pk": 18,
     "fields": {
-      "url": "/content.jpg",
-      "source": "upload",
       "player": "youtube",
-      "store": 1,
-      "updated_at": "2015-11-18 00:43:26"
+      "file_type": "",
+      "file_checksum": ""
     }
   },
   {
