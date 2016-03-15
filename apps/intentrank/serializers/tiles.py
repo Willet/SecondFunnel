@@ -32,7 +32,7 @@ class TileSerializer(IRSerializer):
         raise NotImplementedError
 
     def get_core_attributes(self, tile):
-        """This will be the data used to generate the object.
+        """ This will be the data used to generate the object.
         These are core attributes that every tile has.
         """
         data = {
@@ -69,12 +69,12 @@ class TileSerializer(IRSerializer):
                 data['images'] = [c.to_json() for c in content['images']]
         if len(content['videos']):
             if len(content['videos']) == 1:
-                data['video'] = content['video'][0].to_json()
+                data['video'] = content['videos'][0].to_json()
             else:
                 data['videos'] = [c.to_json() for c in content['videos']]
         if len(content['reviews']):
             if len(content['reviews']) == 1:
-                data['review'] = content['review'][0].to_json()
+                data['review'] = content['reviews'][0].to_json()
             else:
                 data['reviews'] = [c.to_json() for c in content['reviews']]
 
@@ -93,6 +93,13 @@ class TileSerializer(IRSerializer):
         content = tile.get_first_content_of(cls).to_json()
         return content
 
+    def get_dump_tagged_products(self, tile):
+        """ Return json-dict of tile products """
+        tagged_products = tile.products.filter(placeholder=False)
+        if not tile.feed.store.display_out_of_stock:
+            tagged_products = tagged_products.filter(in_stock=True)
+        return [p.to_json() for p in tagged_products]
+
 
 class DefaultTileSerializer(TileSerializer):
     """ For unknown tile templates, populate with all the content we can """
@@ -106,7 +113,7 @@ class DefaultTileSerializer(TileSerializer):
         }
         """
         content = self.get_dump_separated_content(tile)
-        products = [p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)]
+        products = self.get_dump_tagged_products(tile)
 
         data = self.get_core_attributes(tile)
         data.update(content)
@@ -131,9 +138,11 @@ class ProductTileSerializer(TileSerializer):
             # Product tile should only have 1 product
             product = tile.products.first().to_json()
         except AttributeError:
-            raise SerializerError('Product Tile #{} has no products'.format(tile.id))
+            raise SerializerError(u'Product Tile #{} has no products'.format(tile.id))
         if not product['default-image']:
-            raise SerializerError('Product Tile #{} must have a default image'.format(tile.id))
+            raise SerializerError(u'Product Tile #{} must have a default image'.format(tile.id))
+
+        products = product['tagged-products']
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -163,17 +172,16 @@ class ImageTileSerializer(TileSerializer):
             try:
                 image = [i.to_json() for i in images if i.id == defaultImageId][0]
             except IndexError:
-                raise SerializerError("Image Tile #{} is not tagged with its \
-                                       default Image #{}".format(tile.id, defaultImageId))
+                raise SerializerError(u"Image Tile #{} is not tagged with its "
+                                    + u"default Image #{}".format(tile.id, defaultImageId))
         else:
             try:
                 # cleanly handles subclasses (ie: Gif uses GifSerializer)
                 image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
-                raise SerializerError('Image Tile #{} must be tagged with an image'.format(tile.id))
+                raise SerializerError(u"Image Tile #{} must be tagged with an image".format(tile.id))
 
-        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
-                    image['tagged-products'])
+        products = (self.get_dump_tagged_products(tile) or image['tagged-products'])
 
         expandedImageId = tile.attributes.get('expandedImage') or tile.attributes.get('expanded-image')
         expandedImage = None
@@ -181,18 +189,18 @@ class ImageTileSerializer(TileSerializer):
             try:
                 expandedImage = [i.to_json() for i in images if i.id == expandedImageId][0]
             except IndexError:
-                raise SerializerError(" Image Tile #{} is not tagged with its \
-                                       expanded Image #{}".format(tile.id, expandedImageId))
+                raise SerializerError(u"Image Tile #{} is not tagged with its "
+                                    + u"expanded Image #{}".format(tile.id, expandedImageId))
 
-        mobileExpandedImageId = tile.attributes.get('mobileExpandedImage') or \
-                                tile.attributes.get('mobile-expanded-image')
+        mobileExpandedImageId = (tile.attributes.get('mobileExpandedImage')
+                                 or tile.attributes.get('mobile-expanded-image'))
         mobileExpandedImage = None
         if mobileExpandedImageId:
             try:
                 mobileExpandedImage = [i.to_json() for i in images if i.id == mobileExpandedImageId][0]
             except IndexError:
-                raise SerializerError(" Image Tile #{} is not tagged with its \
-                                       mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
+                raise SerializerError(u"Image Tile #{} is not tagged with its "
+                                    + u"mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -224,9 +232,9 @@ class VideoTileSerializer(TileSerializer):
         try:
             video = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
-            raise SerializerError('Video Tile #{} must be tagged with a video'.format(tile.id))
-        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
-                    video['tagged-products'])
+            raise SerializerError(u"Video Tile #{} must be tagged with a video".format(tile.id))
+
+        products = (self.get_dump_tagged_products(tile) or video['tagged-products'])
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -260,8 +268,8 @@ class BannerTileSerializer(TileSerializer):
             try:
                 image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
-                raise SerializerError("Banner Tile #{} expecting \
-                                       content to be an image".format(tile.id))
+                raise SerializerError(u"Banner Tile #{} expecting "
+                                    + u"content to be an image".format(tile.id))
         else:
             product = tile.products.first() # Could return None
             try:
@@ -272,8 +280,8 @@ class BannerTileSerializer(TileSerializer):
                     image = product.product_images.first().to_json()
                 except AttributeError:
                     # Ran out of options
-                    raise SerializerError("Banner Tile #{} must have an image \
-                                           or a product with an image".format(tile.id))
+                    raise SerializerError(u"Banner Tile #{} must have an image "
+                                        + u"or a product with an image".format(tile.id))
 
         data = self.get_core_attributes(tile)
         data['default-image'] = image
@@ -297,21 +305,22 @@ class CollectionTileSerializer(TileSerializer):
         }
         """
         images = tile.separated_content['images']
-        defaultImageId = tile.attributes.get('defaultImage') or tile.attributes.get('default-image')
+        defaultImageId = (tile.attributes.get('defaultImage') or tile.attributes.get('default-image')
+                          or tile.attributes.get('default_image'))
         if defaultImageId:
             # expecting it to be an ID of one of the tagged content
             try:
                 image = [i.to_json() for i in images if i.id == defaultImageId][0]
             except IndexError:
-                raise SerializerError("Collection Tile #{} is not tagged with its \
-                                       default Image #{}".format(tile.id, defaultImageId))
+                raise SerializerError(u"Collection Tile #{} is not tagged with its "
+                                    + u"default Image #{}".format(tile.id, defaultImageId))
         else:
             # Grab first tagged image
             try:
                 image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
-                raise SerializerError("Collection Tile #{} expecting content to \
-                                       include an image".format(tile.id))
+                raise SerializerError(u"Collection Tile #{} expecting content to "
+                                    + u"include an image".format(tile.id))
 
         expandedImageId = tile.attributes.get('expandedImage') or tile.attributes.get('expanded-image')
         expandedImage = None
@@ -319,10 +328,20 @@ class CollectionTileSerializer(TileSerializer):
             try:
                 expandedImage = [i.to_json() for i in images if i.id == expandedImageId][0]
             except IndexError:
-                raise SerializerError(" Collection Tile #{} is not tagged with its \
-                                       expanded Image #{}".format(tile.id, expandedImageId))
+                raise SerializerError(u"Collection Tile #{} is not tagged with its "
+                                    + u"expanded Image #{}".format(tile.id, expandedImageId))
 
-        products = [p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)]
+        mobileExpandedImageId = (tile.attributes.get('mobileExpandedImage')
+                                 or tile.attributes.get('mobile-expanded-image'))
+        mobileExpandedImage = None
+        if mobileExpandedImageId:
+            try:
+                mobileExpandedImage = [i.to_json() for i in images if i.id == mobileExpandedImageId][0]
+            except IndexError:
+                raise SerializerError(u"Collection Tile #{} is not tagged with its "
+                                    + u"mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
+
+        products = self.get_dump_tagged_products(tile)
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -331,6 +350,8 @@ class CollectionTileSerializer(TileSerializer):
         })
         if expandedImage:
             data['expandedImage'] = expandedImage
+        if mobileExpandedImage:
+            data['mobileExpandedImage'] = mobileExpandedImage
         return data
 
 
@@ -348,10 +369,9 @@ class HeroTileSerializer(TileSerializer):
         try:
             image = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
-            raise SerializerError("Hero Tile expecting content to include an image".format(tile.id))
+            raise SerializerError(u"Hero Tile expecting content to include an image".format(tile.id))
 
-        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
-                    image['tagged-products'])
+        products = (self.get_dump_tagged_products(tile) or image['tagged-products'])
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -376,16 +396,16 @@ class HerovideoTileSerializer(TileSerializer):
         try:
             video = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
-            raise SerializerError("Herovideo Tile #{} expecting \
-                                   content to include a video".format(tile.id))
+            raise SerializerError(u"Herovideo Tile #{} expecting "
+                                + u"content to include a video".format(tile.id))
         try:
             image = self.get_dump_first_content_of('assets.Image', tile)
         except LookupError:
             # optional
             image = {}
-        
-        products = ([p.to_json() for p in tile.products.filter(in_stock=True, placeholder=False)] or
-                    video['tagged-products'] or image.get('tagged-products', []))
+
+        products = (self.get_dump_tagged_products(tile) or video['tagged-products']
+                    or image.get('tagged-products', []))
 
         data = self.get_core_attributes(tile)
         data.update({
