@@ -53,7 +53,7 @@ var TileCollection = Backbone.Collection.extend({
             tileID: ID of tile to be moved
             index: index to move tile to, with index = 0 indicating 1st item of list of tiles
         **/
-        var diff, prioDiff, options, moveTileCollection, result
+        var diff, prioDiff, options, moveTileCollection, result,
             batch = [],
             tiles = tileCollection.models,
             tileInd = tileCollection.findIndexWhere({'id': parseInt(tileID)});
