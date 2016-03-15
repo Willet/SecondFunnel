@@ -688,6 +688,17 @@ class TileDetail(APIView):
 
         if tile_in_user_dashboards:
             status = TileSerializer(tile).data
+            if status['template'] == 'product':
+                product =  tile['products'].first()
+                status['defaultImage'] = product.default_image.url
+                status['name'] = product.name
+            else:
+                content = tile['content'].first()
+                status['defaultImage'] = content.url
+                if content.name is None:
+                    status['name'] = 'No name'
+                else:
+                    status['name'] = content.name
             status_code = 200
 
         return Response(status, status_code)
@@ -768,11 +779,11 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                         serialized_data = TileSerializer(t).data
                         if t['template'] == 'product':
                             product =  t['products'].first()
-                            serialized_data['default_image'] = product.default_image.url
+                            serialized_data['defaultImage'] = product.default_image.url
                             serialized_data['name'] = product.name
                         else:
                             content = t['content'].first()
-                            serialized_data['default_image'] = content.url
+                            serialized_data['defaultImage'] = content.url
                             if content.name is None:
                                 serialized_data['name'] = 'No name'
                             else:

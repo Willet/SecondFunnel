@@ -26,7 +26,7 @@
                         {% if user.is_authenticated %}
                             {{ user.first_name }}
                         {% endif %} to {{ siteName }} 
-                        Dashboard Management
+                        Tiles Management
                     </h2>
                 </div>
                 <!--/col-md-12-->
@@ -42,7 +42,7 @@
                     <script type="text/template" id="tile-template">
                         <div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>
                         <a href="#modal_<%= id %>" role="button" data-toggle="modal">
-                            <img src="<%= default_image %>" alt={{ tile.id }}>
+                            <img src="<%= defaultImage %>" alt={{ tile.id }}>
                         </a>
                         <div class='tile-info'>
                             <%= toTitleCase(template) %> </br>
@@ -64,10 +64,10 @@
                                         <div class="modal-body">
                                             Current Priority: <%= priority %></br>
                                             New Priority: <input type="text" id="new_priority_<%= id %>">
-                                            <div id="result_<%= id %>"></div>
+                                            <div id="error_<%= id %>"></div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" id="editTile" class="btn btn-default" data-dismiss="modal">
+                                            <button type="button" id="editTile" class="btn btn-default">
                                                 Change Priority
                                             </button>
                                             <button type="button" id="closeButton"  class="btn btn-default" data-dismiss="modal">

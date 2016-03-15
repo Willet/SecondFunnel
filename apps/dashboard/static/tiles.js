@@ -18,9 +18,8 @@ var Tile = Backbone.Model.extend({
         input:
             newPriority: the new priority of the tile
         **/
-
-        var model = this;
-        var result = model.save({priority: newPriority}, {
+        var model = this,
+            result = model.save({priority: newPriority}, {
             patch: true,
             url: apiURL + 'tile/' + model.id + '/',
         });
@@ -62,7 +61,6 @@ var TileCollection = Backbone.Collection.extend({
         output:
             URL for REST method
         **/
-
         switch (method) {
             case 'swapTile':
                 return apiURL + 'tile';
@@ -71,22 +69,20 @@ var TileCollection = Backbone.Collection.extend({
         }
     },
 
-    moveTileToPosition: function (moveTileCollection, index, tileID) {
+    moveTileToPosition: function (tileCollection, index, tileID) {
         /**
         Move the tile with ID specified to index location
 
         inputs:
-            moveTileCollection: TileCollection used only for sending the final patch request to server
+            tileCollection: tileCollection
             index: index to move tile to, with index = 0 indicating 1st item of list of tiles
             tileID: ID of tile to be moved
         **/
-
-        var batch = [];
-        var tiles = tileCollection.models;
+        var batch = [],
+            tiles = tileCollection.models,
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(tileID)});
         // First check if the index we're moving to is on the left or right of original tile index
         // Then insert/delete appropriately
-        var tileInd = tileCollection.findIndexWhere({'id': parseInt(tileID)});
-        var tempInd = 0;
 
         if (index < tileInd){
             tiles.splice(index, 0, tiles[tileInd]);
@@ -193,6 +189,7 @@ var TileCollection = Backbone.Collection.extend({
             'url': this.getCustomURL('moveTile'),
         };
 
+        var moveTileCollection = new TileCollection();
         moveTileCollection.set({data: batch});
 
         var result = Backbone.sync.call(this, 'patch', moveTileCollection, options);
@@ -242,9 +239,15 @@ var TileView = Backbone.View.extend({
         /**
         Change the tile's priority by requesting the model's changePriority function
         **/
-        
-        $('#moveTilesResult').html("Processing... Please wait.");
-        this.model.changePriority(parseInt(document.getElementById('new_priority_' + this.model.id).value));
+        var newPriority = document.getElementById('new_priority_' + this.model.id).value;
+        if (newPriority == '' || newPriority == null){
+            $('#error_' + this.model.id).html("Error. New priority input is empty.");
+        }
+        else{
+            $('#modal_' + this.model.id).modal('toggle');
+            $('#moveTilesResult').html("Processing... Please wait.");
+            this.model.changePriority(parseInt(newPriority));
+        }
     },
 });
 
@@ -279,8 +282,8 @@ var TileCollectionView = Backbone.View.extend({
                 $('#moveTilesResult').html("Processing... Please wait.");
                 var startPos = ui.item.data('startPos');
                 var endPos = ui.item.index();
-                var tileMover = new TileCollection();
-                tileMover.moveTileToPosition(tileMover, endPos, tileCollection.models[startPos].get('id'));
+                var movedTileID = tileCollection.models[startPos].get('id');
+                tileCollection.moveTileToPosition(tileCollection, endPos, movedTileID);
             },
         });
         // $('#backbone-tiles').selectable({
