@@ -10,32 +10,6 @@ var Tile = Backbone.Model.extend({
     initialize: function () {
 
     },
-
-    changePriority: function (newPriority) {
-        /**
-        Changes the priority of the current tile by saving the model with the new priority
-        
-        input:
-            newPriority: the new priority of the tile
-        **/
-        var model = this,
-            result = model.save({priority: newPriority}, {
-                patch: true,
-                url: apiURL + 'tile/' + model.id + '/',
-            });
-        result.always(function () {
-            tileCollection.sort();
-            result = JSON.parse(result.responseText);
-            if (_.has(result,"id")) {
-                status = "The priority of tile with ID: " + model.id + 
-                         " has been changed to " + model.get('priority') + ".";
-            }
-            else {
-                status = result.priority;
-            }
-            $('#moveTilesResult').html(status);
-        });
-    },
 });
 
 var TileCollection = Backbone.Collection.extend({
@@ -79,19 +53,17 @@ var TileCollection = Backbone.Collection.extend({
             tileID: ID of tile to be moved
             index: index to move tile to, with index = 0 indicating 1st item of list of tiles
         **/
-        var batch = [],
+        var diff, prioDiff, options, moveTileCollection, result
+            batch = [],
             tiles = tileCollection.models,
-            tileInd = tileCollection.findIndexWhere({'id': parseInt(tileID)}),
-            diff,
-            prioDiff;
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(tileID)});
         // First check if the index we're moving to is on the left or right of original tile index
         // Then insert/delete appropriately
 
         if (index < tileInd) {
             tiles.splice(index, 0, tiles[tileInd]);
             tiles.splice(tileInd + 1, 1);
-        }
-        else {
+        } else {
             tiles.splice(index + 1, 0, tiles[tileInd]);
             tiles.splice(tileInd, 1);
         }
@@ -105,10 +77,13 @@ var TileCollection = Backbone.Collection.extend({
                 'priority': tiles[index].get('priority')
             });
             //No need to do anything else to Tn+1 till the end
-        }
-        else {
+        } else {
             //Tn+1 exists
-
+            tiles[index].set({priority: tiles[index+1].get('priority') + 1});
+            batch.push({
+                'id': tiles[index].get('id'), 
+                'priority': tiles[index].get('priority')
+            })
             //Check if Tn+2 exists or not
             if (index + 1 !== tiles.length - 1) {
                 //Tn+2 exists
@@ -117,8 +92,7 @@ var TileCollection = Backbone.Collection.extend({
                 //Check Tn+1 > Tn+2
                 if (tiles[index + 1].get('priority') > tiles[index + 2].get('priority')) {
                     //it's greater so this doesn't need to change
-                }
-                else {
+                } else {
                     //Tn+1 = Tn+2, so increase Tn+1 by 1
                     tiles[index + 1].set({priority: tiles[index + 1].get('priority')+ 1});
                     batch.push({
@@ -163,8 +137,7 @@ var TileCollection = Backbone.Collection.extend({
                     //Tn-2 > Tn-1
                     //Tn-2 to the beginning doesn't need to change as it's already
                     //    at that position
-                }
-                else {
+                } else {
                     //Tn-2 <= Tn-1
                     //Increase Tn-2 to T0 by X amount so Tn-2 is on the left of Tn-1
 
@@ -175,7 +148,7 @@ var TileCollection = Backbone.Collection.extend({
                     //   1 more than the Tn-1
                     prioDiff = diff + 1;
                     //Now loop through and increase from T0 to Tn-2
-                    for (var i = index - 2; i >= 0; i --) {
+                    for (var i = index - 2; i >= 0; i--) {
                         tiles[i].set({priority: tiles[i].get('priority') + prioDiff});
                         batch.push({
                             'id': tiles[i].get('id'), 
@@ -188,21 +161,20 @@ var TileCollection = Backbone.Collection.extend({
 
         batch = JSON.stringify(batch);
 
-        var options = {
+        options = {
             'url': this.getCustomURL('moveTile'),
         };
 
-        var moveTileCollection = new TileCollection();
+        moveTileCollection = new TileCollection();
         moveTileCollection.set({data: batch});
 
-        var result = Backbone.sync.call(this, 'patch', moveTileCollection, options);
+        result = Backbone.sync.call(this, 'patch', moveTileCollection, options);
         result.always(function () {
             tileCollection.sort();
             if (result.responseJSON.length !== 0) {
                 status = "The tile with ID: " + tileID + " has been moved to index: "
                          + index + ". Refreshing tiles.";
-            }
-            else {
+            } else {
                 status = "Move failed due to an error.";
             }
             $('#moveTilesResult').html(status);
@@ -246,16 +218,40 @@ var TileView = Backbone.View.extend({
 
     editTile: function () {
         /**
-        Change the tile's priority by requesting the model's changePriority function
+        Change the tile's priority to the value specified inside the input box
         **/
-        var newPriority = document.getElementById('new_priority_' + this.model.id).value;
-        if (newPriority === '' || newPriority === null) {
-            $('#error_' + this.model.id).html("Error. New priority input is empty.");
-        }
-        else {
-            $('#modal_' + this.model.id).modal('toggle');
+        var result,
+            currModel = this.model,
+            newPriority = document.getElementById('new_priority_' + currModel.id).value;
+
+        try {
+            if (newPriority === '' || newPriority === null) {
+                throw "Error. New priority input is empty."
+            }
+            if (isNaN(parseInt(newPriority))) {
+                throw "Error. A valid integer is required."
+            }
+            $('#modal_' + currModel.id).modal('toggle');
             $('#moveTilesResult').html("Processing... Please wait.");
-            this.model.changePriority(parseInt(newPriority));
+
+            result = currModel.save({priority: newPriority}, {
+                patch: true,
+                url: apiURL + 'tile/' + currModel.id + '/',
+            });
+            result.always(function () {
+                tileCollection.sort();
+                result = JSON.parse(result.responseText);
+                if (_.has(result,"id")) {
+                    status = "The priority of tile with ID: " + currModel.id + 
+                             " has been changed to " + currModel.get('priority') + ".";
+                } else {
+                    status = result.priority;
+                }
+                $('#moveTilesResult').html(status);
+            });
+        }
+        catch(err) {
+            $('#error_' + currModel.id).html(err);
         }
     },
 });
@@ -265,7 +261,7 @@ var TileCollectionView = Backbone.View.extend({
 
     initialize: function () {
         this.render();
-        this.collection.on('change add sort', _.debounce(this.render, 100), this);
+        this.listenTo(this.collection, 'change add sort', _.debounce(this.render, 100));
     },
 
     render: function () {
@@ -282,16 +278,16 @@ var TileCollectionView = Backbone.View.extend({
             handle: ".handle",
 
             start: function (event, ui) {
-                $('#moveTilesResult').html("");
                 var startPos = ui.item.index();
+                $('#moveTilesResult').html("");
                 ui.item.data('startPos', startPos);
             },
 
             update: function (event, ui) {
+                var startPos = ui.item.data('startPos'),
+                    endPos = ui.item.index(),
+                    movedTileID = tileCollection.models[startPos].get('id');
                 $('#moveTilesResult').html("Processing... Please wait.");
-                var startPos = ui.item.data('startPos');
-                var endPos = ui.item.index();
-                var movedTileID = tileCollection.models[startPos].get('id');
                 tileCollection.moveTileToPosition(movedTileID, endPos);
             },
         });
