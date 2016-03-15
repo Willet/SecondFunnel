@@ -20,9 +20,9 @@ var Tile = Backbone.Model.extend({
         **/
         var model = this,
             result = model.save({priority: newPriority}, {
-            patch: true,
-            url: apiURL + 'tile/' + model.id + '/',
-        });
+                patch: true,
+                url: apiURL + 'tile/' + model.id + '/',
+            });
         result.always(function () {
             tileCollection.sort();
             result = JSON.parse(result.responseText);
@@ -69,14 +69,13 @@ var TileCollection = Backbone.Collection.extend({
         }
     },
 
-    moveTileToPosition: function (tileCollection, index, tileID) {
+    moveTileToPosition: function (tileID, index) {
         /**
         Move the tile with ID specified to index location
 
         inputs:
-            tileCollection: tileCollection
-            index: index to move tile to, with index = 0 indicating 1st item of list of tiles
             tileID: ID of tile to be moved
+            index: index to move tile to, with index = 0 indicating 1st item of list of tiles
         **/
         var batch = [],
             tiles = tileCollection.models,
@@ -283,7 +282,7 @@ var TileCollectionView = Backbone.View.extend({
                 var startPos = ui.item.data('startPos');
                 var endPos = ui.item.index();
                 var movedTileID = tileCollection.models[startPos].get('id');
-                tileCollection.moveTileToPosition(tileCollection, endPos, movedTileID);
+                tileCollection.moveTileToPosition(movedTileID, endPos);
             },
         });
         // $('#backbone-tiles').selectable({
