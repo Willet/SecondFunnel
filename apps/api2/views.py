@@ -669,6 +669,15 @@ class TileDetail(APIView):
     queryset = Tile.objects.all()
 
     def get_serialized_tile(self, tile):
+        """
+        Returns the serialized tile complete with image URL and name
+
+        inputs:
+            tile: tile object to be serialized
+
+        returns:
+            serialized tile
+        """
         serialized_tile = TileSerializer(tile).data
         if tile['template'] == 'product':
             product =  tile['products'].first()
@@ -791,7 +800,7 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                     for t in tiles:
                         a = TileDetail()
                         serialized_data = TileDetail.get_serialized_tile(a, t)
-                        
+
                         serialized_tiles.append(serialized_data)
                     status = serialized_tiles
                     status_code = 200

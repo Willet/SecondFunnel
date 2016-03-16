@@ -160,12 +160,12 @@ var TileCollection = Backbone.Collection.extend({
         }
 
         //Change tileCollection's models to have new priorities by looping through batch
-        for (var i = 0; i < batch.length; i++){
-            var tempID = batch[i]['id'],
-                tempPriority = batch[i]['priority'],
+        _.each(batch, function(val){
+            var tempID = val['id'],
+                tempPriority = val['priority'],
                 tempIndex = tileCollection.findIndexWhere({'id': parseInt(tempID)});
             tileCollection.models[tempIndex].set({priority: tempPriority});
-        }
+        });
 
         batch = JSON.stringify(batch);
         options = {
@@ -244,6 +244,7 @@ var TileView = Backbone.View.extend({
                 patch: true,
                 url: apiURL + 'tile/' + currModel.id + '/',
             });
+
             result.always(function () {
                 result = JSON.parse(result.responseText);
                 if (_.has(result,"id")) {
@@ -305,9 +306,9 @@ var TileCollectionView = Backbone.View.extend({
     },
 });
 
-$(function () {
+(function () {
     tileCollection = new TileCollection();
     tileCollection.fetch();
     tilesView = new TileCollectionView({ collection: tileCollection });
     tilesView.render();
-})
+}());
