@@ -12,6 +12,7 @@
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/backbone.marionette.min.js" %}"></script>
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
     <script type="text/javascript" src="{% static "common.js" %}"></script>
 {% endblock %}
@@ -22,11 +23,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <h2><i class="fa fa-dashboard"></i>
-                        Welcome
-                        {% if user.is_authenticated %}
-                            {{ user.first_name }}
-                        {% endif %} to {{ siteName }} 
-                        Tiles Management
+                        {{ siteName }}
                     </h2>
                 </div>
                 <!--/col-md-12-->
@@ -34,9 +31,6 @@
             <!--/row-->
 
             <div class="block-web">
-                <h3 class="content-header">
-                    List of tiles
-                </h3>    
                 <div id="moveTilesResult"></div>
                 <ul id="backbone-tiles">
                     <script type="text/template" id="tile-template">
