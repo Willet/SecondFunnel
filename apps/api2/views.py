@@ -668,6 +668,30 @@ class TileDetail(APIView):
     serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
 
+    def get_serialized_tile(self, tile):
+        serialized_tile = TileSerializer(tile).data
+        if tile['template'] == 'product':
+            product =  tile['products'].first()
+            if product is not None:
+                serialized_tile['defaultImage'] = product.default_image.url
+                serialized_tile['name'] = product.name
+            else:
+                serialized_tile['defaultImage'] = ''
+                serialized_tile['name'] = 'No name'
+        else:
+            content = tile['content'].first()
+            if content is not None:
+                serialized_tile['defaultImage'] = content.url
+                if content.name is None:
+                    serialized_tile['name'] = 'No name'
+                else:
+                    serialized_tile['name'] = content.name
+            else:
+                serialized_tile['defaultImage'] = ''
+                serialized_tile['name'] = 'No name'
+
+        return serialized_tile
+
     def get(self, request, pk, format=None):
         """
         Returns the serialized tile
@@ -687,27 +711,7 @@ class TileDetail(APIView):
         tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
 
         if tile_in_user_dashboards:
-            status = TileSerializer(tile).data
-            if status['template'] == 'product':
-                product =  tile['products'].first()
-                if product is not None:
-                    status['defaultImage'] = product.default_image.url
-                    status['name'] = product.name
-                else:
-                    status['defaultImage'] = ''
-                    status['name'] = 'No name'
-            else:
-                content = tile['content'].first()
-                if content is not None:
-                    status['defaultImage'] = content.url
-                    if content.name is None:
-                        status['name'] = 'No name'
-                    else:
-                        status['name'] = content.name
-                else:
-                    status['defaultImage'] = ''
-                    status['name'] = 'No name'
-                    
+            status = self.get_serialized_tile(tile)
             status_code = 200
 
         return Response(status, status_code)
@@ -785,26 +789,9 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                 if tiles is not None:
                     serialized_tiles = []
                     for t in tiles:
-                        serialized_data = TileSerializer(t).data
-                        if t['template'] == 'product':
-                            product =  t['products'].first()
-                            if product is not None:
-                                serialized_data['defaultImage'] = product.default_image.url
-                                serialized_data['name'] = product.name
-                            else:
-                                serialized_data['defaultImage'] = ''
-                                serialized_data['name'] = 'No name'
-                        else:
-                            content = t['content'].first()
-                            if content is not None:
-                                serialized_data['defaultImage'] = content.url
-                                if content.name is None:
-                                    serialized_data['name'] = 'No name'
-                                else:
-                                    serialized_data['name'] = content.name
-                            else:
-                                serialized_data['defaultImage'] = ''
-                                serialized_data['name'] = 'No name'
+                        a = TileDetail()
+                        serialized_data = TileDetail.get_serialized_tile(a, t)
+                        
                         serialized_tiles.append(serialized_data)
                     status = serialized_tiles
                     status_code = 200

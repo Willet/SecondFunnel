@@ -266,7 +266,7 @@ var TileCollectionView = Backbone.View.extend({
 
     initialize: function () {
         this.render();
-        this.listenTo(this.collection, 'change', _.debounce(function(){this.collection.sort()}, 100));
+        this.listenTo(this.collection, 'change', _.debounce(function(){ this.collection.sort() }, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
 
