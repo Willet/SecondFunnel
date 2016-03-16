@@ -673,10 +673,10 @@ class TileDetail(APIView):
         Returns the serialized tile complete with image URL and name
 
         inputs:
-            tile: tile object to be serialized
+            tile: <Tile> object to be serialized
 
         returns:
-            serialized tile
+            serialized_tile: <dict> containing tile details
         """
         serialized_tile = TileSerializer(tile).data
         if tile['template'] == 'product':
