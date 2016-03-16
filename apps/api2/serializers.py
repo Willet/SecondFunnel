@@ -56,13 +56,13 @@ class PageSerializer(serializers.ModelSerializer):
 class TileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tile
-        fields = ('id', 'feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
+        fields = ('id', 'feed', 'template', 'products', 'content', 'priority', 'clicks', 'views', 'placeholder',
             'in_stock', 'attributes')
 
 class TileSerializerBulk(BulkSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Tile
-        fields = ('id', 'feed', 'template', 'products', 'priority', 'clicks', 'views', 'placeholder',
+        fields = ('id', 'feed', 'template', 'products', 'content', 'priority', 'clicks', 'views', 'placeholder',
             'in_stock', 'attributes')
         list_serializer_class = BulkListSerializer
 

@@ -1,11 +1,15 @@
 import json
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 from rest_framework.test import APITestCase
 
 from apps.assets.models import Tile, Page
 from apps.api2.serializers import TileSerializer
 from apps.intentrank.algorithms import ir_magic
+
+
+from apps.dashboard.models import Dashboard, UserProfile, Query
 
 
 class APITest(APITestCase):
@@ -714,6 +718,10 @@ class APITest(APITestCase):
         self.assertEqual(response.data[u'detail'],u'Not found.')
 
     def page_add_product_successful_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
+        
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
@@ -730,6 +738,10 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_product_successful_category_priority_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
+
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory", 'priority': 100})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
@@ -746,6 +758,10 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_product_successful_category_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
+        
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
@@ -762,6 +778,10 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_product_successful_priority_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
+        
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'priority': 1000})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default has been added.')
@@ -778,6 +798,10 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_content_successful_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
+
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
@@ -794,6 +818,10 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['id'], 16)
 
     def page_add_content_successful_category_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
+
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': "TestCategory"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
@@ -816,20 +844,6 @@ class APITest(APITestCase):
 
     def page_add_product_already_added_test(self):
         response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [3])
-        self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u'Product with ID: 3, Name: Default, Store: MyStore is already added. Add failed.')
 
@@ -839,20 +853,6 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Content with ID: 1000, Store: MyStore has not been found. Add failed.')
 
     def page_add_content_already_added_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [])
-        self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u'Content with ID: 6, Store: MyStore is already added. Add failed.')
@@ -898,20 +898,6 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u"Page with ID: 10000 not found.")
 
     def page_remove_product_successful_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [3])
-        self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
@@ -922,7 +908,11 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u'Product with ID: 100000, Store: MyStore has not been found. Remove failed.')
 
     def page_remove_product_category_successful_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
+        response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
+
+        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': 'TestCategory2'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
         self.assertEqual(response.data['id'], 16)
@@ -936,105 +926,41 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
+
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory2'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been removed.')
 
     def page_remove_product_category_unsuccessful_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [3])
-        self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory3'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_product_category_unsuccessful2_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3, 'category': "TestCategory2"})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [3])
-        self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Product with ID: 3, Name: Default, Store: MyStore has not been found. Remove failed.")
 
     def page_remove_product_category_unsuccessful3_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [3])
-        self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Product with ID: 3, Name: Default, Store: MyStore has not been found. Remove failed.")
 
     def page_remove_product_category_unsuccessful4_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'product', 'id': 3})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Product with ID: 3, Name: Default has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [3])
-        self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3, 'category': 'TestCategory3'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_content_successful_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [])
-        self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6})
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
 
     def page_remove_content_category_successful_test(self):
+        response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
+
         response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
@@ -1049,79 +975,29 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['attributes'], '{}')
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
+
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Content with ID: 6 has been removed.')
 
     def page_remove_content_category_unsuccessful_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [])
-        self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory2'})
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], 'Content with ID: 6, Store: MyStore has not been found. Remove failed.')
 
     def page_remove_content_category_unsuccessful2_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6, 'category': 'TestCategory'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [])
-        self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory3'})
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_content_category_unsuccessful3_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [])
-        self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory2'})
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], 'Content with ID: 6, Store: MyStore has not been found. Remove failed.')
 
     def page_remove_content_category_unsuccessful4_test(self):
-        response = self.client.post('/api2/page/8/add/', {'type': 'content', 'id': 6})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with ID: 6 has been added.')
-        self.assertEqual(response.data['id'], 16)
-        self.assertEqual(response.data['tile']['feed'], 9)
-        self.assertEqual(response.data['tile']['views'], 0)
-        self.assertEqual(response.data['tile']['clicks'], 0)
-        self.assertEqual(response.data['tile']['priority'], 0)
-        self.assertEqual(response.data['tile']['in_stock'], True)
-        self.assertEqual(response.data['tile']['products'], [])
-        self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
-        self.assertEqual(response.data['tile']['placeholder'], False)
-        self.assertEqual(response.data['tile']['id'], 16)
         response = self.client.post('/api2/page/8/remove/', {'type': 'content', 'id': 6, 'category': 'TestCategory3'})
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], "Category 'TestCategory3' not found for store 'MyStore'.")
 
     def page_remove_content_unsuccessful_test(self):
@@ -1160,97 +1036,117 @@ class APITest(APITestCase):
         self.assertEqual(response.data['status'], u"Page with ID: 10000 not found.")
 
     def tile_test(self):
-        response = self.client.get('/api2/tile?page=9')
-        self.assertEqual(len(response.data),6)
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
+        response = self.client.get('/api2/tile?page=8')
+        self.assertEqual(len(response.data),5)
         tile0 = response.data[0]
         tile1 = response.data[1]
         tile2 = response.data[2]
         tile3 = response.data[3]
         tile4 = response.data[4]
-        tile5 = response.data[5]
 
-        self.assertEqual(tile0['id'], 10)
+        self.assertEqual(tile0['id'], 15)
         self.assertEqual(tile0['feed'], 9)
-        self.assertEqual(tile0['template'], u'default')
-        self.assertEqual(tile0['products'], [])
-        self.assertEqual(tile0['priority'], 1)
+        self.assertEqual(tile0['template'], u'product')
+        self.assertEqual(tile0['products'], [3])
+        self.assertEqual(tile0['content'], [])
+        self.assertEqual(tile0['priority'], 5)
         self.assertEqual(tile0['clicks'], 0)
         self.assertEqual(tile0['views'], 0)
         self.assertEqual(tile0['placeholder'], False)
         self.assertEqual(tile0['in_stock'], True)
         self.assertEqual(tile0['attributes'], '{}')
+        self.assertEqual(tile0['defaultImage'],"/image.jpg")
+        self.assertEqual(tile0['name'],"Default")
 
-        self.assertEqual(tile1['id'], 11)
+        self.assertEqual(tile1['id'], 14)
         self.assertEqual(tile1['feed'], 9)
-        self.assertEqual(tile1['template'], u'default')
+        self.assertEqual(tile1['template'], u'content')
         self.assertEqual(tile1['products'], [])
-        self.assertEqual(tile1['priority'], 2)
+        self.assertEqual(tile1['content'], [6])
+        self.assertEqual(tile1['priority'], 4)
         self.assertEqual(tile1['clicks'], 0)
         self.assertEqual(tile1['views'], 0)
         self.assertEqual(tile1['placeholder'], False)
         self.assertEqual(tile1['in_stock'], True)
         self.assertEqual(tile1['attributes'], '{}')
+        self.assertEqual(tile1['defaultImage'],"/content.jpg")
+        self.assertEqual(tile1['name'],"blah6")
 
         self.assertEqual(tile2['id'], 12)
         self.assertEqual(tile2['feed'], 9)
-        self.assertEqual(tile2['template'], u'default')
-        self.assertEqual(tile2['products'], [])
+        self.assertEqual(tile2['template'], u'product')
+        self.assertEqual(tile2['products'], [111])
+        self.assertEqual(tile2['content'], [])
         self.assertEqual(tile2['priority'], 3)
         self.assertEqual(tile2['clicks'], 0)
         self.assertEqual(tile2['views'], 0)
         self.assertEqual(tile2['placeholder'], False)
         self.assertEqual(tile2['in_stock'], True)
         self.assertEqual(tile2['attributes'], '{}')
+        self.assertEqual(tile2['defaultImage'],"/image.jpg")
+        self.assertEqual(tile2['name'],"Default5")
 
-        self.assertEqual(tile3['id'], 14)
+        self.assertEqual(tile3['id'], 11)
         self.assertEqual(tile3['feed'], 9)
-        self.assertEqual(tile3['template'], u'default')
+        self.assertEqual(tile3['template'], u'content')
         self.assertEqual(tile3['products'], [])
-        self.assertEqual(tile3['priority'], 4)
+        self.assertEqual(tile3['content'], [6])
+        self.assertEqual(tile3['priority'], 2)
         self.assertEqual(tile3['clicks'], 0)
         self.assertEqual(tile3['views'], 0)
         self.assertEqual(tile3['placeholder'], False)
         self.assertEqual(tile3['in_stock'], True)
         self.assertEqual(tile3['attributes'], '{}')
+        self.assertEqual(tile3['defaultImage'],"/content.jpg")
+        self.assertEqual(tile3['name'],"blah6")
 
-        self.assertEqual(tile4['id'], 15)
+        self.assertEqual(tile4['id'], 10)
         self.assertEqual(tile4['feed'], 9)
-        self.assertEqual(tile4['template'], u'default')
-        self.assertEqual(tile4['products'], [])
-        self.assertEqual(tile4['priority'], 5)
+        self.assertEqual(tile4['template'], u'product')
+        self.assertEqual(tile4['products'], [112])
+        self.assertEqual(tile4['content'], [])
+        self.assertEqual(tile4['priority'], 1)
         self.assertEqual(tile4['clicks'], 0)
         self.assertEqual(tile4['views'], 0)
         self.assertEqual(tile4['placeholder'], False)
         self.assertEqual(tile4['in_stock'], True)
         self.assertEqual(tile4['attributes'], '{}')
-
-        self.assertEqual(tile5['id'], 13)
-        self.assertEqual(tile5['feed'], 13)
-        self.assertEqual(tile5['template'], u'default')
-        self.assertEqual(tile5['products'], [])
-        self.assertEqual(tile5['priority'], 0)
-        self.assertEqual(tile5['clicks'], 0)
-        self.assertEqual(tile5['views'], 0)
-        self.assertEqual(tile5['placeholder'], False)
-        self.assertEqual(tile5['in_stock'], True)
-        self.assertEqual(tile5['attributes'], '{}')
+        self.assertEqual(tile4['defaultImage'],"/image.jpg")
+        self.assertEqual(tile4['name'],"Default6")
 
     def tile_single_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.get('/api2/tile/11/')
         tile = response.data
         self.assertEqual(tile['id'], 11)
         self.assertEqual(tile['feed'], 9)
-        self.assertEqual(tile['template'], u'default')
+        self.assertEqual(tile['template'], u'content')
         self.assertEqual(tile['products'], [])
+        self.assertEqual(tile['content'], [6])
         self.assertEqual(tile['priority'], 2)
         self.assertEqual(tile['clicks'], 0)
         self.assertEqual(tile['views'], 0)
         self.assertEqual(tile['placeholder'], False)
         self.assertEqual(tile['in_stock'], True)
         self.assertEqual(tile['attributes'], '{}')
-        self.assertEqual(tile['feed'],9)
+        self.assertEqual(tile['defaultImage'],"/content.jpg")
+        self.assertEqual(tile['name'],"blah6")
 
     def tile_change_prio_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}]), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
@@ -1264,6 +1160,11 @@ class APITest(APITestCase):
         self.assertEqual(t.priority, 100001)
 
     def tile_change_prio_bulk_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile', json.dumps([{"id":10, "priority": 100000}, {"id":11, "priority": 101}]), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         t = Tile.objects.get(pk=10)
@@ -1274,6 +1175,11 @@ class APITest(APITestCase):
         self.assertEqual(t.priority, 101)
 
     def tile_change_prio_wrongID_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile/55/', {'priority': 1})
         self.assertEqual(response.status_code, 404)
         t = Tile.objects.filter(pk=55)
@@ -1287,10 +1193,20 @@ class APITest(APITestCase):
         self.assertEqual(list(t), [])
 
     def tile_change_prio_bad_inputs_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
         response = self.client.patch('/api2/tile/test/', {'priority': 1})
         self.assertEqual(response.status_code, 404)
 
     def tile_change_prio_bad_inputs2_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+        
         response = self.client.patch('/api2/tile/10/', {'priority': 'test'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['priority'], [u'A valid integer is required.'])
@@ -1301,6 +1217,11 @@ class APITest(APITestCase):
         self.assertEqual(response.data[0]['priority'], [u'A valid integer is required.'])
 
     def tile_error_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+        
         response = self.client.get('/api2/tile/999/')
         self.assertEqual(response.data,{u'detail': u'Not found.'})
         self.assertEqual(response.data[u'detail'],u'Not found.')
