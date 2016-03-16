@@ -55,7 +55,7 @@ var TileCollection = Backbone.Collection.extend({
         **/
         var diff, prioDiff, options, moveTileCollection, result,
             batch = [],
-            tiles = tileCollection.models,
+            tiles = tileCollection.clone().models,
             tileInd = tileCollection.findIndexWhere({'id': parseInt(tileID)});
         // First check if the index we're moving to is on the left or right of original tile index
         // Then insert/delete appropriately
@@ -159,8 +159,15 @@ var TileCollection = Backbone.Collection.extend({
             }
         }
 
-        batch = JSON.stringify(batch);
+        //Change tileCollection's models to have new priorities by looping through batch
+        for (var i = 0; i < batch.length; i++){
+            var tempID = batch[i]['id'],
+                tempPriority = batch[i]['priority'],
+                tempIndex = tileCollection.findIndexWhere({'id': parseInt(tempID)});
+            tileCollection.models[tempIndex].set({priority: tempPriority});
+        }
 
+        batch = JSON.stringify(batch);
         options = {
             'url': this.getCustomURL('moveTile'),
         };
@@ -170,7 +177,6 @@ var TileCollection = Backbone.Collection.extend({
 
         result = Backbone.sync.call(this, 'patch', moveTileCollection, options);
         result.always(function () {
-            tileCollection.sort();
             if (result.responseJSON.length !== 0) {
                 status = "The tile with ID: " + tileID + " has been moved to index: "
                          + index + ". Refreshing tiles.";
@@ -220,7 +226,7 @@ var TileView = Backbone.View.extend({
         /**
         Change the tile's priority to the value specified inside the input box
         **/
-        var result,
+        var result, 
             currModel = this.model,
             newPriority = document.getElementById('new_priority_' + currModel.id).value;
 
@@ -239,7 +245,6 @@ var TileView = Backbone.View.extend({
                 url: apiURL + 'tile/' + currModel.id + '/',
             });
             result.always(function () {
-                tileCollection.sort();
                 result = JSON.parse(result.responseText);
                 if (_.has(result,"id")) {
                     status = "The priority of tile with ID: " + currModel.id + 
@@ -261,7 +266,8 @@ var TileCollectionView = Backbone.View.extend({
 
     initialize: function () {
         this.render();
-        this.listenTo(this.collection, 'change add sort', _.debounce(this.render, 100));
+        this.listenTo(this.collection, 'change', _.debounce(function(){this.collection.sort()}, 100));
+        this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
 
     render: function () {
