@@ -2,9 +2,11 @@
 
 var App = new Marionette.Application();
 
-App.apiURL = "http://" + window.location.host + "/api2/";
+App.core = {};
 
-App.Tile = Backbone.Model.extend({
+App.core.apiURL = "http://" + window.location.host + "/api2/";
+
+App.core.Tile = Backbone.Model.extend({
     defaults: {},
 
     initialize: function () {
@@ -12,12 +14,12 @@ App.Tile = Backbone.Model.extend({
     },
 });
 
-App.TileCollection = Backbone.Collection.extend({
+App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
 
-    url: App.apiURL + 'tile?page=' + pageID,
+    url: App.core.apiURL + 'tile?page=' + pageID,
 
-    model: App.Tile,
+    model: App.core.Tile,
 
     initialize: function () {
 
@@ -39,9 +41,9 @@ App.TileCollection = Backbone.Collection.extend({
         **/
         switch (method) {
             case 'swapTile':
-                return App.apiURL + 'tile';
+                return App.core.apiURL + 'tile';
             case 'moveTile':
-                return App.apiURL + 'tile';
+                return App.core.apiURL + 'tile';
         }
     },
 
@@ -55,8 +57,8 @@ App.TileCollection = Backbone.Collection.extend({
         **/
         var diff, prioDiff, options, moveTileCollection, result,
             batch = [],
-            tiles = App.tiles.clone().models,
-            tileInd = App.tiles.findIndexWhere({'id': parseInt(tileID)});
+            tiles = App.core.tiles.clone().models,
+            tileInd = App.core.tiles.findIndexWhere({'id': parseInt(tileID)});
         // First check if the index we're moving to is on the left or right of original tile index
         // Then insert/delete appropriately
 
@@ -161,8 +163,8 @@ App.TileCollection = Backbone.Collection.extend({
 
         //Change tiles's models to have new priorities by looping through batch
         _.each(batch, function(val){
-            var index = App.tiles.findIndexWhere({'id': parseInt(val['id'])});
-            App.tiles.models[index].set({priority: val['priority']});
+            var index = App.core.tiles.findIndexWhere({'id': parseInt(val['id'])});
+            App.core.tiles.models[index].set({priority: val['priority']});
         });
 
         batch = JSON.stringify(batch);
@@ -170,7 +172,7 @@ App.TileCollection = Backbone.Collection.extend({
             'url': this.getCustomURL('moveTile'),
         };
 
-        moveTileCollection = new App.TileCollection();
+        moveTileCollection = new App.core.TileCollection();
         moveTileCollection.set({data: batch});
 
         result = Backbone.sync.call(this, 'patch', moveTileCollection, options);
@@ -200,7 +202,7 @@ App.TileCollection = Backbone.Collection.extend({
     },
 });
 
-App.TileView = Marionette.View.extend({
+App.core.TileView = Marionette.ItemView.extend({
     template: _.template($('#tile-template').html()),
 
     tagName: 'li',
@@ -218,6 +220,11 @@ App.TileView = Marionette.View.extend({
 
     events: {
         "click #editTile": "editTile",
+        "mouseover": "mouseover",
+    },
+
+    mouseover: function() {
+
     },
 
     editTile: function () {
@@ -232,7 +239,7 @@ App.TileView = Marionette.View.extend({
             if (newPriority === '' || newPriority === null) {
                 throw "Error. New priority input is empty."
             }
-            if (isNaN(parseInt(newPriority))) {
+            if (!(Math.floor(newPriority) == newPriority && $.isNumeric(newPriority))) {
                 throw "Error. A valid integer is required."
             }
             $('#modal_' + currModel.id).modal('toggle');
@@ -240,7 +247,7 @@ App.TileView = Marionette.View.extend({
 
             result = currModel.save({priority: newPriority}, {
                 patch: true,
-                url: App.apiURL + 'tile/' + currModel.id + '/',
+                url: App.core.apiURL + 'tile/' + currModel.id + '/',
             });
 
             result.always(function () {
@@ -260,11 +267,47 @@ App.TileView = Marionette.View.extend({
     },
 });
 
-App.TileCollectionView = Marionette.CollectionView.extend({
+// App.core.PageCompositeView = Marionette.CompositeView.extend({
+//     template: "#leaf-branch-template",
+
+
+// });
+
+App.core.NoItemsView = Marionette.ItemView.extend({
+    template: _.template($('#no-tile-yet').html()),
+
+    initialize: function (args) {
+        console.log("empty!");
+    },
+
+    render: function () {
+        this.$el.html(this.template("hi"));
+        return this;
+    },
+});
+
+App.core.TileCollectionView = Marionette.CollectionView.extend({
     el: "#backbone-tiles",
+
+    childView: App.core.TileView,
+
+    emptyView: App.core.NoItemsView,  
+
+    isEmpty: function(collection) {
+        console.log(collection);
+        if (collection.models.length === 0) {
+            console.log("empty");
+            return true;
+        }
+        else {
+            console.log("not empty");
+            return false;
+        }
+    },
 
     initialize: function () {
         this.render();
+        this.listenTo(this.collection, 'add', _.debounce(function(){ console.log("fetch") }, 100));
         this.listenTo(this.collection, 'change', _.debounce(function(){ this.collection.sort() }, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
@@ -273,11 +316,13 @@ App.TileCollectionView = Marionette.CollectionView.extend({
         this.$el.html('');
 
         this.collection.each(function (model) {
-            var tileView = new App.TileView({
+            var tileView = new App.core.TileView({
                 model: model,
             });
             this.$el.append(tileView.render().el);
         }.bind(this));
+
+        console.log("Done");
         
         $('#backbone-tiles').sortable({
             handle: ".handle",
@@ -291,9 +336,9 @@ App.TileCollectionView = Marionette.CollectionView.extend({
             update: function (event, ui) {
                 var startPos = ui.item.data('startPos'),
                     endPos = ui.item.index(),
-                    movedTileID = App.tiles.models[startPos].get('id');
+                    movedTileID = App.core.tiles.models[startPos].get('id');
                 $('#moveTilesResult').html("Processing... Please wait.");
-                App.tiles.moveTileToPosition(movedTileID, endPos);
+                App.core.tiles.moveTileToPosition(movedTileID, endPos);
             },
         });
         // $('#backbone-tiles').selectable({
@@ -305,8 +350,12 @@ App.TileCollectionView = Marionette.CollectionView.extend({
 });
 
 (function () {
-    App.tiles = new App.TileCollection();    //Collection of all tiles
-    App.tiles.fetch();                             
-    App.tilesView = new App.TileCollectionView({ collection: App.tiles }); //View of all tiles
-    App.tilesView.render();
+    App.core.tiles = new App.core.TileCollection();    //Collection of all tiles
+    App.core.tiles.fetch();
+    App.core.tilesView = new App.core.TileCollectionView({ collection: App.core.tiles }); //View of all tiles
+    App.core.tilesView.render();
+    // App.core.pageCompositeView = new App.core.PageCompositeView({
+    //     model: App.core.Tile,
+    //     collection: App.core.TileCollection
+    // });  
 }());

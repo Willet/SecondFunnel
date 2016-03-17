@@ -29,10 +29,18 @@
                 <!--/col-md-12-->
             </div>
             <!--/row-->
+            <script type="text/template" id="add-remove-buttons">
+                <button type="button" id="add-remove-product" class="btn btn-default">Add/Remove product</button>
+                <button type="button" id="add-remove-content" class="btn btn-default">Add/Remove content</button>
+            </script>
 
             <div class="block-web">
                 <div id="moveTilesResult"></div>
                 <ul id="backbone-tiles">
+                    <script type="text/template" id="no-tile-yet">
+                        Testing
+                    </script>
+
                     <script type="text/template" id="tile-template">
                         <div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>
                         <a href="#modal_<%= id %>" role="button" data-toggle="modal">
