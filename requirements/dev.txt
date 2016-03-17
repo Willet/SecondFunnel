@@ -2,6 +2,7 @@
 Werkzeug==0.9.4
 django-jenkins==0.14.1
 django-devserver==0.8.0
+django-debug-toolbar==1.0.1
 epydoc==3.0.1 # automated API documentation
 honcho==0.5.0 # Run light app in separate process
 
