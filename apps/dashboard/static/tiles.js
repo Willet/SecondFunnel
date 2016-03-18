@@ -57,11 +57,14 @@ App.core.TileCollection = Backbone.Collection.extend({
         **/
         var diff, prioDiff, options, moveTileCollection, result,
             batch = [],
-            tiles = App.core.tiles.clone().models,
-            tileInd = App.core.tiles.findIndexWhere({'id': parseInt(tileID)});
+            tiles = this.models,
+            tileInd = this.findIndexWhere({'id': parseInt(tileID)});
+
+        // First clone the tiles:
+        _.each(tiles, function(val, i){ tiles[i] = val.clone(); });
+
         // First check if the index we're moving to is on the left or right of original tile index
         // Then insert/delete appropriately
-
         if (index < tileInd) {
             tiles.splice(index, 0, tiles[tileInd]);
             tiles.splice(tileInd + 1, 1);
@@ -69,10 +72,10 @@ App.core.TileCollection = Backbone.Collection.extend({
             tiles.splice(index + 1, 0, tiles[tileInd]);
             tiles.splice(tileInd, 1);
         }
-
         //Check if Tn+1 exists or not
         if (index === tiles.length - 1) {
             //Tn+1 doesn't exist
+
             tiles[index].set({priority: 1});
             batch.push({
                 'id': tiles[index].get('id'), 
@@ -81,6 +84,7 @@ App.core.TileCollection = Backbone.Collection.extend({
             //No need to do anything else to Tn+1 till the end
         } else {
             //Tn+1 exists
+
             tiles[index].set({priority: tiles[index+1].get('priority') + 1});
             batch.push({
                 'id': tiles[index].get('id'), 
@@ -103,7 +107,6 @@ App.core.TileCollection = Backbone.Collection.extend({
                     });
                 }
             }
-
             //Check Tn > Tn+1
             if (tiles[index].get('priority') <= tiles[index + 1].get('priority')) {
                 //Tn <= Tn+1, so set Tn to be Tn+1 + 1
@@ -130,7 +133,6 @@ App.core.TileCollection = Backbone.Collection.extend({
                     'priority': tiles[index - 1].get('priority')
                 });
             }
-
             //Check Tn-2 exists
             if (index - 2 >= 0) {
                 //Tn-2 exists
@@ -163,8 +165,8 @@ App.core.TileCollection = Backbone.Collection.extend({
 
         //Change tiles's models to have new priorities by looping through batch
         _.each(batch, function(val){
-            var index = App.core.tiles.findIndexWhere({'id': parseInt(val['id'])});
-            App.core.tiles.models[index].set({priority: val['priority']});
+            var index = App.tiles.findIndexWhere({'id': parseInt(val['id'])});
+            App.tiles.models[index].set({priority: val['priority']});
         });
 
         batch = JSON.stringify(batch);
@@ -177,6 +179,7 @@ App.core.TileCollection = Backbone.Collection.extend({
 
         result = Backbone.sync.call(this, 'patch', moveTileCollection, options);
         result.always(function () {
+            App.tiles.sort();
             if (result.responseJSON.length !== 0) {
                 status = "The tile with ID: " + tileID + " has been moved to index: "
                          + index + ". Refreshing tiles.";
@@ -237,10 +240,25 @@ App.core.TileView = Marionette.ItemView.extend({
         /** 
         Remove the tile from the page
         **/
-        var currModel = this.model;
-        console.log("Removing tile with ID: " + currModel.id);
-        $('#remove_modal_' + currModel.id).modal('toggle');
+        var result, status,
+            currModel = this.model,
+            modelID = currModel.id;
+        $('#remove_modal_' + modelID).modal('toggle');
         $('#moveTilesResult').html("Processing... Please wait.");
+
+        result = currModel.destroy({
+            url: App.core.apiURL + 'tile/' + modelID + '/',
+        });
+        result.always(function () {
+            if (result.status == 200) {
+                status = "The tile with ID: " + currModel.id + 
+                             " has been deleted.";
+            }
+            else {
+                status = JSON.parse(result.responseText);
+            }
+            $('#moveTilesResult').html(status);
+        })
     },
 
     editTile: function () {
@@ -295,8 +313,11 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     childView: App.core.TileView,
 
     initialize: function () {
-        this.listenTo(this.collection, 'add', _.debounce(function(){ $('#loading-spinner').hide(); }, 100));
-        this.listenTo(this.collection, 'change', _.debounce(function(){ this.collection.sort() }, 100));
+        this.listenTo(this.collection, 'add', _.debounce(function () { 
+            $('#loading-spinner').hide(); 
+            $('#add-remove').show(); 
+        }, 100));
+        this.listenTo(this.collection, 'change destroy', _.debounce(function () {this.collection.sort();}, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
 
@@ -322,9 +343,9 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
             update: function (event, ui) {
                 var startPos = ui.item.data('startPos'),
                     endPos = ui.item.index(),
-                    movedTileID = App.core.tiles.models[startPos].get('id');
+                    movedTileID = App.tiles.models[startPos].get('id');
                 $('#moveTilesResult').html("Processing... Please wait.");
-                App.core.tiles.moveTileToPosition(movedTileID, endPos);
+                App.tiles.moveTileToPosition(movedTileID, endPos);
             },
         });
         // $('#backbone-tiles').selectable({
@@ -336,12 +357,7 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
 });
 
 (function () {
-    App.core.tiles = new App.core.TileCollection();    //Collection of all tiles
-    App.core.tiles.fetch();
-    App.core.tilesView = new App.core.TileCollectionView({ collection: App.core.tiles }); //View of all tiles
-    //App.core.tilesView.render();
-    // App.core.pageCompositeView = new App.core.PageCompositeView({
-    //     model: App.core.Tile,
-    //     collection: App.core.TileCollection
-    // });  
+    App.tiles = new App.core.TileCollection();    //Collection of all tiles
+    App.tiles.fetch();
+    App.tilesView = new App.core.TileCollectionView({ collection: App.tiles }); //View of all tiles
 }());

@@ -29,12 +29,6 @@
                 <!--/col-md-12-->
             </div>
             <!--/row-->
-
-            <script type="text/template" id="add-remove-buttons">
-                <button type="button" id="add-remove-product" class="btn btn-default">Add/Remove product</button>
-                <button type="button" id="add-remove-content" class="btn btn-default">Add/Remove content</button>
-            </script>
-
             <div class="block-web">
                 <!-- Loading spinner -->
                 <div id="loading-spinner">
@@ -57,6 +51,11 @@
                     </div>
                 </div>
                 <!-- End loading spinner -->
+
+                <div id="add-remove" hidden>
+                    <button type="button" id="add-remove-product" class="btn btn-default">Add/Remove product</button>
+                    <button type="button" id="add-remove-content" class="btn btn-default">Add/Remove content</button>
+                </div>
 
                 <div id="moveTilesResult"></div>
                 <ul id="backbone-tiles">

@@ -664,6 +664,7 @@ class PageViewSet(viewsets.ModelViewSet):
         }, status=status_code)
 
 
+# Individual tile details
 class TileDetail(APIView):
     serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
@@ -682,7 +683,10 @@ class TileDetail(APIView):
         if tile['template'] == 'product':
             product =  tile['products'].first()
             if product is not None:
-                serialized_tile['defaultImage'] = product.default_image.url
+                if product.default_image is not None:
+                    serialized_tile['defaultImage'] = product.default_image.url
+                else:
+                    serialized_tile['defaultImage'] = ''
                 serialized_tile['name'] = product.name
             else:
                 serialized_tile['defaultImage'] = ''
@@ -711,8 +715,8 @@ class TileDetail(APIView):
             serialized tile
         """        
         profile = UserProfile.objects.get(user=self.request.user)
-        dashboards = profile.dashboards.all()
         tile = get_object_or_404(Tile, pk=pk)
+        dashboards = profile.dashboards.all()
 
         status = "Not allowed."
         status_code = 400
@@ -754,7 +758,31 @@ class TileDetail(APIView):
 
         return Response(status, status=status_code)
 
+    def delete(self, request, pk):
+        """
+        Delete the tile with pk given
 
+        inputs:
+
+        returns:
+        """
+        profile = UserProfile.objects.get(user=self.request.user)
+        tile = get_object_or_404(Tile, pk=pk)
+
+        status = {"detail": "Not allowed"}
+        status_code = 400
+
+        tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
+
+        if tile_in_user_dashboards:
+            tile.deepdelete()
+            status = "Successfully deleted tile with ID: " + pk + "."
+            status_code = 200
+
+        return Response(status, status=status_code)
+
+
+#Bulk tile details
 class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
     serializer_class = TileSerializerBulk
     queryset = Tile.objects.all()
