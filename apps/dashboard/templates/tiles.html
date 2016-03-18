@@ -29,19 +29,44 @@
                 <!--/col-md-12-->
             </div>
             <!--/row-->
+
             <script type="text/template" id="add-remove-buttons">
                 <button type="button" id="add-remove-product" class="btn btn-default">Add/Remove product</button>
                 <button type="button" id="add-remove-content" class="btn btn-default">Add/Remove content</button>
             </script>
 
             <div class="block-web">
+                <!-- Loading spinner -->
+                <div id="loading-spinner">
+                    <div class="windows8">
+                        <div class="wBall" id="wBall_1">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_2">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_3">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_4">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_5">
+                            <div class="wInnerBall"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End loading spinner -->
+
                 <div id="moveTilesResult"></div>
                 <ul id="backbone-tiles">
-                    <script type="text/template" id="no-tile-yet">
-                        Testing
-                    </script>
-
                     <script type="text/template" id="tile-template">
+                        <div id="removeTileDiv_<%= id %>" hidden>
+                            <a href="#remove_modal_<%= id %>" role="button" data-toggle="modal" class="remove_obj">
+                                <img src="{% static "X.png" %}" alt={{ tile.id }}>
+                            </a>
+                        </div>
+
                         <div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>
                         <a href="#modal_<%= id %>" role="button" data-toggle="modal">
                             <img src="<%= defaultImage %>" alt={{ tile.id }}>
@@ -74,6 +99,28 @@
                                             </button>
                                             <button type="button" id="closeButton"  class="btn btn-default" data-dismiss="modal">
                                                 Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal" id="remove_modal_<%= id %>" role="dialog">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Removal Confirmation</br></h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4 class="modal-title">Are you sure you want to remove this tile: <%= id %>?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" id="removeTile" class="btn btn-default">
+                                                Remove
+                                            </button>
+                                            <button type="button" id="closeButton"  class="btn btn-default" data-dismiss="modal">
+                                                Cancel
                                             </button>
                                         </div>
                                     </div>

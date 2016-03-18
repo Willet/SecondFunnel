@@ -220,11 +220,27 @@ App.core.TileView = Marionette.ItemView.extend({
 
     events: {
         "click #editTile": "editTile",
-        "mouseover": "mouseover",
+        "click #removeTile": "removeTile",
+        "mouseenter": "mouseEnter",
+        "mouseleave": "mouseLeave",
     },
 
-    mouseover: function() {
+    mouseEnter: function() {
+        $('#removeTileDiv_' + this.model.id).show();
+    },
 
+    mouseLeave: function() {
+        $('#removeTileDiv_' + this.model.id).hide();
+    },
+
+    removeTile: function() {
+        /** 
+        Remove the tile from the page
+        **/
+        var currModel = this.model;
+        console.log("Removing tile with ID: " + currModel.id);
+        $('#remove_modal_' + currModel.id).modal('toggle');
+        $('#moveTilesResult').html("Processing... Please wait.");
     },
 
     editTile: function () {
@@ -268,46 +284,18 @@ App.core.TileView = Marionette.ItemView.extend({
 });
 
 // App.core.PageCompositeView = Marionette.CompositeView.extend({
-//     template: "#leaf-branch-template",
+//     template: "#page-template",
 
 
 // });
-
-App.core.NoItemsView = Marionette.ItemView.extend({
-    template: _.template($('#no-tile-yet').html()),
-
-    initialize: function (args) {
-        console.log("empty!");
-    },
-
-    render: function () {
-        this.$el.html(this.template("hi"));
-        return this;
-    },
-});
 
 App.core.TileCollectionView = Marionette.CollectionView.extend({
     el: "#backbone-tiles",
 
     childView: App.core.TileView,
 
-    emptyView: App.core.NoItemsView,  
-
-    isEmpty: function(collection) {
-        console.log(collection);
-        if (collection.models.length === 0) {
-            console.log("empty");
-            return true;
-        }
-        else {
-            console.log("not empty");
-            return false;
-        }
-    },
-
     initialize: function () {
-        this.render();
-        this.listenTo(this.collection, 'add', _.debounce(function(){ console.log("fetch") }, 100));
+        this.listenTo(this.collection, 'add', _.debounce(function(){ $('#loading-spinner').hide(); }, 100));
         this.listenTo(this.collection, 'change', _.debounce(function(){ this.collection.sort() }, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
@@ -321,8 +309,6 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
             });
             this.$el.append(tileView.render().el);
         }.bind(this));
-
-        console.log("Done");
         
         $('#backbone-tiles').sortable({
             handle: ".handle",
@@ -353,7 +339,7 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     App.core.tiles = new App.core.TileCollection();    //Collection of all tiles
     App.core.tiles.fetch();
     App.core.tilesView = new App.core.TileCollectionView({ collection: App.core.tiles }); //View of all tiles
-    App.core.tilesView.render();
+    //App.core.tilesView.render();
     // App.core.pageCompositeView = new App.core.PageCompositeView({
     //     model: App.core.Tile,
     //     collection: App.core.TileCollection
