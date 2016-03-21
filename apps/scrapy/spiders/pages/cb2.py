@@ -42,13 +42,20 @@ class CB2Spider(SecondFunnelCrawlSpider):
             return []
 
     def is_product_page(self, response):
-        return bool(re.search(r'vanharen\.nl/NL/nl/shop/\d+/[\w*%-]+\.prod', response.url))
+        # works for both simple product pages and furniture select pages
+        return bool(response.selector.css('#bodyWrap #main>.product').extract_first())
+        return 
 
     def is_category_page(self, response):
-        return bool(re.search(r'vanharen\.nl/NL/nl/shop/\d+/[\w*%-]+\.cat', response.url))
+        # Not the best selector...
+        return bool(response.selector.css('#bodyWrap>.spill').extract_first())
 
     def is_sold_out(self, response):
-        return not bool(response.selector.css('.details .buy span.PRODUCT_ADDTOCART').extract_first())
+        # standard product page
+        in_stock_simple_product = bool(response.selector.css('.shopBtns a.jsAddToCart').extract_first())
+        # product with options page
+        in_stock_furniture_select = bool(response.selector.css('.shoppingBar a.jsAddToCart').extract_first())
+        return not (in_stock_simple_product or in_stock_furniture_select)
 
     ### Scraper control
     @staticmethod
@@ -117,33 +124,32 @@ class CB2Spider(SecondFunnelCrawlSpider):
         
         attributes = {}
 
-        sel = Selector(response)
+        sel = response.selector
         l = ScraperProductLoader(item=ScraperProduct(), response=response)
         l.add_value('force_skip_tiles', self.skip_tiles)
-        l.add_css('name', '.details .m_product_facts h2::text')
-        l.add_css('description', '.additional-details .content-1 ul>li')
-        l.add_css('sku', '.details .m_product_facts .upc::text', re=r'Artikelnummer: (\d+)')
 
-        brand_sel = sel.css('.details .m_product_facts #m_product_facts_brand a')
-        if brand_sel.extract_first():
-            brand = {
-                'name': brand_sel.css("::text").extract_first(),
-                'url': urljoin(response.url, brand_sel.css("::attr(href)").extract_first()),
-            }
-            attributes['brand'] = brand
+        if bool(sel.css('#bodyWrap #pageWrap.product').extract_first()):
+            # standard product page
+            l.add_css('name', '.productImgContainer h1#_productTitle::text')
+            l.add_css('description', '.productDescriptionContainer p#_productDescription')
+            l.add_css('sku', '.productDescriptionContainer span#_skuNum::text')
+        else:
+            # product with options page
+            l.add_css('name', '#productViewWrap h1#productNameHeader::text')
+            l.add_css('description', '')
+            l.add_css('sku', '')
 
         try:
-            price = l.get_css('.details .m_product_facts #m_product_facts_price .PRODUCT_GLOBAL_PRICE', TakeFirst(), remove_tags, normalize_price)
-            sugg_price = l.get_css('.details .m_product_facts #m_product_facts_oldPrice .inner>div::text', TakeFirst(), normalize_price)
-            if sugg_price:
-                reg_price = sugg_price
+            price = l.get_css("metaa[property=og:price:amount]::attr(content)", TakeFirst())
+            reg_price = l.get_css("metaa[property=og:price:standard_amount]::attr(content)", TakeFirst())
+            if reg_price:
                 sale_price = price
             else:
-                reg_price = price
                 sale_price = None
+                reg_price = price
             
         except IndexError:
-            reg_price = u'€0.00'
+            reg_price = u'$0.00'
             sale_price = None
 
         l.add_value('in_stock', bool(not self.is_sold_out(response)))
@@ -158,7 +164,7 @@ class CB2Spider(SecondFunnelCrawlSpider):
         self.handle_product_tagging(response, item)
 
         if not self.skip_images:
-            urls = sel.css('.m_product_views li.tab img::attr(src)').extract()
+            urls = sel.css('.productImgContainer .productImageSelection li img::attr(src)').extract()
             image_urls = set([self.generate_image_url(u) for u in urls])
             item['image_urls'] = image_urls
 
@@ -167,12 +173,10 @@ class CB2Spider(SecondFunnelCrawlSpider):
     def generate_image_url(self, url):
         """
         url looks like: 
-          http://deichmann.scene7.com/asset/deichmann/p_detail_thumb/--1350310_P1.png?defaultImage=default_vhs
-        Need to:
-          a) Replace p_detail_thumb with p_100
-          b) remove querystring
+          http://images.cb2.com/is/image/CB2/GlobePendantLightAV2S16/$web_zoom$&wid=50&hei=50/151023134026/globe-pendant-light.jpg
+        Need to remove "&wid=50&hei=50"
         """
         (scheme, netloc, path, _, _) = urlsplit(url)
-        path = path.replace('p_detail_thumb', 'p_100', 1)
+        path = re.sub(r'\$web_zoom\$wid=\d+\&hei=\d+', '$web_zoom$', path)
         url_parts = (scheme, netloc, path, '', '')
         return urlunsplit(url_parts)
