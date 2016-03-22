@@ -62,8 +62,9 @@ App.core.TileCollection = Backbone.Collection.extend({
             tileID: ID of tile to be moved
             index: index to move tile to, with index = 0 indicating 1st item of list of tiles
         **/
-        var diff, prioDiff, options, moveTileCollection, result,
+        var diff, prioDiff, options, moveTileCollection, result, alertType,
             batch = [],
+            tileCollection = this,
             tiles = this.models,
             tileInd = this.findIndexWhere({'id': parseInt(tileID)});
 
@@ -172,8 +173,8 @@ App.core.TileCollection = Backbone.Collection.extend({
 
         //Change tiles's models to have new priorities by looping through batch
         _.each(batch, function(val){
-            var index = App.tiles.findIndexWhere({'id': parseInt(val['id'])});
-            App.tiles.models[index].set({priority: val['priority']});
+            var index = tileCollection.findIndexWhere({'id': parseInt(val['id'])});
+            tileCollection.models[index].set({priority: val['priority']});
         });
 
         batch = JSON.stringify(batch);
@@ -186,14 +187,16 @@ App.core.TileCollection = Backbone.Collection.extend({
 
         result = Backbone.sync.call(this, 'patch', moveTileCollection, options);
         result.always(function () {
-            App.tiles.sort();
+            tileCollection.sort();
             if (result.responseJSON.length !== 0) {
+                alertType = 'success';
                 status = "The tile with ID: " + tileID + " has been moved to index: "
                          + index + ". Refreshing tiles.";
             } else {
+                alertType = 'danger';
                 status = "Move failed due to an error.";
             }
-            $('#tilesResult').html(status);
+            App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
         })
     },
 
@@ -217,7 +220,7 @@ App.core.FeedbackView = Marionette.ItemView.extend({
 
     initialize: function (options) {
         /* Wait 10s before removing the alert */
-        setTimeout(function () { app.feedback.empty(); }, 10000);
+        setTimeout(function () { App.feedback.empty(); }, 10000);
     },
 
     templateHelpers: function () {
@@ -228,14 +231,9 @@ App.core.FeedbackView = Marionette.ItemView.extend({
 App.core.EditModalView = Marionette.ItemView.extend({
     template: _.template($('#edit-modal-template').html()),
 
-    ui: {
-        "close": "button#closeButton",
-        "change": "button#editTile",
-    },
-
     events: {
-        "click @ui.close": "closeModal",
-        "click @ui.change": "changePriority",
+        "click button#close": "closeModal",
+        "click button#change": "changePriority",
     },
 
     closeModal: function () {
@@ -243,7 +241,7 @@ App.core.EditModalView = Marionette.ItemView.extend({
     },
 
     changePriority: function () {
-        var result, status, alertType, feedbackModel,
+        var result, status, alertType,
             currModel = this.model,
             newPriority = document.getElementById('new_priority').value;
 
@@ -259,7 +257,7 @@ App.core.EditModalView = Marionette.ItemView.extend({
             alertType = 'info';
             status = 'Processing... Please wait.';
 
-            app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+            App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
 
             result = currModel.save({priority: newPriority}, {
                 patch: true,
@@ -276,7 +274,7 @@ App.core.EditModalView = Marionette.ItemView.extend({
                     alertType = 'danger';
                     status = result.priority;
                 }
-                app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+                App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
             });
         }
         catch(err) {
@@ -293,14 +291,9 @@ App.core.EditModalView = Marionette.ItemView.extend({
 App.core.RemoveModalView = Marionette.ItemView.extend({
     template: _.template($('#remove-modal-template').html()),
 
-    ui: {
-        "close": "button#closeButton",
-        "delete": "button#removeTile",
-    },
-
     events: {
-        "click @ui.close": "closeModal",
-        "click @ui.delete": "deleteTile",
+        "click button#closeButton": "closeModal",
+        "click button#removeTile": "deleteTile",
     },
 
     closeModal: function () {
@@ -311,7 +304,7 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
         /** 
         Remove the tile from the page
         **/
-        var result, status, alertType, feedbackModel,
+        var result, status, alertType,
             currModel = this.model,
             modelID = currModel.id;
         this.$el.modal('toggle');
@@ -319,7 +312,7 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
         alertType = 'info';
         status = 'Processing... Please wait.';
 
-        app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+        App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
 
         result = currModel.destroy({
             url: App.core.apiURL + 'tile/' + modelID + '/',
@@ -334,7 +327,7 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
                 alertType = 'danger';
                 status = JSON.parse(result.responseText);
             }
-            app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+            App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
         })
     },
 
@@ -351,36 +344,19 @@ App.core.TileView = Marionette.ItemView.extend({
 
     className: 'tile sortable',
 
-    ui: {
-        "remove": "button.remove",
-        "content": ".content",
-    },
-
     events: {
-        "click @ui.remove": "removeModal",
-        "click @ui.content": "editModal",
-        "click @ui.contentClose": "closeModal",
+        "click button.remove": "removeModal",
+        "click .content": "editModal",
     },
 
     removeModal: function () {
-        app.modal.show(new App.core.RemoveModalView({ model: this.model }));
+        App.modal.show(new App.core.RemoveModalView({ model: this.model }));
     },
 
     editModal: function () {
-        app.modal.show(new App.core.EditModalView({ model: this.model }));
-    },
-
-    /* Need to make click remove open up modal */
-
-    removeTile: function() {
+        App.modal.show(new App.core.EditModalView({ model: this.model }));
     },
 });
-
-// App.core.PageCompositeView = Marionette.CompositeView.extend({
-//     template: "#page-template",
-
-
-// });
 
 App.core.TileCollectionView = Marionette.CollectionView.extend({
     el: "#backbone-tiles",
@@ -400,30 +376,29 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     onShow: function () {
         $('#backbone-tiles').sortable({
             start: function (event, ui) {
-                var startPos = ui.item.index();
-                app.feedback.empty();
+                var startPos = ui.item.index() - 1;
+                App.feedback.empty();
                 ui.item.data('startPos', startPos);
             },
 
             update: function (event, ui) {
-                console.log(this);
                 var alertType, status,
                     startPos = ui.item.data('startPos'),
-                    endPos = ui.item.index(),
-                    movedTileID = app.tiles.currentView.collection.models[startPos].get('id');
-                console.log(startPos);
-                console.log(endPos);
-                console.log(movedTileID);
+                    endPos = ui.item.index() - 1,
+                    movedTileID = App.tiles.currentView.collection.models[startPos].get('id');
 
                 alertType = 'info';
                 status = 'Processing... Please wait.';
-                app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+                App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
 
-                App.tiles.moveTileToPosition(movedTileID, endPos);
+                App.tiles.currentView.options.collection.moveTileToPosition(movedTileID, endPos);
             },
         });
     },
 });
 
-var app = new App();
-app.start();
+var a   = App.core,
+    App = new App();
+
+App.core = a;
+App.start();
