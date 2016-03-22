@@ -3806,57 +3806,6 @@ div[data-role="editor-toolbar"] {
 }
 
 .tile {
-    width: 250px;
-    height: 250px;
-    float: left;
-    margin: 5px;
-    position: relative;
-    overflow: hidden;
-    border-radius: 10px;
-}
-
-.tile > .count {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    width: 25px;
-    height: 25px;
-    background: rgba(255, 255, 255, 0.5);
-    text-align: center;
-    line-height: 25px;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 10px;
-    margin-right: 10px;
-    margin-top: 10px;
-}
-
-.tile > .data {
-    position: absolute;
-    bottom: 0px;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 10px;
-    margin: 10px;
-    width: 220px;
-    padding: 5px;
-}
-
-.tile .product {
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.tile .id {
-    float: right;
-    font-size: 12px;
-    font-style: italic;
-}
-
-.tile img {
-    max-width: 99%;
-}
-
-.tile-list {
     position: relative;
     float: left;
     width: 32%;
@@ -3870,42 +3819,56 @@ div[data-role="editor-toolbar"] {
     display: block;
 }
 
-.tile-list img {
+.tile .remove {
+    display: none;
+}
+
+.tile:hover .remove {
+    display: block;
+    background: #FFFFFF;
+    outline: 1px solid black;
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    padding: 0px;
+    z-index: 10;
+}
+
+.tile img {
     max-width: 95%;
     margin: 5px;
     overflow: hidden;
 }
 
-.tile-info {
+.info {
     position: absolute;
-    left: 0px;
-    bottom: 0px;
+    left: 0;
+    bottom: 0;
     font-size: 14px;
     font-weight: bold;
     background: rgba(255, 255, 255, 0.8);
-    margin: 0px;
+    margin: 0;
     width: 99%;
     padding: 5px;
 }
 
-.tile-list .handle {
-    background: #EDEDED;
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    padding: 8px;
+.content .red {
+    color: red;
 }
 
-.tile-list .remove_obj {
-    background: #FFFFFF;
-    outline: 1px solid black;
-    position: absolute;
-    float: right;
-    top: 7px;
-    right: 7px;
-    padding: 0px;
-    z-index: 10;
+#feedback .alert-container{
+    text-align: center;
+    position: fixed;
+    top: 20px;
+    z-index: 10001;
+    right: 20%;
+    left: 20%;
+}
+
+#feedback .alert{
+    display: inline-block;
+    margin-bottom: 0;
+    box-shadow: 0 8px 6px -6px black;
 }
 
 #product-force-create {

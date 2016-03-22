@@ -1,18 +1,29 @@
 "use strict";
 
-var App = new Marionette.Application();
+Backbone.View.prototype.unwrapEl = function () {
+    this.$el = this.$el.children();
+    this.$el.unwrap();
+    this.setElement(this.$el);
+}
+
+var App = Marionette.Application.extend({
+    regions: {
+        tiles: "#tiles",
+        modal: "#modal",
+        feedback: "#feedback",
+    },
+
+    initialize: function () {
+        var tiles = new App.core.TileCollection();    //Collection of all tiles
+        this.tiles.show(new App.core.TileCollectionView({ collection: tiles })); //View of all tiles
+    },
+});
 
 App.core = {};
 
 App.core.apiURL = "http://" + window.location.host + "/api2/";
 
-App.core.Tile = Backbone.Model.extend({
-    defaults: {},
-
-    initialize: function () {
-
-    },
-});
+App.core.Tile = Backbone.Model;
 
 App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
@@ -20,10 +31,6 @@ App.core.TileCollection = Backbone.Collection.extend({
     url: App.core.apiURL + 'tile?page=' + pageID,
 
     model: App.core.Tile,
-
-    initialize: function () {
-
-    },
 
     parse: function (response) {
         return response;
@@ -186,7 +193,7 @@ App.core.TileCollection = Backbone.Collection.extend({
             } else {
                 status = "Move failed due to an error.";
             }
-            $('#moveTilesResult').html(status);
+            $('#tilesResult').html(status);
         })
     },
 
@@ -205,69 +212,40 @@ App.core.TileCollection = Backbone.Collection.extend({
     },
 });
 
-App.core.TileView = Marionette.ItemView.extend({
-    template: _.template($('#tile-template').html()),
+App.core.FeedbackView = Marionette.ItemView.extend({
+    template: _.template($('#feedback-template').html()),
 
-    tagName: 'li',
-
-    className: 'tile-list sortable',
-
-    initialize: function (args) {
-
+    initialize: function (options) {
+        /* Wait 10s before removing the alert */
+        setTimeout(function () { app.feedback.empty(); }, 10000);
     },
 
-    render: function () {
-        this.$el.html(this.template(this.model.attributes));
-        return this;
+    templateHelpers: function () {
+        return this.options;
+    },
+});
+
+App.core.EditModalView = Marionette.ItemView.extend({
+    template: _.template($('#edit-modal-template').html()),
+
+    ui: {
+        "close": "button#closeButton",
+        "change": "button#editTile",
     },
 
     events: {
-        "click #editTile": "editTile",
-        "click #removeTile": "removeTile",
-        "mouseenter": "mouseEnter",
-        "mouseleave": "mouseLeave",
+        "click @ui.close": "closeModal",
+        "click @ui.change": "changePriority",
     },
 
-    mouseEnter: function() {
-        $('#removeTileDiv_' + this.model.id).show();
+    closeModal: function () {
+        this.$el.modal('toggle');
     },
 
-    mouseLeave: function() {
-        $('#removeTileDiv_' + this.model.id).hide();
-    },
-
-    removeTile: function() {
-        /** 
-        Remove the tile from the page
-        **/
-        var result, status,
+    changePriority: function () {
+        var result, status, alertType, feedbackModel,
             currModel = this.model,
-            modelID = currModel.id;
-        $('#remove_modal_' + modelID).modal('toggle');
-        $('#moveTilesResult').html("Processing... Please wait.");
-
-        result = currModel.destroy({
-            url: App.core.apiURL + 'tile/' + modelID + '/',
-        });
-        result.always(function () {
-            if (result.status == 200) {
-                status = "The tile with ID: " + currModel.id + 
-                             " has been deleted.";
-            }
-            else {
-                status = JSON.parse(result.responseText);
-            }
-            $('#moveTilesResult').html(status);
-        })
-    },
-
-    editTile: function () {
-        /**
-        Change the tile's priority to the value specified inside the input box
-        **/
-        var result, 
-            currModel = this.model,
-            newPriority = document.getElementById('new_priority_' + currModel.id).value;
+            newPriority = document.getElementById('new_priority').value;
 
         try {
             if (newPriority === '' || newPriority === null) {
@@ -276,8 +254,12 @@ App.core.TileView = Marionette.ItemView.extend({
             if (!(Math.floor(newPriority) == newPriority && $.isNumeric(newPriority))) {
                 throw "Error. A valid integer is required."
             }
-            $('#modal_' + currModel.id).modal('toggle');
-            $('#moveTilesResult').html("Processing... Please wait.");
+            this.$el.modal('toggle');
+
+            alertType = 'info';
+            status = 'Processing... Please wait.';
+
+            app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
 
             result = currModel.save({priority: newPriority}, {
                 patch: true,
@@ -287,17 +269,110 @@ App.core.TileView = Marionette.ItemView.extend({
             result.always(function () {
                 result = JSON.parse(result.responseText);
                 if (_.has(result,"id")) {
+                    alertType = 'success';
                     status = "The priority of tile with ID: " + currModel.id + 
                              " has been changed to " + currModel.get('priority') + ".";
                 } else {
+                    alertType = 'danger';
                     status = result.priority;
                 }
-                $('#moveTilesResult').html(status);
+                app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
             });
         }
         catch(err) {
-            $('#error_' + currModel.id).html(err);
+            $('#editError').html(err);
         }
+    },
+
+    onRender: function () {
+        this.unwrapEl();
+        this.$el.modal('toggle');
+    },
+});
+
+App.core.RemoveModalView = Marionette.ItemView.extend({
+    template: _.template($('#remove-modal-template').html()),
+
+    ui: {
+        "close": "button#closeButton",
+        "delete": "button#removeTile",
+    },
+
+    events: {
+        "click @ui.close": "closeModal",
+        "click @ui.delete": "deleteTile",
+    },
+
+    closeModal: function () {
+        this.$el.modal('toggle');
+    },
+
+    deleteTile: function () {
+        /** 
+        Remove the tile from the page
+        **/
+        var result, status, alertType, feedbackModel,
+            currModel = this.model,
+            modelID = currModel.id;
+        this.$el.modal('toggle');
+
+        alertType = 'info';
+        status = 'Processing... Please wait.';
+
+        app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+
+        result = currModel.destroy({
+            url: App.core.apiURL + 'tile/' + modelID + '/',
+        });
+        result.always(function () {
+            if (result.status == 200) {
+                alertType = 'success';
+                status = "The tile with ID: " + currModel.id + 
+                             " has been deleted.";
+            }
+            else {
+                alertType = 'danger';
+                status = JSON.parse(result.responseText);
+            }
+            app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+        })
+    },
+
+    onRender: function () {
+        this.unwrapEl();
+        this.$el.modal('toggle');
+    },
+});
+
+App.core.TileView = Marionette.ItemView.extend({
+    template: _.template($('#tile-template').html()),
+
+    tagName: 'li',
+
+    className: 'tile sortable',
+
+    ui: {
+        "remove": "button.remove",
+        "content": ".content",
+    },
+
+    events: {
+        "click @ui.remove": "removeModal",
+        "click @ui.content": "editModal",
+        "click @ui.contentClose": "closeModal",
+    },
+
+    removeModal: function () {
+        app.modal.show(new App.core.RemoveModalView({ model: this.model }));
+    },
+
+    editModal: function () {
+        app.modal.show(new App.core.EditModalView({ model: this.model }));
+    },
+
+    /* Need to make click remove open up modal */
+
+    removeTile: function() {
     },
 });
 
@@ -313,6 +388,7 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     childView: App.core.TileView,
 
     initialize: function () {
+        this.collection.fetch();
         this.listenTo(this.collection, 'add', _.debounce(function () { 
             $('#loading-spinner').hide(); 
             $('#add-remove').show(); 
@@ -321,43 +397,33 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
 
-    render: function () {
-        this.$el.html('');
-
-        this.collection.each(function (model) {
-            var tileView = new App.core.TileView({
-                model: model,
-            });
-            this.$el.append(tileView.render().el);
-        }.bind(this));
-        
+    onShow: function () {
         $('#backbone-tiles').sortable({
-            handle: ".handle",
-
             start: function (event, ui) {
                 var startPos = ui.item.index();
-                $('#moveTilesResult').html("");
+                app.feedback.empty();
                 ui.item.data('startPos', startPos);
             },
 
             update: function (event, ui) {
-                var startPos = ui.item.data('startPos'),
+                console.log(this);
+                var alertType, status,
+                    startPos = ui.item.data('startPos'),
                     endPos = ui.item.index(),
-                    movedTileID = App.tiles.models[startPos].get('id');
-                $('#moveTilesResult').html("Processing... Please wait.");
+                    movedTileID = app.tiles.currentView.collection.models[startPos].get('id');
+                console.log(startPos);
+                console.log(endPos);
+                console.log(movedTileID);
+
+                alertType = 'info';
+                status = 'Processing... Please wait.';
+                app.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+
                 App.tiles.moveTileToPosition(movedTileID, endPos);
             },
         });
-        // $('#backbone-tiles').selectable({
-        //     filter: "li",
-        //     cancel: ".handle"
-        // });
-        return this;
     },
 });
 
-(function () {
-    App.tiles = new App.core.TileCollection();    //Collection of all tiles
-    App.tiles.fetch();
-    App.tilesView = new App.core.TileCollectionView({ collection: App.tiles }); //View of all tiles
-}());
+var app = new App();
+app.start();

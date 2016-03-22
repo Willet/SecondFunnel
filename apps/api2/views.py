@@ -775,7 +775,7 @@ class TileDetail(APIView):
         tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
 
         if tile_in_user_dashboards:
-            tile.deepdelete()
+            tile.delete()
             status = "Successfully deleted tile with ID: " + pk + "."
             status_code = 200
 
