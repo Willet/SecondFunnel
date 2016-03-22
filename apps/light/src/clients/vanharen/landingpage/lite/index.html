@@ -60,7 +60,6 @@
                 <% (function (obj) { %>
                 <% /* context is product */ %>
                 <% include("product_title_template") %>
-                <% include("product_price_template") %>
                 <% })(obj.product.attributes) %>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
@@ -69,6 +68,10 @@
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
+                        <% (function (obj) { %>
+                        <% /* context is product */ %>
+                        <% include("product_price_template") %>
+                        <% })(obj.product.attributes) %>
                         <div class="title">
                             <span>Shop nu >></span>
                             <span class="name"><%= obj.product.get('name') %></span>

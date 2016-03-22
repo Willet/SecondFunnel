@@ -658,7 +658,6 @@ class Video(Content):
 
 class Review(Content):
     product = models.ForeignKey(Product)
-
     body = models.TextField()
 
 

@@ -66,6 +66,15 @@ SHOW_TOOLBAR_CALLBACK = lambda: DEBUG
 CONFIG_DEFAULTS = {  # Toolbar options
     'SHOW_COLLAPSED': True,
 }
+# Fixes "ImproperlyConfigured" error for wsgi
+# https://github.com/django-debug-toolbar/django-debug-toolbar/issues/521
+try:
+    if sys.argv[1] == 'runserver' or sys.argv[1] == 'runserver_plus':
+        DEBUG_TOOLBAR_PATCH_SETTINGS = DEBUG
+    else:
+        DEBUG_TOOLBAR_PATCH_SETTINGS = False
+except IndexError:
+        DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 

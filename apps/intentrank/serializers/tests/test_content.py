@@ -4,13 +4,13 @@ import mock
 from apps.assets.models import BaseModel, Store, Theme, Tag, Category, Page, Product, Image, \
                                Gif, ProductImage, Feed, Tile, Content, Video
 from apps.imageservice.models import ImageSizes
-import apps.intentrank.serializers as ir_serializers
+from apps.intentrank.serializers import ProductSerializer, ProductImageSerializer, ContentSerializer, \
+                                        ImageSerializer, GifSerializer, VideoSerializer
 from apps.intentrank.serializers.utils import SerializerError, camelize_JSON
 
 class ProductSerializerTest(TestCase):
-    fixtures = ['assets_models.json']
-
-    s = ir_serializers.ProductSerializer()
+    fixtures = ['assets_intentrank.json']
+    s = ProductSerializer()
 
     def get_dump_object_test(self):
         p = Product.objects.get(pk=3)
@@ -77,7 +77,6 @@ class ProductSerializerTest(TestCase):
         self.assertEqual(data['images'][0], i3.to_json())
         self.assertEqual(data['images'][1], i2.to_json())
         self.assertEqual(data['images'][2], i.to_json())
-
 
     def get_dump_object_shallow_test(self):
         p = Product.objects.get(pk=3)
@@ -219,9 +218,8 @@ class ProductSerializerTest(TestCase):
 
 
 class ProductImageSerializerTest(TestCase):
-    fixtures = ['assets_models.json']
-
-    s = ir_serializers.ProductImageSerializer()
+    fixtures = ['assets_intentrank.json']
+    s = ProductImageSerializer()
 
     @mock.patch('apps.assets.models.ProductImage.is_product_shot', new_callable=mock.PropertyMock)
     def get_dump_object_test(self, mock_is_product_shot):
@@ -270,10 +268,9 @@ class ProductImageSerializerTest(TestCase):
 
 
 class ContentSerializer(TestCase):
-    fixtures = ['assets_models.json']
-
-    s = ir_serializers.ContentSerializer()
-    sp = ir_serializers.ProductSerializer()
+    fixtures = ['assets_intentrank.json']
+    s = ContentSerializer()
+    sp = ProductSerializer()
 
     def get_dump_object_test(self):
         c = Content.objects.get(pk=6)
@@ -385,9 +382,8 @@ class ContentSerializer(TestCase):
 
 class ImageSerializer(TestCase):
     # Note: tagged_products are assumed to work, inherited from ContentSerializer
-    fixtures = ['assets_models.json']
-
-    s = ir_serializers.ImageSerializer()
+    fixtures = ['assets_intentrank.json']
+    s = ImageSerializer()
 
     def get_dump_object_test(self):
         i = Image.objects.get(pk=6)
@@ -442,9 +438,8 @@ class ImageSerializer(TestCase):
 
 class GifSerializer(TestCase):
     # Note: tagged_products are assumed to work, inherited from ContentSerializer
-    fixtures = ['assets_models.json']
-
-    s = ir_serializers.GifSerializer()
+    fixtures = ['assets_intentrank.json']
+    s = GifSerializer()
 
     def get_dump_object_test(self):
         i = Gif.objects.get(pk=16)
@@ -501,12 +496,11 @@ class GifSerializer(TestCase):
 
 class VideoSerializer(TestCase):
     # Note: tagged_products are assumed to work, inherited from ContentSerializer
-    fixtures = ['assets_models.json']
-
-    s = ir_serializers.VideoSerializer()
+    fixtures = ['assets_intentrank.json']
+    s = VideoSerializer()
 
     def get_dump_object_test(self):
-        v = Video.objects.get(pk=6)
+        v = Video.objects.get(pk=18)
         v.source = "internet"
         v.soure_url = "www.google.com"
         v.url = u"www.youtube.com/watch?v=KfKFqidUe4M"
@@ -532,7 +526,7 @@ class VideoSerializer(TestCase):
         self.assertEqual(data["randomField"], v.attributes["random_field"]) # camelCase
 
     def get_dump_object_defaults_test(self):
-        v = Video.objects.get(pk=6)
+        v = Video.objects.get(pk=18)
         data = self.s.get_dump_object(v)
         self.assertEqual(data["name"], "") # default
         self.assertEqual(data["description"], "") # default

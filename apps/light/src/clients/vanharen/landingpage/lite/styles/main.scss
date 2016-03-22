@@ -665,23 +665,21 @@ ul.price {
     .relative.product-shot {
         padding: 6%;
         position: relative;
-        ul {
-            &.label {
-                position: relative;
-                top: 0;
-                left: 0;
-                width: 55%;
-                height: 50px;
-                overflow-y: visible;
-            }
-            &.price {
-                position: absolute;
-                top: 6%;
-                right: 6%;
-                &.current {
-                    text-align: right;
-                }
-            }
+    }
+    .label {
+        position: relative;
+        top: 0;
+        left: 0;
+        width: 55%;
+        height: 50px;
+        overflow-y: visible;
+    }
+    .price {
+        position: absolute;
+        top: 6%;
+        right: 6%;
+        .current {
+            text-align: right;
         }
     }
     .overlay {

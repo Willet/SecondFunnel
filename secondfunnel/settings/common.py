@@ -420,6 +420,8 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
 
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
+    # because intentrank doesn't have models.py, django doesn't auto-discover its fixtures
+    'apps/intentrank/fixtures',
 )
 
 WEBSITE_BASE_URL = 'http://secondfunnel.com'
