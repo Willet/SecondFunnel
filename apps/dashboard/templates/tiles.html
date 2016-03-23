@@ -52,10 +52,12 @@
                 </div>
                 <!-- End loading spinner -->
 
-                <div id="add-remove" hidden>
-                    <button type="button" id="add-remove-product" class="btn btn-default">Add/Remove product</button>
-                    <button type="button" id="add-remove-content" class="btn btn-default">Add/Remove content</button>
-                </div>
+                <script type="text/template" id="add-remove-template">
+                    <div id="add-remove">
+                        <button type="button" id="add-remove-product" class="btn btn-default">Add/Remove product</button>
+                        <button type="button" id="add-remove-content" class="btn btn-default">Add/Remove content</button>
+                    </div>
+                </script>
 
                 <script type="text/template" id="feedback-template">
                     <div class="alert-container">
@@ -63,6 +65,7 @@
                     </div>
                 </script>
 
+                <div id="addRemove"></div>
                 <div id="feedback"></div>
                 <div id="tiles"></div>
                 <div id="modal"></div>

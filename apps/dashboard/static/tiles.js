@@ -11,6 +11,7 @@ var App = Marionette.Application.extend({
         tiles: "#tiles",
         modal: "#modal",
         feedback: "#feedback",
+        addRemove: "#addRemove",
     },
 
     initialize: function () {
@@ -228,6 +229,19 @@ App.core.FeedbackView = Marionette.ItemView.extend({
     },
 });
 
+App.core.AddRemoveView = Marionette.ItemView.extend({
+    template: _.template($('#add-remove-template').html()),
+
+    initialize: function (options) {
+        /* Wait 10s before removing the alert */
+        setTimeout(function () { App.addRemove.empty(); }, 10000);
+    },
+
+    templateHelpers: function () {
+        return this.options;
+    },
+});
+
 App.core.EditModalView = Marionette.ItemView.extend({
     template: _.template($('#edit-modal-template').html()),
 
@@ -367,13 +381,15 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
         this.collection.fetch();
         this.listenTo(this.collection, 'add', _.debounce(function () { 
             $('#loading-spinner').hide(); 
-            $('#add-remove').show(); 
+            // $('#add-remove').show(); 
         }, 100));
         this.listenTo(this.collection, 'change destroy', _.debounce(function () {this.collection.sort();}, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
 
     onShow: function () {
+        App.addRemove.show(new App.core.AddRemoveView());
+
         $('#backbone-tiles').sortable({
             start: function (event, ui) {
                 var startPos = ui.item.index() - 1;
