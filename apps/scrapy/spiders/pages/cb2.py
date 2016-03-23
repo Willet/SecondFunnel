@@ -136,12 +136,12 @@ class CB2Spider(SecondFunnelCrawlSpider):
         else:
             # product with options page
             l.add_css('name', '#productViewWrap h1#productNameHeader::text')
-            l.add_css('description', '')
-            l.add_css('sku', '')
+            l.add_css('description', '#productViewWrap p.productDescription')
+            l.add_css('sku', '.shoppingBar .sku .jsSwatchSku::text')
 
         try:
-            price = l.get_css("metaa[property=og:price:amount]::attr(content)", TakeFirst())
-            reg_price = l.get_css("metaa[property=og:price:standard_amount]::attr(content)", TakeFirst())
+            price = l.get_css("meta[property=og:price:amount]::attr(content)", TakeFirst())
+            reg_price = l.get_css("meta[property=og:price:standard_amount]::attr(content)", TakeFirst())
             if reg_price:
                 sale_price = price
             else:
