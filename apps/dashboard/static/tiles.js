@@ -11,7 +11,7 @@ var App = Marionette.Application.extend({
         tiles: "#tiles",
         modal: "#modal",
         feedback: "#feedback",
-        addRemove: "#addRemove",
+        extraOptions: "#extraOptions",
     },
 
     initialize: function () {
@@ -38,7 +38,7 @@ App.core.TileCollection = Backbone.Collection.extend({
     },
 
     getCustomURL: function (method) {
-        /** 
+        /**
         Returns the API URL for REST methods for different methods
 
         inputs:
@@ -87,7 +87,7 @@ App.core.TileCollection = Backbone.Collection.extend({
 
             tiles[index].set({priority: 1});
             batch.push({
-                'id': tiles[index].get('id'), 
+                'id': tiles[index].get('id'),
                 'priority': tiles[index].get('priority')
             });
             //No need to do anything else to Tn+1 till the end
@@ -96,7 +96,7 @@ App.core.TileCollection = Backbone.Collection.extend({
 
             tiles[index].set({priority: tiles[index+1].get('priority') + 1});
             batch.push({
-                'id': tiles[index].get('id'), 
+                'id': tiles[index].get('id'),
                 'priority': tiles[index].get('priority')
             })
             //Check if Tn+2 exists or not
@@ -111,7 +111,7 @@ App.core.TileCollection = Backbone.Collection.extend({
                     //Tn+1 = Tn+2, so increase Tn+1 by 1
                     tiles[index + 1].set({priority: tiles[index + 1].get('priority')+ 1});
                     batch.push({
-                        'id': tiles[index + 1].get('id'), 
+                        'id': tiles[index + 1].get('id'),
                         'priority': tiles[index + 1].get('priority')
                     });
                 }
@@ -121,7 +121,7 @@ App.core.TileCollection = Backbone.Collection.extend({
                 //Tn <= Tn+1, so set Tn to be Tn+1 + 1
                 tiles[index].set({priority: tiles[index + 1].get('priority') + 1});
                 batch.push({
-                    'id': tiles[index].get('id'), 
+                    'id': tiles[index].get('id'),
                     'priority': tiles[index].get('priority')
                 });
             }
@@ -138,7 +138,7 @@ App.core.TileCollection = Backbone.Collection.extend({
                 //Tn-1 <= Tn
                 tiles[index - 1].set({priority: tiles[index].get('priority') + 1});
                 batch.push({
-                    'id': tiles[index - 1].get('id'), 
+                    'id': tiles[index - 1].get('id'),
                     'priority': tiles[index - 1].get('priority')
                 });
             }
@@ -164,7 +164,7 @@ App.core.TileCollection = Backbone.Collection.extend({
                     for (var i = index - 2; i >= 0; i--) {
                         tiles[i].set({priority: tiles[i].get('priority') + prioDiff});
                         batch.push({
-                            'id': tiles[i].get('id'), 
+                            'id': tiles[i].get('id'),
                             'priority': tiles[i].get('priority')
                         });
                     }
@@ -216,25 +216,72 @@ App.core.TileCollection = Backbone.Collection.extend({
     },
 });
 
+App.core.TileView = Marionette.ItemView.extend({
+    template: _.template($('#tile-template').html()),
+
+    tagName: 'li',
+
+    className: 'tile sortable',
+
+    events: {
+        "click button.remove": "removeModal",
+        "click .content": "editModal",
+    },
+
+    removeModal: function () {
+        App.modal.show(new App.core.RemoveModalView({ model: this.model }));
+    },
+
+    editModal: function () {
+        App.modal.show(new App.core.EditModalView({ model: this.model }));
+    },
+});
+
+App.core.TileCollectionView = Marionette.CollectionView.extend({
+    el: "#backbone-tiles",
+
+    childView: App.core.TileView,
+
+    initialize: function () {
+        this.collection.fetch();
+        this.listenTo(this.collection, 'add', _.debounce(function () {
+            $('#loading-spinner').hide();
+            App.extraOptions.show(new App.core.ExtraOptionsView());
+        }, 100));
+        this.listenTo(this.collection, 'change destroy', _.debounce(function () {this.collection.sort();}, 100));
+        this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
+    },
+
+    onShow: function () {
+        $('#backbone-tiles').sortable({
+            start: function (event, ui) {
+                var startPos = ui.item.index() - 1;
+                App.feedback.empty();
+                ui.item.data('startPos', startPos);
+            },
+
+            update: function (event, ui) {
+                var alertType, status,
+                    startPos = ui.item.data('startPos'),
+                    endPos = ui.item.index() - 1,
+                    movedTileID = App.tiles.currentView.collection.models[startPos].get('id');
+
+                alertType = 'info';
+                status = 'Processing... Please wait.';
+                App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+
+                App.tiles.currentView.collection.moveTileToPosition(movedTileID, endPos);
+            },
+        });
+    },
+});
+
 App.core.FeedbackView = Marionette.ItemView.extend({
     template: _.template($('#feedback-template').html()),
 
     initialize: function (options) {
         /* Wait 10s before removing the alert */
         setTimeout(function () { App.feedback.empty(); }, 10000);
-    },
-
-    templateHelpers: function () {
-        return this.options;
-    },
-});
-
-App.core.AddRemoveView = Marionette.ItemView.extend({
-    template: _.template($('#add-remove-template').html()),
-
-    initialize: function (options) {
-        /* Wait 10s before removing the alert */
-        setTimeout(function () { App.addRemove.empty(); }, 10000);
     },
 
     templateHelpers: function () {
@@ -282,7 +329,7 @@ App.core.EditModalView = Marionette.ItemView.extend({
                 result = JSON.parse(result.responseText);
                 if (_.has(result,"id")) {
                     alertType = 'success';
-                    status = "The priority of tile with ID: " + currModel.id + 
+                    status = "The priority of tile with ID: " + currModel.id +
                              " has been changed to " + currModel.get('priority') + ".";
                 } else {
                     alertType = 'danger';
@@ -315,7 +362,7 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
     },
 
     deleteTile: function () {
-        /** 
+        /**
         Remove the tile from the page
         **/
         var result, status, alertType,
@@ -334,7 +381,7 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
         result.always(function () {
             if (result.status == 200) {
                 alertType = 'success';
-                status = "The tile with ID: " + currModel.id + 
+                status = "The tile with ID: " + currModel.id +
                              " has been deleted.";
             }
             else {
@@ -351,65 +398,486 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
     },
 });
 
-App.core.TileView = Marionette.ItemView.extend({
-    template: _.template($('#tile-template').html()),
+App.core.Product = Backbone.Model.extend({
+    defaults: {},
 
-    tagName: 'li',
+    urlRoot: App.core.apiURL,
 
-    className: 'tile sortable',
+    getCustomURL: function (method) {
+        switch (method) {
+            case 'read':
+                return App.core.apiURL + 'page/' + pageID + '/';
+            case 'search':
+                return App.core.apiURL + 'product/' + method + '/';
+            case 'scrape':
+                return App.core.apiURL + 'product/' + method + '/';
+        }
+    },
+
+    sync: function (method, model, options) {
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.sync.call(this, method, model, options);
+    },
+
+    search: function (searchString) {
+        var options = {
+            'url': this.getCustomURL('search'),
+        };
+        return Backbone.sync.call(this, 'create', searchString, options);
+    },
+
+    scrape: function (URL) {
+        var options = {
+            'url': this.getCustomURL('scrape'),
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
+    }
+});
+
+App.core.Content = Backbone.Model.extend({
+    defaults: {},
+
+    urlRoot: App.core.apiURL,
+
+    initialize: function () {
+
+    },
+
+    getCustomURL: function (method) {
+        switch (method) {
+            case 'read':
+                return App.core.apiURL + 'page/' + pageID + '/';
+            case 'search':
+                return App.core.apiURL + 'content/' + method + '/';
+            case 'scrape':
+                return App.core.apiURL + 'content/' + method + '/';
+        }
+    },
+
+    sync: function (method, model, options) {
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.sync.call(this, method, model, options);
+    },
+
+    search: function (searchString) {
+        var options = {
+            'url': this.getCustomURL('search')
+        };
+        return Backbone.sync.call(this, 'create', searchString, options);
+    },
+
+    scrape: function (URL) {
+        var options = {
+            'url': this.getCustomURL('scrape')
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
+    }
+});
+
+App.core.Page = Backbone.Model.extend({
+    defaults: {
+        selection: '' ,
+        num: ''
+    },
+
+    urlRoot: App.core.apiURL,
+
+    initialize: function () {
+
+    },
+
+    getCustomURL: function (method) {
+        switch (method) {
+            case 'read':
+                return App.core.apiURL + 'page/' + pageID + '/';
+            case 'add':
+                return App.core.apiURL + 'page/' + pageID + '/' + method + '/';
+            case 'remove':
+                return App.core.apiURL + 'page/' + pageID + '/' + method + '/';
+        }
+    },
+
+    sync: function (method, model, options) {
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.sync.call(this, method, model, options);
+    },
+
+    add: function (product) {
+        var options = {
+            'url': this.getCustomURL('add')
+        };
+        return Backbone.sync.call(this, 'create', product , options);
+    },
+
+    remove: function (product) {
+        var options = {
+            'url': this.getCustomURL('remove')
+        };
+        return Backbone.sync.call(this, 'create', product , options);
+    }
+});
+
+App.core.AddObjectModalView = Marionette.ItemView.extend({
+    template: _.template($('#add-object-template').html()),
 
     events: {
-        "click button.remove": "removeModal",
-        "click .content": "editModal",
+        "click button#add": "addObject",
+        "click button#close": "closeModal",
     },
 
-    removeModal: function () {
-        App.modal.show(new App.core.RemoveModalView({ model: this.model }));
+    closeModal: function () {
+        this.$el.modal('toggle');
     },
 
-    editModal: function () {
-        App.modal.show(new App.core.EditModalView({ model: this.model }));
+    addObject: function () {
+        var result, idLength, responseText, alertType, status, selection,
+            num, page, searchString, priority, category,
+            thisBackUp  = this,
+            objectType = this.options.objectType;
+
+        if (objectType === "Product") {
+            App.addProductForm.commit();
+            selection   = App.addProduct.attributes.selection;
+            num         = App.addProduct.attributes.num;
+            priority    = App.addProduct.attributes.priority;
+            category    = App.addProduct.attributes.category;
+            page        = new App.core.Page({
+                type: "product",
+                selection: selection,
+                num: num,
+                priority: priority,
+                category: category
+            });
+            searchString = new App.core.Product();
+        } else {
+            App.addContentForm.commit();
+            selection   = App.addContent.attributes.selection;
+            num         = App.addContent.attributes.num;
+            category    = App.addContent.attributes.category;
+            page        = new App.core.Page({
+                type: "content",
+                selection: selection,
+                num: num,
+                category: category
+            }),
+            searchString = new App.core.Content();
+        }
+
+        if (selection == 'URL')
+            searchString.set({url: num});
+        if (selection == 'ID')
+            searchString.set({id: num});
+        if (selection == 'SKU')
+            searchString.set({sku: num});
+
+        result = searchString.search(searchString);
+        result.always(function () {
+            responseText = JSON.parse(result.responseText);
+            idLength = responseText.ids.length;
+            if (idLength === 1) {
+                if (objectType === "Product") {
+                    page = new App.core.Page({
+                        type: "product",
+                        id: responseText.ids[0],
+                        force_create: $('#force-create').is(':checked').toString(),
+                    });
+                } else {
+                    page = new App.core.Page({
+                        type: "content",
+                        id: responseText.ids[0],
+                        force_create: $('#force-create').is(':checked').toString(),
+                    });
+                }
+                if (priority !== "") {
+                    page.set({priority: priority});
+                }
+                if (category !== "") {
+                    page.set({category: category});
+                }
+
+                result = page.add(page);
+                result.always(function () {
+                    responseText = JSON.parse(result.responseText);
+                    if (result.status == 200) {
+                        alertType = 'success';
+                    }
+                    else {
+                        alertType = 'warning';
+                    }
+                    thisBackUp.$el.modal('toggle');
+                    App.feedback.show(new App.core.FeedbackView({
+                        'alertType': alertType,
+                        'status': responseText.status
+                    }));
+                })
+            } else {
+                if (idLength > 1) {
+                    alertType = 'danger';
+                    status = "Error: " + responseText.status;
+                    App.feedback.show(new App.core.FeedbackView({
+                        'alertType': alertType,
+                        'status': status
+                    }));
+                } else {
+                    if ((selection == 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
+                        alertType = 'info';
+                        status = responseText.status + " Scraping...";
+                        App.feedback.show(new App.core.FeedbackView({
+                            'alertType': alertType,
+                            'status': status
+                        }));
+                        if (objectType === "Product") {
+                            var scrapeURL = new App.core.Product({
+                                url: num,
+                                page_id: pageID
+                            });
+                            result = scrapeURL.scrape(scrapeURL);
+                        } else {
+                            var uploadURL = new App.core.Content({
+                                url: num,
+                                page_id: pageID
+                            });
+                            result = uploadURL.scrape(uploadURL);
+                        }
+                        result.always(function () {
+                            responseText = JSON.parse(result.responseText);
+                            alertType = 'success';
+                            status = responseText.status;
+                            App.feedback.show(new App.core.FeedbackView({
+                                'alertType': alertType,
+                                'status': status
+                            }));
+                        })
+                    } else {
+                        alertType = 'warning';
+                        App.feedback.show(new App.core.FeedbackView({
+                            'alertType': alertType,
+                            'status': responseText.status
+                        }));
+                    }
+                }
+            }
+        });
+    },
+
+    templateHelpers: function () {
+        return this.options;
+    },
+
+    onRender: function () {
+        this.unwrapEl();
+        this.$el.modal('toggle');
     },
 });
 
-App.core.TileCollectionView = Marionette.CollectionView.extend({
-    el: "#backbone-tiles",
+App.core.RemoveObjectModalView = Marionette.ItemView.extend({
+    template: _.template($('#remove-object-template').html()),
 
-    childView: App.core.TileView,
-
-    initialize: function () {
-        this.collection.fetch();
-        this.listenTo(this.collection, 'add', _.debounce(function () { 
-            $('#loading-spinner').hide(); 
-            // $('#add-remove').show(); 
-        }, 100));
-        this.listenTo(this.collection, 'change destroy', _.debounce(function () {this.collection.sort();}, 100));
-        this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
+    events: {
+        "click button#remove": "removeObject",
+        "click button#close": "closeModal",
     },
 
-    onShow: function () {
-        App.addRemove.show(new App.core.AddRemoveView());
+    closeModal: function () {
+        this.$el.modal('toggle');
+    },
 
-        $('#backbone-tiles').sortable({
-            start: function (event, ui) {
-                var startPos = ui.item.index() - 1;
-                App.feedback.empty();
-                ui.item.data('startPos', startPos);
+    removeObject: function () {
+        var result, idLength, responseText, alertType, status,
+            selection, num, page, searchString,
+            thisBackUp  = this,
+            objectType = this.options.objectType;
+
+        if (objectType === "Product") {
+            App.removeProductForm.commit();
+            selection = App.removeProduct.attributes.selection;
+            num = App.removeProduct.attributes.num;
+            page = new App.core.Page({
+                type: "product",
+                selection: selection,
+                num: num,
+            })
+            searchString = new App.core.Product();
+        } else {
+            App.removeContentForm.commit();
+            selection = App.removeContent.attributes.selection,
+            num = App.removeContent.attributes.num,
+            page = new App.core.Page({
+                type: "content",
+                selection: selection,
+                num: num,
+            }),
+            searchString = new App.core.Content();
+        }
+
+        if (selection == 'URL')
+            searchString.set({url: num});
+        if (selection == 'ID')
+            searchString.set({id: num});
+        if (selection == 'SKU')
+            searchString.set({sku: num});
+
+        result = searchString.search(searchString);
+        result.always(function () {
+            responseText = JSON.parse(result.responseText);
+            idLength = responseText.ids.length;
+
+            if (idLength === 1) {
+                if (objectType === "Product") {
+                    page = new App.core.Page({
+                        type: "product",
+                        id: responseText.ids[0],
+                    });
+                } else {
+                    page = new App.core.Page({
+                        type: "content",
+                        id: responseText.ids[0],
+                    });
+                }
+
+                result = page.remove(page);
+                result.always(function () {
+                    responseText = JSON.parse(result.responseText);
+                    if (result.status == 200) {
+                        alertType = 'success';
+                    }
+                    else {
+                        alertType = 'warning';
+                    }
+                    thisBackUp.$el.modal('toggle');
+                    App.feedback.show(new App.core.FeedbackView({
+                        'alertType': alertType,
+                        'status': responseText.status
+                    }));
+                });
+            } else {
+                if (idLength > 1) {
+                    alertType = 'danger';
+                    status = "Error: " + responseText.status;
+                    App.feedback.show(new App.core.FeedbackView({
+                        'alertType': alertType,
+                        'status': status
+                    }));
+                } else {
+                    alertType = 'warning';
+                    status = responseText.status;
+                    App.feedback.show(new App.core.FeedbackView({
+                        'alertType': alertType,
+                        'status': status
+                    }));
+                }
+            }
+        });
+    },
+
+    templateHelpers: function () {
+        return this.options;
+    },
+
+    onRender: function () {
+        this.unwrapEl();
+        this.$el.modal('toggle');
+    },
+});
+
+App.core.ExtraOptionsView = Marionette.ItemView.extend({
+    template: _.template($('#extra-options-template').html()),
+
+    events: {
+        "click button#add-product": "addProduct",
+        "click button#remove-product": "removeProduct",
+        "click button#add-content": "addContent",
+        "click button#remove-content": "removeContent",
+    },
+
+    addProduct: function () {
+        App.modal.show(new App.core.AddObjectModalView({'objectType': "Product"}));
+
+        App.core.addProductModel = Backbone.Model.extend({
+            schema: {
+                selection: { title: 'Selection', type: 'Select', options: ['URL', 'SKU', 'ID'] },
+                num:       { title: 'Number', type: 'Text' },
+                priority:  { title: 'Priority', type: 'Text' },
+                category:  { title: 'Category', type: 'Text' },
             },
-
-            update: function (event, ui) {
-                var alertType, status,
-                    startPos = ui.item.data('startPos'),
-                    endPos = ui.item.index() - 1,
-                    movedTileID = App.tiles.currentView.collection.models[startPos].get('id');
-
-                alertType = 'info';
-                status = 'Processing... Please wait.';
-                App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
-
-                App.tiles.currentView.options.collection.moveTileToPosition(movedTileID, endPos);
+            defaults: {
+                selection: 'ID',
             },
         });
+        App.addProduct = new App.core.addProductModel();
+
+        App.addProductForm = new Backbone.Form({
+            model: App.addProduct,
+        }).render();
+
+        $('.add-form').html(App.addProductForm.el);
+    },
+
+    removeProduct: function () {
+        App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Product"}));
+
+        App.core.removeProductModel = Backbone.Model.extend({
+            schema: {
+                selection: { title: 'Selection', type: 'Select', options: ['URL', 'SKU', 'ID'] },
+                num:       { title: 'Number', type: 'Text' },
+            },
+            defaults: {
+                selection: 'ID',
+            },
+        });
+        App.removeProduct = new App.core.removeProductModel();
+
+        App.removeProductForm = new Backbone.Form({
+            model: App.removeProduct,
+        }).render();
+
+        $('.remove-form').html(App.removeProductForm.el);
+    },
+
+    addContent: function () {
+        App.modal.show(new App.core.AddObjectModalView({'objectType': "Content"}));
+
+        App.core.addContentModel = Backbone.Model.extend({
+            schema: {
+                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+                num:       { title: 'Number', type: 'Text' },
+                category:  { title: 'Category', type: 'Text' },
+            },
+            defaults: {
+                selection: 'ID',
+            },
+        });
+        App.addContent = new App.core.addContentModel();
+
+        App.addContentForm = new Backbone.Form({
+            model: App.addContent,
+        }).render();
+
+        $('.add-form').html(App.addContentForm.el);
+    },
+
+    removeContent: function () {
+        App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Content"}));
+
+        App.core.removeContentModel = Backbone.Model.extend({
+            schema: {
+                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+                num:       { title: 'Number', type: 'Text' },
+            },
+            defaults: {
+                selection: 'ID',
+            },
+        });
+        App.removeContent = new App.core.removeContentModel();
+
+        App.removeContentForm = new Backbone.Form({
+            model: App.removeContent,
+        }).render();
+
+        $('.remove-form').html(App.removeContentForm.el);
     },
 });
 

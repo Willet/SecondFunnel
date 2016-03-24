@@ -318,6 +318,7 @@ var addContentForm = new Backbone.Form({
 
 var removeContentForm = new Backbone.Form({
     model: removeContent,
+    submitButton: "Remove",
 }).render();
 
 $('#addProductDiv').append(addProductForm.el);

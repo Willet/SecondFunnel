@@ -3881,6 +3881,11 @@ div[data-role="editor-toolbar"] {
     position: relative;
 }
 
+#force-create {
+    opacity: 1;
+    position: relative;
+}
+
 #backbone-tiles .ui-selecting{
     background: #000000;  /* while highlighting */
 }

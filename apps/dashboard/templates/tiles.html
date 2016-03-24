@@ -52,11 +52,11 @@
                 </div>
                 <!-- End loading spinner -->
 
-                <script type="text/template" id="add-remove-template">
-                    <div id="add-remove">
-                        <button type="button" id="add-remove-product" class="btn btn-default">Add/Remove product</button>
-                        <button type="button" id="add-remove-content" class="btn btn-default">Add/Remove content</button>
-                    </div>
+                <script type="text/template" id="extra-options-template">
+                    Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
+                                <button type="button" id="remove-product" class="btn btn-default">Remove</button>
+                    Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
+                                <button type="button" id="remove-content" class="btn btn-default">Remove</button>
                 </script>
 
                 <script type="text/template" id="feedback-template">
@@ -65,7 +65,7 @@
                     </div>
                 </script>
 
-                <div id="addRemove"></div>
+                <div id="extraOptions"></div>
                 <div id="feedback"></div>
                 <div id="tiles"></div>
                 <div id="modal"></div>
@@ -87,6 +87,56 @@
                         </div>
                     </script>
                 </ul>
+
+
+                <script type="text/template" id="add-object-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Add <%= objectType %></br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="add-form"></div>
+                                    <input type="checkbox" id="force-create">Force create tile<br>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="add" class="btn btn-default">
+                                        Add
+                                    </button>
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
+                <script type="text/template" id="remove-object-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Remove <%= objectType %></br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="remove-form"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="remove" class="btn btn-default">
+                                        Remove
+                                    </button>
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
 
                 <script type="text/template" id="edit-modal-template">
                     <div class="modal" id="modal-dialog-box" role="dialog" >
