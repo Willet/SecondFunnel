@@ -247,14 +247,7 @@ body {
     }
 
     .close {
-        color: $grey-color;
         padding: 10px;
-        font-weight: normal;
-        line-height: 9px;
-        letter-spacing: 0px;
-        font-family: $basic-font;
-        font-size: 25px;
-        text-shadow: none;
         z-index: 100;
     }
 
@@ -665,6 +658,7 @@ ul.price {
     .relative.product-shot {
         padding: 6%;
         position: relative;
+        border: 1px dotted $light-grey-color;
     }
     .label {
         position: relative;
@@ -835,6 +829,16 @@ ul.price {
                     border-bottom: 20px solid transparent;
                 }
             }
+        }
+    }
+    .previewContainer,
+    .heroContainer {
+        .close {
+            top: 10px;
+            right: 10px;
+            background-image: url('/static/light/vanharen/landingpage/lite/images/close.png');
+            background-position: center;
+            background-repeat: no-repeat;
         }
     }
 }
@@ -1144,7 +1148,7 @@ ul.price {
                 height: 100%;
                 float: right;
             }
-            &.shop {
+            .shop {
                 width: 20%;
                 height: 100%;
                 float: left;
@@ -1178,7 +1182,7 @@ ul.price {
                 }
             }
 
-            &.info, &.look-image {
+            .info, .look-image {
                 border-bottom: none;
                 display: inline-block;
                 .gallery-image-gallery {
@@ -1238,7 +1242,9 @@ ul.price {
             background-color: $orange-color;
             font-family: $deichmann-font;
             font-weight: 100;
+            font-size: 25px;
             color: white;
+            text-shadow: none;
         }
 
         .image-with-tagged-products .info {

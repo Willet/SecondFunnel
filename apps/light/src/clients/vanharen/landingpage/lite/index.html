@@ -61,6 +61,12 @@
                 <% /* context is product */ %>
                 <% include("product_title_template") %>
                 <% })(obj.product.attributes) %>
+                <div class="mobile-only">
+                    <% (function (obj) { %>
+                    <% /* context is product */ %>
+                    <% include("product_price_template") %>
+                    <% })(obj.product.attributes) %>
+                </div>
                 <div>
                     <img class="focus" src="<%= obj.defaultImage.url %>" />
                 </div>
@@ -68,10 +74,12 @@
             <div class="overlay">
                 <div class='table'>
                     <div class='cell'>
-                        <% (function (obj) { %>
-                        <% /* context is product */ %>
-                        <% include("product_price_template") %>
-                        <% })(obj.product.attributes) %>
+                        <div class="desktop-only">
+                            <% (function (obj) { %>
+                            <% /* context is product */ %>
+                            <% include("product_price_template") %>
+                            <% })(obj.product.attributes) %>
+                        </div>
                         <div class="title">
                             <span>Shop nu >></span>
                             <span class="name"><%= obj.product.get('name') %></span>
@@ -123,7 +131,7 @@
             <% var template = (obj.template || "image") %>
             <div class="fullscreen <%= template %>">
                 <div class="content">
-                    <span class="close desktop-only">⨉</span>
+                    <span class="close desktop-only"></span>
                     <span class="close mobile-only">Back</span>
                     <div class="template target"></div>
                 </div>

@@ -881,8 +881,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
                 if @content.hasView()
+                    #@content.show(@content.currentView,
+                    #    forceShow: true
+                    #)
+                    
                     @content.currentView.resizeContainer()
-                    # Refactor to use region.currentView.render
                     if @content.currentView.productInfo?.hasView()
                         productRegion = @content.currentView.productInfo
                         productRegion.show(productRegion.currentView,
@@ -896,8 +899,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 return
             )
 
+            @_isMobilePreview = App.support.mobile() # track window state
+
             @listenTo(App.vent, "window:resize", () =>
-                @content.currentView?.resizeContainer()
+                if @content.hasView()
+                    if (@_isMobilePreview is not App.support.mobile())
+                        @_isMobilePreview = App.support.mobile()
+                        # desktop & mobile have different templates, so switch between them
+                        @content.show(@content.currentView,
+                            forceShow: true
+                        )
+                    else
+                        @content.currentView.resizeContainer()
                 return
             )
             @image_load = imagesLoaded(@$el)
