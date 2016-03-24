@@ -637,7 +637,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
         updateCategories: ->
             # Handle switches between desktop & mobile
-            if (@_isMobileCategories is not App.support.mobile())
+            if @_isMobileCategories is not App.support.mobile()
                 @_isMobileCategories = App.support.mobile()
 
                 catArr = App.option("page:categories", [])

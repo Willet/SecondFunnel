@@ -869,6 +869,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @content.show(contentInstance)
             App.previewLoadingScreen.hide()
 
+            @_isMobilePreview = App.support.mobile() # track window state
+
             @listenTo(App.vent, "window:rotate", (width) =>
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
@@ -881,29 +883,31 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
                 if @content.hasView()
-                    #@content.show(@content.currentView,
-                    #    forceShow: true
-                    #)
-                    
-                    @content.currentView.resizeContainer()
-                    if @content.currentView.productInfo?.hasView()
-                        productRegion = @content.currentView.productInfo
-                        productRegion.show(productRegion.currentView,
+                    if @_isMobilePreview is not App.support.mobile()
+                        # rotation changed between mobile & desktop width
+                        @_isMobilePreview = App.support.mobile()
+                        # desktop & mobile have different templates, so switch between them
+                        @content.show(@content.currentView,
                             forceShow: true
                         )
-                    if @content.currentView.productThumbnails?.hasView()
-                        productThumbnails = @content.currentView.productThumbnails
-                        productThumbnails.show(productThumbnails.currentView,
-                            forceShow: true
-                        )
+                    else
+                        @content.currentView.resizeContainer()
+                        if @content.currentView.productInfo?.hasView()
+                            productRegion = @content.currentView.productInfo
+                            productRegion.show(productRegion.currentView,
+                                forceShow: true
+                            )
+                        if @content.currentView.productThumbnails?.hasView()
+                            productThumbnails = @content.currentView.productThumbnails
+                            productThumbnails.show(productThumbnails.currentView,
+                                forceShow: true
+                            )
                 return
             )
 
-            @_isMobilePreview = App.support.mobile() # track window state
-
             @listenTo(App.vent, "window:resize", () =>
                 if @content.hasView()
-                    if (@_isMobilePreview is not App.support.mobile())
+                    if @_isMobilePreview is not App.support.mobile()
                         @_isMobilePreview = App.support.mobile()
                         # desktop & mobile have different templates, so switch between them
                         @content.show(@content.currentView,
