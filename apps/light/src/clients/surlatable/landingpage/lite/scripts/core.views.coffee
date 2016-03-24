@@ -95,9 +95,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent::shrinkContainerCallback = _.wrap(
         module.ExpandedContent::shrinkContainerCallback,
-        (shrinkContainerCallback) ->
+        (shrinkContainerCallback, forceUpdate=false) ->
             # Patch shrinkContainerCallback to enble recipe scrolling when images are loaded
-            shrinkContainerCallback.call(@)
+            shrinkContainerCallback.call(@, forceUpdate)
             $(".recipe").scroll(=>
                 @updateScrollCta()
                 return
@@ -106,8 +106,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.ExpandedContent::updateContent = _.wrap(
         module.ExpandedContent::updateContent,
-        (updateContent) ->
-            updateContent.call(@)
+        (updateContent, forceUpdate=false) ->
+            updateContent.call(@, forceUpdate)
             # set name of pop-up to currently visible 
             if @productInfo.hasView()
                 currentProduct = @productInfo.currentView.model

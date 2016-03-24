@@ -58,13 +58,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    module.ExpandedContent::shrinkContainerCallback = ->
+    module.ExpandedContent::shrinkContainerCallback = (forceUpdate=false) ->
         # Fits content to window, doesn't support overflow content
         $table = @$el.find(".table")
         $container = @$el.closest(".fullscreen")
         $containedItem = @$el.closest(".content")
 
-        @updateContent()
+        @updateContent(forceUpdate)
 
         if @model.get("type") is "image" or @model.get("type") is "gif"
             if @taggedProductIndex > -1

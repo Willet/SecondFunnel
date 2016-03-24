@@ -52,13 +52,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return
     )
 
-    module.ExpandedContent::shrinkContainerCallback = ->
+    module.ExpandedContent::shrinkContainerCallback = (forceUpdate=false) ->
             $table = @$el.find(".table")
             $container = @$el.closest(".fullscreen")
             $containedItem = @$el.closest(".content")
 
             if @productInfo.currentView is undefined
-                @updateContent()
+                @updateContent(forceUpdate)
             if @model.get("type") is "image" or @model.get("type") is "gif"
                 if @lookProductIndex > -1
                     @ui.lookThumbnail.show()
