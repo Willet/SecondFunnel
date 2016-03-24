@@ -442,9 +442,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         image.height(App.utils.getViewportSized(true))
             return
 
-        updateContent: ->
+        updateContent: (forceUpdate=false) ->
             # Update the current view if its changed
-            if @_currentIndex isnt @taggedProductIndex
+            if forceUpdate or @_currentIndex isnt @taggedProductIndex
                 @_currentIndex = @taggedProductIndex
                 if @taggedProductIndex is -1
                     if @product
@@ -486,9 +486,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
         to the viewport & allowing the overflow area to continue below the fold.
         Meant to be called when all images finish loading
         ###
-        shrinkContainerCallback: ->
+        shrinkContainerCallback: (forceUpdate=false) ->
             # All images are loaded to frame content, render it now
-            @updateContent()
+            @updateContent(forceUpdate)
 
             $window = $(window)
             $container = @$el.closest(".fullscreen")
@@ -558,9 +558,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             $container.removeClass("loading-images")
             return
 
-        resizeContainer: ->
+        resizeContainer: (forceUpdate) ->
             # shrinks container once main image product thumbnails are loaded
-            imagesLoaded($("img.main-image, img.image", @$el),(=> @shrinkContainerCallback()))
+            imagesLoaded($("img.main-image, img.image", @$el),(=> @shrinkContainerCallback(forceUpdate)))
             return
 
         # Disable scrolling body when preview is shown
@@ -609,7 +609,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 @ui.productThumbnails?.hide()
                 @ui.similarProducts?.hide()
 
-            @resizeContainer()
+            @resizeContainer(true)
 
             # If this is in a hero area, enable some of it to stick as scroll down(?)
             if @$el.parents("#hero-area").length and not Modernizr.csspositionsticky
@@ -712,8 +712,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             return @
 
         destroy: ->
-            unless App.support.mobile()
-                $(document.body).removeClass("no-scroll")
+            $(document.body).removeClass("no-scroll")
 
             @$(".stick-bottom").waypoint("destroy")
             @$el.find(".look-product-carousel").swipe("destroy")
@@ -869,7 +868,9 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @content.show(contentInstance)
             App.previewLoadingScreen.hide()
 
-            @listenTo(App.vent, "window:rotate", (width) =>
+            @_isMobilePreview = App.support.mobile() # track window state
+
+            @listenTo(App.vent, "window:rotate", () =>
                 # On change in orientation, we want to rerender our layout
                 # this is automatically unbound on close, so we don't have to clean
                 heightMultiplier = (if App.utils.portrait() then 1 else 2)
@@ -881,34 +882,24 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 else
                     @$el.closest(".previewContainer").removeClass("landscape")
                 if @content.hasView()
-                    #@content.show(@content.currentView,
-                    #    forceShow: true
-                    #)
-                    
-                    @content.currentView.resizeContainer()
-                    if @content.currentView.productInfo?.hasView()
-                        productRegion = @content.currentView.productInfo
-                        productRegion.show(productRegion.currentView,
-                            forceShow: true
-                        )
-                    if @content.currentView.productThumbnails?.hasView()
-                        productThumbnails = @content.currentView.productThumbnails
-                        productThumbnails.show(productThumbnails.currentView,
-                            forceShow: true
-                        )
+                    # update mobile preview to avoid resize event
+                    @_isMobilePreview = App.support.mobile()
+                    @content.show(@content.currentView,
+                        forceShow: true
+                    )
+                    @listenToOnce(@content, "show", (=> @positionWindow()))
                 return
             )
 
-            @_isMobilePreview = App.support.mobile() # track window state
-
             @listenTo(App.vent, "window:resize", () =>
                 if @content.hasView()
-                    if (@_isMobilePreview is not App.support.mobile())
+                    if @_isMobilePreview is not App.support.mobile()
                         @_isMobilePreview = App.support.mobile()
                         # desktop & mobile have different templates, so switch between them
                         @content.show(@content.currentView,
                             forceShow: true
                         )
+                        @listenToOnce(@content, "show", (=> @positionWindow()))
                     else
                         @content.currentView.resizeContainer()
                 return
