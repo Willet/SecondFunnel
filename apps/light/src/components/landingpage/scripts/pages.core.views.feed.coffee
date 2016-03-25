@@ -122,7 +122,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 .resize(globals.resizeHandler)
 
             # serve orientation change event via vent
-            $(window).on('rotate', globals.orientationChangeHandler)
+            $(window).on('orientationchange', globals.orientationChangeHandler)
         
         detachListeners: ->
             # detach global listeners
