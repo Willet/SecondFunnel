@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^healthcheck/?$', lambda x: HttpResponse('OK', status=200)),
+    url(r'^healthcheck/?$', 'apps.utils.views.healthcheck'),
 
     # INTERNAL ADMIN
     url(r'^admin$', lambda x: HttpResponseRedirect("/admin/")),
