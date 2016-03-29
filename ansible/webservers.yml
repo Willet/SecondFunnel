@@ -79,6 +79,12 @@
       ignore_errors: yes
       when: app_environment != "vagrant"
       tags: deploy
+    - name: "Stopping NGINX if re-provisioning server"
+      notify: nginx stop
+      sudo: true
+      ignore_errors: yes
+      when: app_environment != "vagrant"
+      tags: deploy
   roles:
     - { role: phantomjs, tags: phantomjs, sudo: true }
     - { role: newrelic, tags: newrelic, sudo: true, when: app_environment != 'vagrant' }
