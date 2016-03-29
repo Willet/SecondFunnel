@@ -6,7 +6,3 @@
 - name: nginx reload
   action: service name=nginx pattern=/etc/init.d/nginx state=reloaded enabled=yes
   sudo: true
-
-- name: nginx stop
-  action: service name=nginx pattern=/etc/init.d/nginx state=stopped
-  sudo: true

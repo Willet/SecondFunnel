@@ -80,7 +80,7 @@
       when: app_environment != "vagrant"
       tags: deploy
     - name: "Stopping NGINX if re-provisioning server"
-      notify: nginx stop
+      action: service name=nginx pattern=/etc/init.d/nginx state=stopped
       sudo: true
       ignore_errors: yes
       when: app_environment != "vagrant"
