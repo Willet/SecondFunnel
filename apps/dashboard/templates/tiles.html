@@ -64,7 +64,7 @@
                 <script type="text/template" id="control-bar-template">
                     <div class="dropdown" id="category-filter">
                         Category: </br> 
-                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Default
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" id="category-dropdown-button">View all tiles
                         <span class="caret"></span></button>
                         <ul class="dropdown-menu" id="categories">
                         </ul>
@@ -89,15 +89,17 @@
                             <img src="{% static "X.png" %}">
                         </button>
 
-                        <div class='content'>
-                            <img src="<%= defaultImage %>" alt="<%= id %>">
-                            <ul class='info'>
-                                <li><%= toTitleCase(template) %></li>
-                                <li><span class="<% if (priority <= 0) { %>red<% } %>">Priority: <%= priority %></class></li>
-                                <li>ID: <%= id %></li>
-                                <li><%= name %></li>
-                            </ul>
                         </div>
+                        <div class='content'>
+                            <div class="img-wrapper">
+                                <img src="<%= defaultImage %>" alt="<%= id %>">
+                                <ul class='info'>
+                                    <li><%= toTitleCase(template) %></li>
+                                    <li><span class="<% if (priority <= 0) { %>red<% } %>">Priority: <%= priority %></class></li>
+                                    <li>ID: <%= id %></li>
+                                    <li><%= name %></li>
+                                </ul>
+                            </div>
                     </script>
                 </ul>
 

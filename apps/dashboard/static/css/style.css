@@ -3814,9 +3814,15 @@ div[data-role="editor-toolbar"] {
     padding: 5px;
     border: 4px solid white;
     outline: 2px solid black;
-    overflow: hidden;
     padding-bottom: 32%;
     display: block;
+}
+
+.tile .img-wrapper {
+    width: 100%;
+    overflow: hidden;
+    position: absolute;
+    height: 97%;
 }
 
 .tile .remove {
@@ -3830,6 +3836,36 @@ div[data-role="editor-toolbar"] {
     position: absolute;
     top: 7px;
     right: 7px;
+    padding: 0px;
+    z-index: 10;
+}
+
+.tile .add-side-buttons-right {
+    display: none;
+}
+
+.tile:hover .add-side-buttons-right {
+    display: block;
+    background: #FFFFFF;
+    outline: 1px solid black;
+    position: absolute;
+    top: 45%;
+    right: -25px;
+    padding: 0px;
+    z-index: 10;
+}
+
+.tile .add-side-buttons-left {
+    display: none;
+}
+
+.tile:hover .add-side-buttons-left {
+    display: block;
+    background: #FFFFFF;
+    outline: 1px solid black;
+    position: absolute;
+    top: 45%;
+    left: 25px;
     padding: 0px;
     z-index: 10;
 }

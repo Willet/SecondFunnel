@@ -15,6 +15,10 @@ var App = Marionette.Application.extend({
     },
 
     initialize: function () {
+        /**
+        Initialize the App. Create a tile collection, call a fetch on it,
+        and set up the categories collection then draw all tiles
+        **/
         var tiles = new App.core.TileCollection();    //Collection of all tiles
 
         tiles.fetch().done(function () {
@@ -23,6 +27,11 @@ var App = Marionette.Application.extend({
             App.controlBar.show(new App.core.ControlBarView());
 
             App.categories = new App.core.Categories();
+
+            var category = new Backbone.Model();
+            category.set({'id': 0, name: 'View all tiles'});
+            App.categories.add(category);
+
             _.each(tiles.models, function (val) {
                 _.each(val.attributes.categories, function (cat) {
                     var exist = false;
@@ -33,7 +42,7 @@ var App = Marionette.Application.extend({
                         }
                     }
                     if (!exist) {
-                        var category = new App.core.Category();
+                        var category = new Backbone.Model();
                         category.set(cat);
                         App.categories.add(category);
                     }
@@ -42,8 +51,7 @@ var App = Marionette.Application.extend({
             App.categoriesView = new App.core.CategoriesView({ collection: App.categories });
             App.categoriesView.render();
         });
-        var test = new App.core.TileCollectionView({ collection: tiles });
-        this.tiles.show(test); //View of all tiles
+        this.tiles.show(new App.core.TileCollectionView({ collection: tiles })); //View of all tiles
     },
 });
 
@@ -52,14 +60,12 @@ App.core = {};
 //App.core.apiURL = "http://production.secondfunnel.com/api2/";
 App.core.apiURL = "http://localhost:8000/api2/";
 
-App.core.Tile = Backbone.Model;
-
 App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
 
     url: App.core.apiURL + 'tile?page=' + pageID,
 
-    model: App.core.Tile,
+    model: Backbone.Model,
 
     parse: function (response) {
         return response;
@@ -232,6 +238,9 @@ App.core.TileCollection = Backbone.Collection.extend({
     findIndexWhere: _.compose(Backbone.Collection.prototype.indexOf, Backbone.Collection.prototype.findWhere),
 
     comparator: function (a, b) {
+        /**
+        Comparator used when sorting tiles, sort by decreasing priority.
+        **/
         if (a.get("priority") > b.get("priority")) {
             return -1;
         }
@@ -257,10 +266,16 @@ App.core.TileView = Marionette.ItemView.extend({
     },
 
     removeModal: function () {
+        /**
+        Draw the modal displayed when the Remove button is clicked
+        **/
         App.modal.show(new App.core.RemoveModalView({ model: this.model }));
     },
 
     editModal: function () {
+        /**
+        Draw the modal displayed when the tile is clicked on
+        **/
         App.modal.show(new App.core.EditModalView({ model: this.model }));
     },
 });
@@ -271,11 +286,17 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     childView: App.core.TileView,
 
     initialize: function () {
+        /**
+        Initialize the tile collection by setting the listenTo's
+        **/
         this.listenTo(this.collection, 'change destroy', _.debounce(function () {this.collection.sort();}, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
 
     onShow: function () {
+        /**
+        Make the tiles in the collection sortable.
+        **/
         $('#backbone-tiles').sortable({
             start: function (event, ui) {
                 var startPos = ui.item.index() - 1;
@@ -308,11 +329,43 @@ App.core.FeedbackView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function () {
+        /**
+        Pass the current object's options for rendering on the page
+        **/
         return this.options;
     },
 });
 
-App.core.EditModalView = Marionette.ItemView.extend({
+App.core.BaseModalView = Marionette.ItemView.extend({
+    /** 
+    BaseModalView: Contains the shared modal functions.
+    **/
+
+    closeModal: function () {
+        /**
+        Close the modal by hiding it
+        **/
+        this.$el.modal('hide');
+    },
+
+    onRender: function () {
+        /**
+        Unwrap the modal from backbone's default wrapper (div).
+        Show the modal by toggling its status to show.
+        **/
+        this.unwrapEl();
+        this.$el.modal('show');
+    },
+
+    templateHelpers: function () {
+        /**
+        Pass the current object's options for rendering on the page
+        **/
+        return this.options;
+    },
+});
+
+App.core.EditModalView = App.core.BaseModalView.extend({
     template: _.template($('#edit-modal-template').html()),
 
     events: {
@@ -320,11 +373,10 @@ App.core.EditModalView = Marionette.ItemView.extend({
         "click button#change": "changePriority",
     },
 
-    closeModal: function () {
-        this.$el.modal('toggle');
-    },
-
     changePriority: function () {
+        /**
+        Change the priority to the specified value
+        **/
         var result, status, alertType,
             currModel = this.model,
             newPriority = document.getElementById('new_priority').value;
@@ -333,10 +385,10 @@ App.core.EditModalView = Marionette.ItemView.extend({
             if (newPriority === '' || newPriority === null) {
                 throw "Error. New priority input is empty."
             }
-            if (!(Math.floor(newPriority) === newPriority && $.isNumeric(newPriority))) {
+            if (!(_.isNumber(newPriority))) {
                 throw "Error. A valid integer is required."
             }
-            this.$el.modal('toggle');
+            this.$el.modal('hide');
 
             alertType = 'info';
             status = 'Processing... Please wait.';
@@ -362,26 +414,17 @@ App.core.EditModalView = Marionette.ItemView.extend({
             });
         }
         catch(err) {
-            $('#editError').html(err);
+            this.$el.find('#editError').html(err);
         }
-    },
-
-    onRender: function () {
-        this.unwrapEl();
-        this.$el.modal('toggle');
     },
 });
 
-App.core.RemoveModalView = Marionette.ItemView.extend({
+App.core.RemoveModalView = App.core.BaseModalView.extend({
     template: _.template($('#remove-modal-template').html()),
 
     events: {
         "click button#closeButton": "closeModal",
         "click button#removeTile": "deleteTile",
-    },
-
-    closeModal: function () {
-        this.$el.modal('toggle');
     },
 
     deleteTile: function () {
@@ -391,7 +434,7 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
         var result, status, alertType,
             currModel = this.model,
             modelID = currModel.id;
-        this.$el.modal('toggle');
+        this.$el.modal('hide');
 
         alertType = 'info';
         status = 'Processing... Please wait.';
@@ -413,19 +456,12 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
             App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
         })
     },
-
-    onRender: function () {
-        this.unwrapEl();
-        this.$el.modal('toggle');
-    },
 });
-
-App.core.Category = Backbone.Model;
 
 App.core.Categories = Backbone.Collection.extend({
     defaults: {},
 
-    model: App.core.Category,
+    model: Backbone.Model,
 });
 
 App.core.Product = Backbone.Model.extend({
@@ -434,6 +470,15 @@ App.core.Product = Backbone.Model.extend({
     urlRoot: App.core.apiURL,
 
     getCustomURL: function (method) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
         switch (method) {
             case 'read':
                 return App.core.apiURL + 'page/' + pageID + '/';
@@ -451,6 +496,15 @@ App.core.Product = Backbone.Model.extend({
     },
 
     search: function (searchString) {
+        /**
+        Calls for a search of the object by doing a Backbone.sync to API server
+
+        inputs:
+            searchString: containing the search options (id/num/etc)
+
+        output:
+            API server response
+        **/
         var options = {
             'url': this.getCustomURL('search'),
         };
@@ -458,6 +512,15 @@ App.core.Product = Backbone.Model.extend({
     },
 
     scrape: function (URL) {
+        /**
+        Calls for a scrape of the product by doing a Backbone.sync to API server
+
+        inputs:
+            URL: containing the URL to be scraped
+
+        output:
+            API server response
+        **/
         var options = {
             'url': this.getCustomURL('scrape'),
         };
@@ -470,11 +533,16 @@ App.core.Content = Backbone.Model.extend({
 
     urlRoot: App.core.apiURL,
 
-    initialize: function () {
-
-    },
-
     getCustomURL: function (method) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
         switch (method) {
             case 'read':
                 return App.core.apiURL + 'page/' + pageID + '/';
@@ -492,6 +560,15 @@ App.core.Content = Backbone.Model.extend({
     },
 
     search: function (searchString) {
+        /**
+        Calls for a search of the object by doing a Backbone.sync to API server
+
+        inputs:
+            searchString: containing the search options (id/num/etc)
+
+        output:
+            API server response
+        **/
         var options = {
             'url': this.getCustomURL('search')
         };
@@ -499,6 +576,15 @@ App.core.Content = Backbone.Model.extend({
     },
 
     scrape: function (URL) {
+        /**
+        Calls for a scrape of the product by doing a Backbone.sync to API server
+
+        inputs:
+            URL: containing the URL to be scraped
+
+        output:
+            API server response
+        **/
         var options = {
             'url': this.getCustomURL('scrape')
         };
@@ -508,17 +594,22 @@ App.core.Content = Backbone.Model.extend({
 
 App.core.Page = Backbone.Model.extend({
     defaults: {
-        selection: '' ,
+        selection: '',
         num: ''
     },
 
     urlRoot: App.core.apiURL,
 
-    initialize: function () {
-
-    },
-
     getCustomURL: function (method) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
         switch (method) {
             case 'read':
                 return App.core.apiURL + 'page/' + pageID + '/';
@@ -536,6 +627,15 @@ App.core.Page = Backbone.Model.extend({
     },
 
     add: function (product) {
+        /**
+        Calls for a addition of the product by doing a Backbone.sync to API server
+
+        inputs:
+            product: containing the product to be added
+
+        output:
+            API server response
+        **/
         var options = {
             'url': this.getCustomURL('add')
         };
@@ -543,6 +643,15 @@ App.core.Page = Backbone.Model.extend({
     },
 
     remove: function (product) {
+        /**
+        Calls for a removal of the product by doing a Backbone.sync to API server
+
+        inputs:
+            product: containing the product to be removed
+
+        output:
+            API server response
+        **/
         var options = {
             'url': this.getCustomURL('remove')
         };
@@ -550,30 +659,61 @@ App.core.Page = Backbone.Model.extend({
     }
 });
 
-App.core.AddObjectModalView = Marionette.ItemView.extend({
+App.core.AddObjectModalView = App.core.BaseModalView.extend({
     template: _.template($('#add-object-template').html()),
+
+    onRender: function () {
+        /**
+        Once the add modal has been rendered, generate the form and add to the body of the modal.
+        **/
+        this.unwrapEl();
+
+        var addObjectModel = Backbone.Model.extend({
+            schema: {
+                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+                num:       { title: 'Number', type: 'Text' },
+                category:  { title: 'Category', type: 'Text' },
+            },
+            defaults: {
+                selection: 'ID',
+            },
+        });
+
+        this.addObject = new addObjectModel();
+
+        if (this.options.objectType === "Product") {
+            this.addObject.schema.selection.options.push("SKU");
+            this.addObject.schema.priority = { title: 'Priority', type: 'Text' };
+        }
+
+        this.addObjectForm = new Backbone.Form({
+            model: this.addObject,
+        }).render();
+
+        this.$el.find('.add-form').html(this.addObjectForm.el);
+        this.$el.modal('show');
+    },
 
     events: {
         "click button#add": "addObject",
         "click button#close": "closeModal",
     },
 
-    closeModal: function () {
-        this.$el.modal('toggle');
-    },
-
     addObject: function () {
+        /**
+        Add the object to the page.
+        **/
         var result, idLength, responseText, alertType, status, selection,
             num, page, searchString, priority, category,
             thisBackUp  = this,
             objectType = this.options.objectType;
 
         if (objectType === "Product") {
-            App.addProductForm.commit();
-            selection   = App.addProduct.attributes.selection;
-            num         = App.addProduct.attributes.num;
-            priority    = App.addProduct.attributes.priority;
-            category    = App.addProduct.attributes.category;
+            thisBackUp.addObjectForm.commit();
+            selection   = thisBackUp.addObject.attributes.selection;
+            num         = thisBackUp.addObject.attributes.num;
+            priority    = thisBackUp.addObject.attributes.priority;
+            category    = thisBackUp.addObject.attributes.category;
             page        = new App.core.Page({
                 type: "product",
                 selection: selection,
@@ -583,10 +723,10 @@ App.core.AddObjectModalView = Marionette.ItemView.extend({
             });
             searchString = new App.core.Product();
         } else {
-            App.addContentForm.commit();
-            selection   = App.addContent.attributes.selection;
-            num         = App.addContent.attributes.num;
-            category    = App.addContent.attributes.category;
+            thisBackUp.addObjectForm.commit();
+            selection   = thisBackUp.addObject.attributes.selection;
+            num         = thisBackUp.addObject.attributes.num;
+            category    = thisBackUp.addObject.attributes.category;
             page        = new App.core.Page({
                 type: "content",
                 selection: selection,
@@ -637,7 +777,7 @@ App.core.AddObjectModalView = Marionette.ItemView.extend({
                     else {
                         alertType = 'warning';
                     }
-                    thisBackUp.$el.modal('toggle');
+                    thisBackUp.$el.modal('hide');
                     App.feedback.show(new App.core.FeedbackView({
                         'alertType': alertType,
                         'status': responseText.status
@@ -692,39 +832,59 @@ App.core.AddObjectModalView = Marionette.ItemView.extend({
             }
         });
     },
-
-    templateHelpers: function () {
-        return this.options;
-    },
-
-    onRender: function () {
-        this.unwrapEl();
-        this.$el.modal('toggle');
-    },
 });
 
-App.core.RemoveObjectModalView = Marionette.ItemView.extend({
+App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
     template: _.template($('#remove-object-template').html()),
+
+    onRender: function () {
+        /**
+        Once the remove modal has been rendered, generate the form and add to the body of the modal.
+        **/
+        this.unwrapEl();
+
+        var removeObjectModel = Backbone.Model.extend({
+            schema: {
+                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+                num:       { title: 'Number', type: 'Text' },
+            },
+            defaults: {
+                selection: 'ID',
+            },
+        });
+
+        this.removeObject = new removeObjectModel();
+
+        if (this.options.objectType === "Product") {
+            this.removeObject.schema.selection.options.push("SKU");
+        }
+
+        this.removeObjectForm = new Backbone.Form({
+            model: this.removeObject,
+        }).render();
+
+        this.$el.find('.remove-form').html(this.removeObjectForm.el);
+        this.$el.modal('show');
+    },
 
     events: {
         "click button#remove": "removeObject",
         "click button#close": "closeModal",
     },
 
-    closeModal: function () {
-        this.$el.modal('toggle');
-    },
-
     removeObject: function () {
+        /**
+        Remove the object from the page.
+        **/
         var result, idLength, responseText, alertType, status,
             selection, num, page, searchString,
             thisBackUp  = this,
             objectType = this.options.objectType;
 
         if (objectType === "Product") {
-            App.removeProductForm.commit();
-            selection = App.removeProduct.attributes.selection;
-            num = App.removeProduct.attributes.num;
+            this.removeObjectForm.commit();
+            selection = this.removeObject.attributes.selection;
+            num = this.removeObject.attributes.num;
             page = new App.core.Page({
                 type: "product",
                 selection: selection,
@@ -732,9 +892,9 @@ App.core.RemoveObjectModalView = Marionette.ItemView.extend({
             })
             searchString = new App.core.Product();
         } else {
-            App.removeContentForm.commit();
-            selection = App.removeContent.attributes.selection,
-            num = App.removeContent.attributes.num,
+            this.removeObjectForm.commit();
+            selection = this.removeObject.attributes.selection,
+            num = this.removeObject.attributes.num,
             page = new App.core.Page({
                 type: "content",
                 selection: selection,
@@ -777,7 +937,7 @@ App.core.RemoveObjectModalView = Marionette.ItemView.extend({
                     else {
                         alertType = 'warning';
                     }
-                    thisBackUp.$el.modal('toggle');
+                    thisBackUp.$el.modal('hide');
                     App.feedback.show(new App.core.FeedbackView({
                         'alertType': alertType,
                         'status': responseText.status
@@ -802,15 +962,6 @@ App.core.RemoveObjectModalView = Marionette.ItemView.extend({
             }
         });
     },
-
-    templateHelpers: function () {
-        return this.options;
-    },
-
-    onRender: function () {
-        this.unwrapEl();
-        this.$el.modal('toggle');
-    },
 });
 
 App.core.CategoryView = Marionette.ItemView.extend({
@@ -828,9 +979,6 @@ App.core.CategoriesView = Marionette.CollectionView.extend({
 App.core.ControlBarView = Marionette.ItemView.extend({
     template: _.template($('#control-bar-template').html()),
 
-    initialize: function () {
-    },
-
     events: {
         "click a": "filterClicked",
         "click button#add-product": "addProduct",
@@ -840,109 +988,54 @@ App.core.ControlBarView = Marionette.ItemView.extend({
     },
 
     filterClicked: function (e) {
-        var filterID = e.currentTarget.id;
-        
-        console.log(filterID);
-        var a = new App.core.TileCollectionView({ 
-            collection: App.tiles.currentView.collection,
+        /**
+        Filter the page by the category chosen.
 
-            filter: function (child, index, collection) {
-                _.each(child.get('categories'), function (val) {
-                    if (val['name'] === filterID) {
-                        return true;
-                    }
-                });
-                return false;
-            }
-        });
-        App.tiles.show(a);
+        inputs:
+            e: the event triggered when an option is clicked. Contains
+                   the target clicked.
+        **/
+        var filterID = e.currentTarget.id,
+            tileCollectionView = new App.core.TileCollectionView({ 
+                collection: App.tiles.currentView.collection,
+
+                filter: function (child, index, collection) {
+                    return Boolean(_.findWhere(child.get('categories'), {'name': filterID}));
+                }
+            });
+        if (filterID === "View all tiles") {
+            tileCollectionView.filter = null;
+        }
+        this.$el.find('category-dropdown-button').html(filterID);
+        App.tiles.show(tileCollectionView);
     },
 
     addProduct: function () {
+        /**
+        Generate and render the add product modal
+        **/
         App.modal.show(new App.core.AddObjectModalView({'objectType': "Product"}));
-
-        App.core.addProductModel = Backbone.Model.extend({
-            schema: {
-                selection: { title: 'Selection', type: 'Select', options: ['URL', 'SKU', 'ID'] },
-                num:       { title: 'Number', type: 'Text' },
-                priority:  { title: 'Priority', type: 'Text' },
-                category:  { title: 'Category', type: 'Text' },
-            },
-            defaults: {
-                selection: 'ID',
-            },
-        });
-        App.addProduct = new App.core.addProductModel();
-
-        App.addProductForm = new Backbone.Form({
-            model: App.addProduct,
-        }).render();
-
-        $('.add-form').html(App.addProductForm.el);
     },
 
     removeProduct: function () {
+        /**
+        Generate and render the remove product modal
+        **/
         App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Product"}));
-
-        App.core.removeProductModel = Backbone.Model.extend({
-            schema: {
-                selection: { title: 'Selection', type: 'Select', options: ['URL', 'SKU', 'ID'] },
-                num:       { title: 'Number', type: 'Text' },
-            },
-            defaults: {
-                selection: 'ID',
-            },
-        });
-        App.removeProduct = new App.core.removeProductModel();
-
-        App.removeProductForm = new Backbone.Form({
-            model: App.removeProduct,
-        }).render();
-
-        $('.remove-form').html(App.removeProductForm.el);
     },
 
     addContent: function () {
+        /**
+        Generate and render the add content modal
+        **/
         App.modal.show(new App.core.AddObjectModalView({'objectType': "Content"}));
-
-        App.core.addContentModel = Backbone.Model.extend({
-            schema: {
-                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
-                num:       { title: 'Number', type: 'Text' },
-                category:  { title: 'Category', type: 'Text' },
-            },
-            defaults: {
-                selection: 'ID',
-            },
-        });
-        App.addContent = new App.core.addContentModel();
-
-        App.addContentForm = new Backbone.Form({
-            model: App.addContent,
-        }).render();
-
-        $('.add-form').html(App.addContentForm.el);
     },
 
     removeContent: function () {
+        /**
+        Generate and render the remove content modal
+        **/
         App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Content"}));
-
-        App.core.removeContentModel = Backbone.Model.extend({
-            schema: {
-                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
-                num:       { title: 'Number', type: 'Text' },
-            },
-            defaults: {
-                selection: 'ID',
-            },
-        });
-        App.removeContent = new App.core.removeContentModel();
-
-        App.removeContentForm = new Backbone.Form({
-            model: App.removeContent,
-        }).render();
-
-        $('.remove-form').html(App.removeContentForm.el);
     },
 });
 
