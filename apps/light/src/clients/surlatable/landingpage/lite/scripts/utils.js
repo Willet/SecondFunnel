@@ -29,7 +29,8 @@ module.exports = function (module, App, Backbone, Marionette, $, _) {
         var params = {
             "utm_source":   "SecondFunnel",
             "utm_medium":   "Pages",
-            "utm_campaign": App.option("page:slug")
+            "utm_campaign": App.option("page:slug"),
+            "utm_content": App.intentRank.currentCategory()
         };
         return module.urlAddParams(url, _.extend({}, params, App.option("page:urlParams")));
     };
