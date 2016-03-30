@@ -11,18 +11,46 @@ var App = Marionette.Application.extend({
         tiles: "#tiles",
         modal: "#modal",
         feedback: "#feedback",
-        extraOptions: "#extraOptions",
+        controlBar: "#controlBar",
     },
 
     initialize: function () {
         var tiles = new App.core.TileCollection();    //Collection of all tiles
-        this.tiles.show(new App.core.TileCollectionView({ collection: tiles })); //View of all tiles
+
+        tiles.fetch().done(function () {
+            $('#loading-spinner').hide();
+
+            App.controlBar.show(new App.core.ControlBarView());
+
+            App.categories = new App.core.Categories();
+            _.each(tiles.models, function (val) {
+                _.each(val.attributes.categories, function (cat) {
+                    var exist = false;
+                    for (var i = 0; i < App.categories.length; i++) {
+                        if (App.categories.models[i].id === cat.id) {
+                            exist = true;
+                            break;
+                        }
+                    }
+                    if (!exist) {
+                        var category = new App.core.Category();
+                        category.set(cat);
+                        App.categories.add(category);
+                    }
+                })
+            });
+            App.categoriesView = new App.core.CategoriesView({ collection: App.categories });
+            App.categoriesView.render();
+        });
+        var test = new App.core.TileCollectionView({ collection: tiles });
+        this.tiles.show(test); //View of all tiles
     },
 });
 
 App.core = {};
 
-App.core.apiURL = "http://" + window.location.host + "/api2/";
+//App.core.apiURL = "http://production.secondfunnel.com/api2/";
+App.core.apiURL = "http://localhost:8000/api2/";
 
 App.core.Tile = Backbone.Model;
 
@@ -243,11 +271,6 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     childView: App.core.TileView,
 
     initialize: function () {
-        this.collection.fetch();
-        this.listenTo(this.collection, 'add', _.debounce(function () {
-            $('#loading-spinner').hide();
-            App.extraOptions.show(new App.core.ExtraOptionsView());
-        }, 100));
         this.listenTo(this.collection, 'change destroy', _.debounce(function () {this.collection.sort();}, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
@@ -310,7 +333,7 @@ App.core.EditModalView = Marionette.ItemView.extend({
             if (newPriority === '' || newPriority === null) {
                 throw "Error. New priority input is empty."
             }
-            if (!(Math.floor(newPriority) == newPriority && $.isNumeric(newPriority))) {
+            if (!(Math.floor(newPriority) === newPriority && $.isNumeric(newPriority))) {
                 throw "Error. A valid integer is required."
             }
             this.$el.modal('toggle');
@@ -379,12 +402,11 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
             url: App.core.apiURL + 'tile/' + modelID + '/',
         });
         result.always(function () {
-            if (result.status == 200) {
+            if (result.status === 200) {
                 alertType = 'success';
                 status = "The tile with ID: " + currModel.id +
                              " has been deleted.";
-            }
-            else {
+            } else {
                 alertType = 'danger';
                 status = JSON.parse(result.responseText);
             }
@@ -396,6 +418,14 @@ App.core.RemoveModalView = Marionette.ItemView.extend({
         this.unwrapEl();
         this.$el.modal('toggle');
     },
+});
+
+App.core.Category = Backbone.Model;
+
+App.core.Categories = Backbone.Collection.extend({
+    defaults: {},
+
+    model: App.core.Category,
 });
 
 App.core.Product = Backbone.Model.extend({
@@ -566,11 +596,11 @@ App.core.AddObjectModalView = Marionette.ItemView.extend({
             searchString = new App.core.Content();
         }
 
-        if (selection == 'URL')
+        if (selection === 'URL')
             searchString.set({url: num});
-        if (selection == 'ID')
+        if (selection === 'ID')
             searchString.set({id: num});
-        if (selection == 'SKU')
+        if (selection === 'SKU')
             searchString.set({sku: num});
 
         result = searchString.search(searchString);
@@ -601,7 +631,7 @@ App.core.AddObjectModalView = Marionette.ItemView.extend({
                 result = page.add(page);
                 result.always(function () {
                     responseText = JSON.parse(result.responseText);
-                    if (result.status == 200) {
+                    if (result.status === 200) {
                         alertType = 'success';
                     }
                     else {
@@ -622,7 +652,7 @@ App.core.AddObjectModalView = Marionette.ItemView.extend({
                         'status': status
                     }));
                 } else {
-                    if ((selection == 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
+                    if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
                         alertType = 'info';
                         status = responseText.status + " Scraping...";
                         App.feedback.show(new App.core.FeedbackView({
@@ -713,11 +743,11 @@ App.core.RemoveObjectModalView = Marionette.ItemView.extend({
             searchString = new App.core.Content();
         }
 
-        if (selection == 'URL')
+        if (selection === 'URL')
             searchString.set({url: num});
-        if (selection == 'ID')
+        if (selection === 'ID')
             searchString.set({id: num});
-        if (selection == 'SKU')
+        if (selection === 'SKU')
             searchString.set({sku: num});
 
         result = searchString.search(searchString);
@@ -741,7 +771,7 @@ App.core.RemoveObjectModalView = Marionette.ItemView.extend({
                 result = page.remove(page);
                 result.always(function () {
                     responseText = JSON.parse(result.responseText);
-                    if (result.status == 200) {
+                    if (result.status === 200) {
                         alertType = 'success';
                     }
                     else {
@@ -783,14 +813,49 @@ App.core.RemoveObjectModalView = Marionette.ItemView.extend({
     },
 });
 
-App.core.ExtraOptionsView = Marionette.ItemView.extend({
-    template: _.template($('#extra-options-template').html()),
+App.core.CategoryView = Marionette.ItemView.extend({
+    template: _.template($('#category-template').html()),
+
+    tagName: 'li',
+});
+
+App.core.CategoriesView = Marionette.CollectionView.extend({
+    el: "#categories",
+
+    childView: App.core.CategoryView,
+});
+
+App.core.ControlBarView = Marionette.ItemView.extend({
+    template: _.template($('#control-bar-template').html()),
+
+    initialize: function () {
+    },
 
     events: {
+        "click a": "filterClicked",
         "click button#add-product": "addProduct",
         "click button#remove-product": "removeProduct",
         "click button#add-content": "addContent",
         "click button#remove-content": "removeContent",
+    },
+
+    filterClicked: function (e) {
+        var filterID = e.currentTarget.id;
+        
+        console.log(filterID);
+        var a = new App.core.TileCollectionView({ 
+            collection: App.tiles.currentView.collection,
+
+            filter: function (child, index, collection) {
+                _.each(child.get('categories'), function (val) {
+                    if (val['name'] === filterID) {
+                        return true;
+                    }
+                });
+                return false;
+            }
+        });
+        App.tiles.show(a);
     },
 
     addProduct: function () {
@@ -881,8 +946,7 @@ App.core.ExtraOptionsView = Marionette.ItemView.extend({
     },
 });
 
-var a   = App.core,
+var core   = App.core,
     App = new App();
-
-App.core = a;
+App.core = core;
 App.start();

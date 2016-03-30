@@ -531,7 +531,7 @@ class PageViewSet(viewsets.ModelViewSet):
             category = data.get('category', None)
             priority = data.get('priority', 0)
             add_type = data.get('type', None)
-            
+
             force_create_tile = bool(data.get('force_create_tile') in ["True", "true"])
             
             if not obj_id:
@@ -680,6 +680,7 @@ class TileDetail(APIView):
             serialized_tile: <dict> containing tile details
         """
         serialized_tile = TileSerializer(tile).data
+
         if tile['template'] == 'product':
             product =  tile['products'].first()
             if product is not None:
@@ -718,14 +719,14 @@ class TileDetail(APIView):
         tile = get_object_or_404(Tile, pk=pk)
         dashboards = profile.dashboards.all()
 
-        status = "Not allowed."
-        status_code = 400
-
         tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
 
         if tile_in_user_dashboards:
             status = self.get_serialized_tile(tile)
             status_code = 200
+        else:
+            status = "Not allowed."
+            status_code = 400
 
         return Response(status, status_code)
 
@@ -769,15 +770,15 @@ class TileDetail(APIView):
         profile = UserProfile.objects.get(user=self.request.user)
         tile = get_object_or_404(Tile, pk=pk)
 
-        status = {"detail": "Not allowed"}
-        status_code = 400
-
         tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
 
         if tile_in_user_dashboards:
             tile.delete()
             status = "Successfully deleted tile with ID: " + pk + "."
             status_code = 200
+        else:
+            status = {"detail": "Not allowed"}
+            status_code = 400
 
         return Response(status, status=status_code)
 
@@ -796,7 +797,7 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
 
         returns:
             serialized tile or status message of errors
-        """        
+        """
         request_get = request.GET
 
         status = "Missing page parameter."
@@ -828,6 +829,10 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                     for t in tiles:
                         a = TileDetail()
                         serialized_data = TileDetail.get_serialized_tile(a, t)
+                        t_categories = []
+                        for c in t.categories.all():
+                            t_categories.append({'id': c.id, 'name': c.name })
+                        serialized_data['categories'] = t_categories
 
                         serialized_tiles.append(serialized_data)
                     status = serialized_tiles
