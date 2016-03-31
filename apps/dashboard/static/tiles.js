@@ -28,9 +28,7 @@ var App = Marionette.Application.extend({
 
             App.categories = new App.core.Categories();
 
-            var category = new Backbone.Model();
-            category.set({'id': 0, name: 'View all tiles'});
-            App.categories.add(category);
+            App.categories.add({'id': 0, name: 'View all tiles'});
 
             _.each(tiles.models, function (val) {
                 _.each(val.attributes.categories, function (cat) {
@@ -42,9 +40,7 @@ var App = Marionette.Application.extend({
                         }
                     }
                     if (!exist) {
-                        var category = new Backbone.Model();
-                        category.set(cat);
-                        App.categories.add(category);
+                        App.categories.add(cat);
                     }
                 })
             });
@@ -98,10 +94,10 @@ App.core.TileCollection = Backbone.Collection.extend({
             index: index to move tile to, with index = 0 indicating 1st item of list of tiles
         **/
         var diff, prioDiff, options, moveTileCollection, result, alertType,
-            batch = [],
-            tileCollection = this,
-            tiles = this.models,
-            tileInd = this.findIndexWhere({'id': parseInt(tileID)});
+            batch           = [],
+            tileCollection  = this,
+            tiles           = this.models,
+            tileInd         = this.findIndexWhere({'id': parseInt(tileID)});
 
         // First clone the tiles:
         _.each(tiles, function(val, i){ tiles[i] = val.clone(); });
@@ -266,16 +262,12 @@ App.core.TileView = Marionette.ItemView.extend({
     },
 
     removeModal: function () {
-        /**
-        Draw the modal displayed when the Remove button is clicked
-        **/
+        //Draw the modal displayed when the Remove button is clicked
         App.modal.show(new App.core.RemoveModalView({ model: this.model }));
     },
 
     editModal: function () {
-        /**
-        Draw the modal displayed when the tile is clicked on
-        **/
+        // Draw the modal displayed when the tile is clicked on
         App.modal.show(new App.core.EditModalView({ model: this.model }));
     },
 });
@@ -286,17 +278,13 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     childView: App.core.TileView,
 
     initialize: function () {
-        /**
-        Initialize the tile collection by setting the listenTo's
-        **/
+        // Initialize the tile collection by setting the listenTo's
         this.listenTo(this.collection, 'change destroy', _.debounce(function () {this.collection.sort();}, 100));
         this.listenTo(this.collection, 'sort', _.debounce(this.render, 100));
     },
 
     onShow: function () {
-        /**
-        Make the tiles in the collection sortable.
-        **/
+        // Make the tiles in the collection sortable.
         $('#backbone-tiles').sortable({
             start: function (event, ui) {
                 var startPos = ui.item.index() - 1;
@@ -305,14 +293,14 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
             },
 
             update: function (event, ui) {
-                var alertType, status,
-                    startPos = ui.item.data('startPos'),
+                var startPos = ui.item.data('startPos'),
                     endPos = ui.item.index() - 1,
                     movedTileID = App.tiles.currentView.collection.models[startPos].get('id');
 
-                alertType = 'info';
-                status = 'Processing... Please wait.';
-                App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+                App.feedback.show(new App.core.FeedbackView({
+                    'alertType': 'info',
+                    'status': 'Processing... Please wait.'
+                }));
 
                 App.tiles.currentView.collection.moveTileToPosition(movedTileID, endPos);
             },
@@ -324,28 +312,21 @@ App.core.FeedbackView = Marionette.ItemView.extend({
     template: _.template($('#feedback-template').html()),
 
     initialize: function (options) {
-        /* Wait 10s before removing the alert */
+        // Wait 10s before removing the alert
         setTimeout(function () { App.feedback.empty(); }, 10000);
     },
 
     templateHelpers: function () {
-        /**
-        Pass the current object's options for rendering on the page
-        **/
         return this.options;
     },
 });
 
 App.core.BaseModalView = Marionette.ItemView.extend({
-    /** 
-    BaseModalView: Contains the shared modal functions.
-    **/
+    // BaseModalView: Contains the shared modal functions.
 
     closeModal: function () {
-        /**
-        Close the modal by hiding it
-        **/
-        this.$el.modal('hide');
+        // Close the modal by hiding it
+        this.$el.modal('hide'); // Toggle Bootstrap modal to hide
     },
 
     onRender: function () {
@@ -354,13 +335,10 @@ App.core.BaseModalView = Marionette.ItemView.extend({
         Show the modal by toggling its status to show.
         **/
         this.unwrapEl();
-        this.$el.modal('show');
+        this.$el.modal('show'); // Toggle Bootstrap modal to show
     },
 
     templateHelpers: function () {
-        /**
-        Pass the current object's options for rendering on the page
-        **/
         return this.options;
     },
 });
@@ -374,26 +352,24 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     changePriority: function () {
-        /**
-        Change the priority to the specified value
-        **/
+        // Change the priority to the specified value
         var result, status, alertType,
             currModel = this.model,
-            newPriority = document.getElementById('new_priority').value;
+            newPriority = this.$el.find('#new_priority').val();
 
         try {
             if (newPriority === '' || newPriority === null) {
                 throw "Error. New priority input is empty."
             }
-            if (!(_.isNumber(newPriority))) {
+            if (isNaN(newPriority)) {
                 throw "Error. A valid integer is required."
             }
-            this.$el.modal('hide');
+            this.$el.modal('hide'); // Toggle Bootstrap modal to hide
 
-            alertType = 'info';
-            status = 'Processing... Please wait.';
-
-            App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+            App.feedback.show(new App.core.FeedbackView({
+                'alertType': 'info',
+                'status': 'Processing... Please wait.'
+            }));
 
             result = currModel.save({priority: newPriority}, {
                 patch: true,
@@ -428,18 +404,16 @@ App.core.RemoveModalView = App.core.BaseModalView.extend({
     },
 
     deleteTile: function () {
-        /**
-        Remove the tile from the page
-        **/
+        // Remove the tile from the page
         var result, status, alertType,
-            currModel = this.model,
-            modelID = currModel.id;
-        this.$el.modal('hide');
+            currModel   = this.model,
+            modelID     = currModel.id;
+        this.$el.modal('hide'); // Toggle Bootstrap modal to hide
 
-        alertType = 'info';
-        status = 'Processing... Please wait.';
-
-        App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+        App.feedback.show(new App.core.FeedbackView({
+            'alertType': 'info',
+            'status': 'Processing... Please wait.'
+        }));
 
         result = currModel.destroy({
             url: App.core.apiURL + 'tile/' + modelID + '/',
@@ -480,8 +454,6 @@ App.core.Product = Backbone.Model.extend({
             URL for REST method
         **/
         switch (method) {
-            case 'read':
-                return App.core.apiURL + 'page/' + pageID + '/';
             case 'search':
                 return App.core.apiURL + 'product/' + method + '/';
             case 'scrape':
@@ -544,8 +516,6 @@ App.core.Content = Backbone.Model.extend({
             URL for REST method
         **/
         switch (method) {
-            case 'read':
-                return App.core.apiURL + 'page/' + pageID + '/';
             case 'search':
                 return App.core.apiURL + 'content/' + method + '/';
             case 'scrape':
@@ -611,8 +581,6 @@ App.core.Page = Backbone.Model.extend({
             URL for REST method
         **/
         switch (method) {
-            case 'read':
-                return App.core.apiURL + 'page/' + pageID + '/';
             case 'add':
                 return App.core.apiURL + 'page/' + pageID + '/' + method + '/';
             case 'remove':
@@ -663,9 +631,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
     template: _.template($('#add-object-template').html()),
 
     onRender: function () {
-        /**
-        Once the add modal has been rendered, generate the form and add to the body of the modal.
-        **/
+        // Once the add modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
 
         var addObjectModel = Backbone.Model.extend({
@@ -679,19 +645,19 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             },
         });
 
-        this.addObject = new addObjectModel();
+        this.addObjectInstance = new addObjectModel();
 
         if (this.options.objectType === "Product") {
-            this.addObject.schema.selection.options.push("SKU");
-            this.addObject.schema.priority = { title: 'Priority', type: 'Text' };
+            this.addObjectInstance.schema.selection.options.push("SKU");
+            this.addObjectInstance.schema.priority = { title: 'Priority', type: 'Text' };
         }
 
         this.addObjectForm = new Backbone.Form({
-            model: this.addObject,
+            model: this.addObjectInstance,
         }).render();
 
         this.$el.find('.add-form').html(this.addObjectForm.el);
-        this.$el.modal('show');
+        this.$el.modal('show'); // Toggle Bootstrap modal to show
     },
 
     events: {
@@ -700,20 +666,18 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
     },
 
     addObject: function () {
-        /**
-        Add the object to the page.
-        **/
+        // Add the object to the page.
         var result, idLength, responseText, alertType, status, selection,
             num, page, searchString, priority, category,
-            thisBackUp  = this,
-            objectType = this.options.objectType;
+            that        = this,
+            objectType  = this.options.objectType;
 
         if (objectType === "Product") {
-            thisBackUp.addObjectForm.commit();
-            selection   = thisBackUp.addObject.attributes.selection;
-            num         = thisBackUp.addObject.attributes.num;
-            priority    = thisBackUp.addObject.attributes.priority;
-            category    = thisBackUp.addObject.attributes.category;
+            this.addObjectForm.commit();
+            selection   = this.addObjectInstance.attributes.selection;
+            num         = this.addObjectInstance.attributes.num;
+            priority    = this.addObjectInstance.attributes.priority;
+            category    = this.addObjectInstance.attributes.category;
             page        = new App.core.Page({
                 type: "product",
                 selection: selection,
@@ -723,10 +687,10 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             });
             searchString = new App.core.Product();
         } else {
-            thisBackUp.addObjectForm.commit();
-            selection   = thisBackUp.addObject.attributes.selection;
-            num         = thisBackUp.addObject.attributes.num;
-            category    = thisBackUp.addObject.attributes.category;
+            this.addObjectForm.commit();
+            selection   = this.addObjectInstance.attributes.selection;
+            num         = this.addObjectInstance.attributes.num;
+            category    = this.addObjectInstance.attributes.category;
             page        = new App.core.Page({
                 type: "content",
                 selection: selection,
@@ -777,7 +741,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                     else {
                         alertType = 'warning';
                     }
-                    thisBackUp.$el.modal('hide');
+                    that.$el.modal('hide'); // Toggle Bootstrap modal to hide
                     App.feedback.show(new App.core.FeedbackView({
                         'alertType': alertType,
                         'status': responseText.status
@@ -785,19 +749,15 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 })
             } else {
                 if (idLength > 1) {
-                    alertType = 'danger';
-                    status = "Error: " + responseText.status;
                     App.feedback.show(new App.core.FeedbackView({
-                        'alertType': alertType,
-                        'status': status
+                        'alertType': 'danger',
+                        'status': "Error: " + responseText.status
                     }));
                 } else {
                     if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
-                        alertType = 'info';
-                        status = responseText.status + " Scraping...";
                         App.feedback.show(new App.core.FeedbackView({
-                            'alertType': alertType,
-                            'status': status
+                            'alertType': 'info',
+                            'status': responseText.status + " Scraping..."
                         }));
                         if (objectType === "Product") {
                             var scrapeURL = new App.core.Product({
@@ -814,17 +774,14 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                         }
                         result.always(function () {
                             responseText = JSON.parse(result.responseText);
-                            alertType = 'success';
-                            status = responseText.status;
                             App.feedback.show(new App.core.FeedbackView({
-                                'alertType': alertType,
-                                'status': status
+                                'alertType': 'success',
+                                'status': responseText.status
                             }));
                         })
                     } else {
-                        alertType = 'warning';
                         App.feedback.show(new App.core.FeedbackView({
-                            'alertType': alertType,
+                            'alertType': 'warning',
                             'status': responseText.status
                         }));
                     }
@@ -838,9 +795,7 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
     template: _.template($('#remove-object-template').html()),
 
     onRender: function () {
-        /**
-        Once the remove modal has been rendered, generate the form and add to the body of the modal.
-        **/
+        // Once the remove modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
 
         var removeObjectModel = Backbone.Model.extend({
@@ -853,18 +808,18 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             },
         });
 
-        this.removeObject = new removeObjectModel();
+        this.removeObjectInstance = new removeObjectModel();
 
         if (this.options.objectType === "Product") {
-            this.removeObject.schema.selection.options.push("SKU");
+            this.removeObjectInstance.schema.selection.options.push("SKU");
         }
 
         this.removeObjectForm = new Backbone.Form({
-            model: this.removeObject,
+            model: this.removeObjectInstance,
         }).render();
 
         this.$el.find('.remove-form').html(this.removeObjectForm.el);
-        this.$el.modal('show');
+        this.$el.modal('show'); // Toggle Bootstrap modal to show
     },
 
     events: {
@@ -873,19 +828,17 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
     },
 
     removeObject: function () {
-        /**
-        Remove the object from the page.
-        **/
+        // Remove the object from the page.
         var result, idLength, responseText, alertType, status,
             selection, num, page, searchString,
-            thisBackUp  = this,
-            objectType = this.options.objectType;
+            that        = this,
+            objectType  = this.options.objectType;
 
         if (objectType === "Product") {
             this.removeObjectForm.commit();
-            selection = this.removeObject.attributes.selection;
-            num = this.removeObject.attributes.num;
-            page = new App.core.Page({
+            selection   = this.removeObjectInstance.attributes.selection;
+            num         = this.removeObjectInstance.attributes.num;
+            page        = new App.core.Page({
                 type: "product",
                 selection: selection,
                 num: num,
@@ -893,9 +846,9 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             searchString = new App.core.Product();
         } else {
             this.removeObjectForm.commit();
-            selection = this.removeObject.attributes.selection,
-            num = this.removeObject.attributes.num,
-            page = new App.core.Page({
+            selection   = this.removeObjectInstance.attributes.selection,
+            num         = this.removeObjectInstance.attributes.num,
+            page        = new App.core.Page({
                 type: "content",
                 selection: selection,
                 num: num,
@@ -937,7 +890,7 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
                     else {
                         alertType = 'warning';
                     }
-                    thisBackUp.$el.modal('hide');
+                    that.$el.modal('hide'); // Toggle Bootstrap modal to hide
                     App.feedback.show(new App.core.FeedbackView({
                         'alertType': alertType,
                         'status': responseText.status
@@ -945,18 +898,14 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
                 });
             } else {
                 if (idLength > 1) {
-                    alertType = 'danger';
-                    status = "Error: " + responseText.status;
                     App.feedback.show(new App.core.FeedbackView({
-                        'alertType': alertType,
-                        'status': status
+                        'alertType': 'danger',
+                        'status': "Error: " + responseText.status
                     }));
                 } else {
-                    alertType = 'warning';
-                    status = responseText.status;
                     App.feedback.show(new App.core.FeedbackView({
-                        'alertType': alertType,
-                        'status': status
+                        'alertType': 'warning',
+                        'status': responseText.status
                     }));
                 }
             }
@@ -998,43 +947,33 @@ App.core.ControlBarView = Marionette.ItemView.extend({
         var filterID = e.currentTarget.id,
             tileCollectionView = new App.core.TileCollectionView({ 
                 collection: App.tiles.currentView.collection,
-
-                filter: function (child, index, collection) {
-                    return Boolean(_.findWhere(child.get('categories'), {'name': filterID}));
-                }
             });
-        if (filterID === "View all tiles") {
-            tileCollectionView.filter = null;
+        if (filterID !== "View all tiles") {
+            tileCollectionView.filter = function (child, index, collection) {
+                return Boolean(_.findWhere(child.get('categories'), {'name': filterID}));
+            };
         }
-        this.$el.find('category-dropdown-button').html(filterID);
+        this.$el.find('#category-dropdown-button').html(filterID + ' <span class="caret"></span>');
         App.tiles.show(tileCollectionView);
     },
 
     addProduct: function () {
-        /**
-        Generate and render the add product modal
-        **/
+        // Generate and render the add product modal
         App.modal.show(new App.core.AddObjectModalView({'objectType': "Product"}));
     },
 
     removeProduct: function () {
-        /**
-        Generate and render the remove product modal
-        **/
+        // Generate and render the remove product modal
         App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Product"}));
     },
 
     addContent: function () {
-        /**
-        Generate and render the add content modal
-        **/
+        // Generate and render the add content modal
         App.modal.show(new App.core.AddObjectModalView({'objectType': "Content"}));
     },
 
     removeContent: function () {
-        /**
-        Generate and render the remove content modal
-        **/
+        // Generate and render the remove content modal
         App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Content"}));
     },
 });

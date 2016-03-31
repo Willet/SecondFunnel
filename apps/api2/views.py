@@ -322,6 +322,26 @@ class PageViewSet(viewsets.ModelViewSet):
     queryset = Page.objects.all()
     serializer_class = PageSerializer
 
+    def retrieve(self, request, pk):
+        """
+        Overrides the default GET response for single tiles to also display categories
+        """
+        try:
+            page = Page.objects.get(pk=pk)
+        except Page.DoesNotExist:
+            status = {u'detail': u'Not found.'}
+            status_code = 404
+        else:
+            p_categories = []
+            if page.feed is not None:
+                for c in page.feed.categories.all():
+                    p_categories.append({'id': c.id, 'name': c.name })
+            status = PageSerializer(page).data
+            status['categories'] = p_categories
+            status_code = 200
+            
+        return Response(status, status=status_code)
+
     def add_product(self, filters, product_id, page, category=None, priority=None, force_create_tile=False):  
         """
         Adds product to page, with optional category and/or priority
@@ -573,10 +593,7 @@ class PageViewSet(viewsets.ModelViewSet):
                         except AttributeError as e:
                             status = e.args[0].encode('ascii', 'ignore')
                         else:
-                            if success:
-                                status_code = 200
-                            else:
-                                status_code = 404
+                            status_code = 200 if success else 404
    
         response = {
             "status": status
@@ -587,7 +604,7 @@ class PageViewSet(viewsets.ModelViewSet):
             response['tile'] = TileSerializer(tile).data 
                  
         return Response(response, status=status_code)
-    
+
     @detail_route(methods=['post'])
     def remove(self, request, pk):
         """
@@ -654,10 +671,7 @@ class PageViewSet(viewsets.ModelViewSet):
                         except AttributeError as e:
                             status = e.args[0].encode('ascii', 'ignore')
                         else:
-                            if success:
-                                status_code = 200
-                            else:
-                                status_code = 404   
+                            status_code = 200 if success else 404
 
         return Response({
             "status": status,
@@ -777,7 +791,7 @@ class TileDetail(APIView):
             status = "Successfully deleted tile with ID: " + pk + "."
             status_code = 200
         else:
-            status = {"detail": "Not allowed"}
+            status = "Not allowed"
             status_code = 400
 
         return Response(status, status=status_code)
