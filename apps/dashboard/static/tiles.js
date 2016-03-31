@@ -53,7 +53,7 @@ var App = Marionette.Application.extend({
 
 App.core = {};
 
-App.core.apiURL = "http://production.secondfunnel.com/api2/";
+App.core.apiURL = "http://" + window.location.host + "/api2/";
 
 App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
