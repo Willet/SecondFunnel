@@ -12,6 +12,7 @@
     <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
     <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/backbone.marionette.min.js" %}"></script>
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
     <script type="text/javascript" src="{% static "common.js" %}"></script>
 {% endblock %}
@@ -22,64 +23,185 @@
             <div class="row">
                 <div class="col-md-12">
                     <h2><i class="fa fa-dashboard"></i>
-                        Welcome
-                        {% if user.is_authenticated %}
-                            {{ user.first_name }}
-                        {% endif %} to {{ siteName }} 
-                        Tiles Management
+                        {{ siteName }}
                     </h2>
                 </div>
                 <!--/col-md-12-->
             </div>
             <!--/row-->
-
             <div class="block-web">
-                <h3 class="content-header">
-                    List of tiles
-                </h3>    
-                <div id="moveTilesResult"></div>
+                <!-- Loading spinner -->
+                <div id="loading-spinner">
+                    <div class="windows8">
+                        <div class="wBall" id="wBall_1">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_2">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_3">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_4">
+                            <div class="wInnerBall"></div>
+                        </div>
+                        <div class="wBall" id="wBall_5">
+                            <div class="wInnerBall"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End loading spinner -->
+
+                <div id="controlBar"></div>
+                <div id="feedback"></div>
+                <div id="tiles"></div>
+                <div id="modal"></div>
+
+                <script type="text/template" id="category-template">
+                    <a id="<%= name %>"><%= name %></a>
+                </script>
+
+                <script type="text/template" id="control-bar-template">
+                    <div class="dropdown" id="category-filter">
+                        Category: </br> 
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" id="category-dropdown-button">View all tiles
+                        <span class="caret"></span></button>
+                        <ul class="dropdown-menu" id="categories">
+                        </ul>
+                    </div> 
+                    </br>
+
+                    Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
+                                <button type="button" id="remove-product" class="btn btn-default">Remove</button>
+                    Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
+                                <button type="button" id="remove-content" class="btn btn-default">Remove</button>
+                </script>
+
+                <script type="text/template" id="feedback-template">
+                    <div class="alert-container">
+                        <div class="alert alert-<%= alertType %>" role="alert"><%= status %></div>
+                    </div>
+                </script>
+
                 <ul id="backbone-tiles">
                     <script type="text/template" id="tile-template">
-                        <div class='handle'><span class='ui-icon ui-icon-carat-2-n-s'></span></div>
-                        <a href="#modal_<%= id %>" role="button" data-toggle="modal">
-                            <img src="<%= defaultImage %>" alt={{ tile.id }}>
-                        </a>
-                        <div class='tile-info'>
-                            <%= toTitleCase(template) %> </br>
-                            <% if (priority <= 0) %>
-                                <font color="red">Priority: <%= priority %></font> </br>
-                            <% else { %>
-                                Priority: <%= priority %> </br>
-                            <% } %>
-                            ID: <%= id %> </br>
-                            <%= name %> </br>
+                        <button class="remove">
+                            <img src="{% static "X.png" %}">
+                        </button>
 
-                            <div class="modal" id="modal_<%= id %>" role="dialog">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                            <h4 class="modal-title"><%= name %> </br></h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            Current Priority: <%= priority %></br>
-                                            New Priority: <input type="text" id="new_priority_<%= id %>">
-                                            <div id="error_<%= id %>"></div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" id="editTile" class="btn btn-default">
-                                                Change Priority
-                                            </button>
-                                            <button type="button" id="closeButton"  class="btn btn-default" data-dismiss="modal">
-                                                Close
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class='content'>
+                            <div class="img-wrapper">
+                                <img src="<%= defaultImage %>" alt="<%= id %>">
+                                <ul class='info'>
+                                    <li><%= toTitleCase(template) %></li>
+                                    <li><span class="<% if (priority <= 0) { %>red<% } %>">Priority: <%= priority %></class></li>
+                                    <li>ID: <%= id %></li>
+                                    <li><%= name %></li>
+                                </ul>
                             </div>
                         </div>
                     </script>
-                </ul>  
+                </ul>
+
+                <script type="text/template" id="add-object-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Add <%= objectType %></br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="add-form"></div>
+                                    <input type="checkbox" id="force-create">Force create tile<br>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="add" class="btn btn-default">
+                                        Add
+                                    </button>
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
+                <script type="text/template" id="remove-object-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Remove <%= objectType %></br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="remove-form"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="remove" class="btn btn-default">
+                                        Remove
+                                    </button>
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
+                <script type="text/template" id="edit-modal-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title"><%= name %> </br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    Current Priority: <%= priority %></br>
+                                    New Priority: <input type="text" id="new_priority">
+                                    <div id="editError"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="change" class="btn btn-default">
+                                        Change Priority
+                                    </button>
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
+                <script type="text/template" id="remove-modal-template">
+                    <div class="modal" id="remove-modal-dialog-box" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Removal Confirmation</br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <h4 class="modal-title">Are you sure you want to remove this tile: <%= id %>?</h4>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="removeTile" class="btn btn-default">
+                                        Remove
+                                    </button>
+                                    <button type="button" id="closeButton"  class="btn btn-default">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>  
+
             </div>
         </div>
     </div>
