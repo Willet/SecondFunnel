@@ -601,7 +601,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         if tile:
             response['id'] = tile.id
-            response['tile'] = TileSerializer(tile).data 
+            response['tile'] = TileDetail.get_serialized_tile(TileDetail(), tile)
                  
         return Response(response, status=status_code)
 
@@ -841,8 +841,7 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                 if tiles is not None:
                     serialized_tiles = []
                     for t in tiles:
-                        a = TileDetail()
-                        serialized_data = TileDetail.get_serialized_tile(a, t)
+                        serialized_data = TileDetail.get_serialized_tile(TileDetail(), t)
                         t_categories = []
                         for c in t.categories.all():
                             t_categories.append({'id': c.id, 'name': c.name })

@@ -3865,7 +3865,7 @@ div[data-role="editor-toolbar"] {
     outline: 1px solid black;
     position: absolute;
     top: 45%;
-    left: 25px;
+    left: -25px;
     padding: 0px;
     z-index: 10;
 }
@@ -3886,6 +3886,30 @@ div[data-role="editor-toolbar"] {
     margin: 0;
     width: 99%;
     padding: 5px;
+}
+
+.img-wrapper .placeholder {
+    position: absolute;
+    left: 0;
+    top: 30%;
+    font-size: 50px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    width: 99%;
+    padding: 5px;
+}
+
+.control-bar-table {
+    width: 100%;
+}
+
+.object-add-remove div {
+    border: 2px solid #333;
+    border-radius: 3px;
+    padding: 2px;
+    padding-left: 5px;
+    background: #F9F8F8;
 }
 
 .content .red {
@@ -3929,8 +3953,6 @@ div[data-role="editor-toolbar"] {
 #backbone-tiles .ui-selected { 
     background: #4074fe;  /* selected */
 }
-
-
 
 .add-button {
 

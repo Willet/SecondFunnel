@@ -235,6 +235,7 @@ App.core.TileCollection = Backbone.Collection.extend({
     comparator: function (a, b) {
         /**
         Comparator used when sorting tiles, sort by decreasing priority.
+        If priority is the same, sort by placeholder status.
         **/
         if (a.get("priority") > b.get("priority")) {
             return -1;
@@ -243,7 +244,15 @@ App.core.TileCollection = Backbone.Collection.extend({
             return 1;
         }
         if (a.get("priority") === b.get("priority")) {
-            return 0;
+            if ( (a.get("placeholder") === true) && (b.get("placeholder") === false) ) { 
+                return 1;
+            } else {
+                if ( (a.get("placeholder") === false) && (b.get("placeholder") === true) ) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
         }
     },
 });
@@ -257,7 +266,17 @@ App.core.TileView = Marionette.ItemView.extend({
 
     events: {
         "click button.remove": "removeModal",
+        "click button.add-side-buttons-left": "addLeft",
+        "click button.add-side-buttons-right": "addRight",
         "click .content": "editModal",
+    },
+
+    addLeft: function () {
+        //Draw the modal displayed when the add tile to left is clicked
+    },
+
+    addRight: function () {
+        //Draw the modal displayed when the add tile to left is clicked
     },
 
     removeModal: function () {
@@ -424,7 +443,17 @@ App.core.RemoveModalView = App.core.BaseModalView.extend({
                              " has been deleted.";
             } else {
                 alertType = 'danger';
-                status = JSON.parse(result.responseText);
+                if (result.status === 404) {
+                    status = "The tile with ID: " + currModel.id +
+                                 " has already been deleted."
+                } else {
+                    var responseText = JSON.parse(result.responseText);
+                    if ("detail" in responseText) {
+                        status = responseText.detail;
+                    } else {
+                        status = responseText;
+                    }
+                }
             }
             App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
         })
