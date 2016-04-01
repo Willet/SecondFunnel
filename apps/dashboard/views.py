@@ -12,6 +12,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from apps.assets.models import Category, Page, Product, Store, ProductImage
 from apps.api2.serializers import TileSerializer
@@ -169,6 +170,7 @@ def dashboard_products(request, dashboard_slug):
             })
 
 @login_required(login_url=LOGIN_URL)
+@ensure_csrf_cookie
 def dashboard_tiles(request, dashboard_slug):
     profile = UserProfile.objects.get(user=request.user)
     dashboards = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
@@ -195,6 +197,7 @@ def dashboard_tiles(request, dashboard_slug):
                 'page': dashboard_page,
             })
 
+@ensure_csrf_cookie
 def user_login(request):
     """
     Allows the user to log in to our servers.

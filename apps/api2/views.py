@@ -601,7 +601,8 @@ class PageViewSet(viewsets.ModelViewSet):
 
         if tile:
             response['id'] = tile.id
-            response['tile'] = TileSerializer(tile).data 
+            a = TileDetail()
+            response['tile'] = TileDetail.get_serialized_tile(a, tile)
                  
         return Response(response, status=status_code)
 

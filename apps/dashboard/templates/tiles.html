@@ -62,19 +62,28 @@
                 </script>
 
                 <script type="text/template" id="control-bar-template">
-                    <div class="dropdown" id="category-filter">
-                        Category: </br> 
-                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" id="category-dropdown-button">View all tiles
-                        <span class="caret"></span></button>
-                        <ul class="dropdown-menu" id="categories">
-                        </ul>
-                    </div> 
-                    </br>
-
-                    Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
-                                <button type="button" id="remove-product" class="btn btn-default">Remove</button>
-                    Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
-                                <button type="button" id="remove-content" class="btn btn-default">Remove</button>
+                    <table class="control-bar-table">
+                        <td width="2%">Category: </td>
+                        <td width="45%">
+                            <div class="dropdown" id="category-filter">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" id="category-dropdown-button">View all tiles
+                            <span class="caret"></span></button>
+                            <ul class="dropdown-menu" id="categories">
+                        </td>
+                        <td width="12%" class="object-add-remove">
+                            <div>
+                                Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
+                                            <button type="button" id="remove-product" class="btn btn-default">Remove</button>
+                            </div>
+                        </td>
+                        <td width="1%"></td>
+                        <td width="12%" class="object-add-remove">
+                            <div>
+                                Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
+                                            <button type="button" id="remove-content" class="btn btn-default">Remove</button>
+                            </div>
+                        </td>
+                    </table>
                 </script>
 
                 <script type="text/template" id="feedback-template">
@@ -91,7 +100,11 @@
 
                         <div class='content'>
                             <div class="img-wrapper">
-                                <img src="<%= defaultImage %>" alt="<%= id %>">
+                                <% if (placeholder) { %>
+                                    <div class="placeholder">PLACEHOLDER</div>
+                                <% } else { %>
+                                    <img src="<%= defaultImage %>" alt="<%= id %>">
+                                <% } %>
                                 <ul class='info'>
                                     <li><%= toTitleCase(template) %></li>
                                     <li><span class="<% if (priority <= 0) { %>red<% } %>">Priority: <%= priority %></class></li>
