@@ -27,23 +27,7 @@ var App = Marionette.Application.extend({
             App.controlBar.show(new App.core.ControlBarView());
 
             App.categories = new App.core.Categories();
-
-            App.categories.add({'id': 0, name: 'View all tiles'});
-
-            _.each(tiles.models, function (val) {
-                _.each(val.attributes.categories, function (cat) {
-                    var exist = false;
-                    for (var i = 0; i < App.categories.length; i++) {
-                        if (App.categories.models[i].id === cat.id) {
-                            exist = true;
-                            break;
-                        }
-                    }
-                    if (!exist) {
-                        App.categories.add(cat);
-                    }
-                })
-            });
+            App.categories.fetch();
             App.categoriesView = new App.core.CategoriesView({ collection: App.categories });
             App.categoriesView.render();
         });
@@ -273,10 +257,46 @@ App.core.TileView = Marionette.ItemView.extend({
 
     addLeft: function () {
         //Draw the modal displayed when the add tile to left is clicked
+        //If we're adding to the left, we need to check then shift all tiles to the left up by 1
+        //   if its current priority can't fit an extra tile
+        var diff,
+            newTilePriority = 0,
+            batch = [],
+            tileCollection = this._parent.collection,
+            tiles = tileCollection.models,
+            tilePriority = this.model.attributes.priority,
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)});
+
+        newTilePriority = tilePriority + 1;
+
+        if ( (tileInd !== 0) && (tiles[tileInd - 1].attributes.priority <= tilePriority + 1) ){
+            // This means the tiles on the left is either same priority or has prio = ind + 1
+            // So need to +1 to priority of everything to the beginning 
+
+            // First clone the tiles:
+            _.each(tiles, function(val, i){ tiles[i] = val.clone(); });
+
+            // Find the amount that the tiles' priority need to be incremented by
+            diff = 2 - (tiles[tileInd-1].get('priority') - tilePriority);
+            // Now shift prio of everything with ind-1 up by 2
+            for (var i = tileInd-1; i >= 0; i--) {
+                tiles[i].set({priority: tiles[i].get('priority') + diff});
+                batch.push({
+                    'id': tiles[i].get('id'),
+                    'priority': tiles[i].get('priority')
+                });
+            }
+        }
+
+        App.modal.show(new App.core.AddObjectModalView({
+            newTilePriority: newTilePriority,
+            batch: batch,
+        }));
     },
 
     addRight: function () {
         //Draw the modal displayed when the add tile to left is clicked
+        console.log("addRight");
     },
 
     removeModal: function () {
@@ -464,6 +484,13 @@ App.core.Categories = Backbone.Collection.extend({
     defaults: {},
 
     model: Backbone.Model,
+
+    url: App.core.apiURL + 'page/' + pageID + '/',
+
+    parse: function (response) {
+        response.categories.unshift({'id': 0, name: 'View all tiles'});
+        return response.categories;
+    },
 });
 
 App.core.Product = Backbone.Model.extend({
@@ -661,28 +688,53 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
     onRender: function () {
         // Once the add modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
+        var objectType = this.options.objectType;
+        var newPriority;
+        var that = this;
+
+        if ( (objectType == null) || (objectType == undefined) ){
+            objectType = 'Product';
+        }
+
+        if (this.options.newTilePriority == null) {
+            newPriority = 0;
+        } else {
+            newPriority = this.options.newTilePriority;
+        }
+
+        var selectionOptions = {
+            'Product': ['URL', 'ID', 'SKU'],
+            'Content': ['URL', 'ID']
+        };
 
         var addObjectModel = Backbone.Model.extend({
             schema: {
-                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+                object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
+                selection: { title: 'Selection', type: 'Select', options: selectionOptions[objectType] },
                 num:       { title: 'Number', type: 'Text' },
                 category:  { title: 'Category', type: 'Text' },
+                priority: { title: 'Priority', type: 'Text' },
             },
             defaults: {
+                object: objectType,
                 selection: 'ID',
+                priority: newPriority,
             },
         });
 
         this.addObjectInstance = new addObjectModel();
 
-        if (this.options.objectType === "Product") {
-            this.addObjectInstance.schema.selection.options.push("SKU");
-            this.addObjectInstance.schema.priority = { title: 'Priority', type: 'Text' };
-        }
-
         this.addObjectForm = new Backbone.Form({
             model: this.addObjectInstance,
         }).render();
+
+        this.addObjectForm.on('object:change', function(form, addObjectEditor) {
+            var object = addObjectEditor.getValue(),
+                newOptions = selectionOptions[object];
+            
+            that.options.objectType = object;
+            form.fields.selection.editor.setOptions(newOptions);
+        });
 
         this.$el.find('.add-form').html(this.addObjectForm.el);
         this.$el.modal('show'); // Toggle Bootstrap modal to show
@@ -695,39 +747,31 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
 
     addObject: function () {
         // Add the object to the page.
-        var result, idLength, responseText, alertType, status, selection,
-            num, page, searchString, priority, category,
+        var result, idLength, responseText, alertType, status, selection, num, page, 
+            searchString, priority, category, options, setTilePriorities, objectType,
             that        = this,
-            objectType  = this.options.objectType;
+            batch       = this.options.batch;
 
-        if (objectType === "Product") {
-            this.addObjectForm.commit();
-            selection   = this.addObjectInstance.attributes.selection;
-            num         = this.addObjectInstance.attributes.num;
-            priority    = this.addObjectInstance.attributes.priority;
-            category    = this.addObjectInstance.attributes.category;
-            page        = new App.core.Page({
-                type: "product",
-                selection: selection,
-                num: num,
-                priority: priority,
-                category: category
-            });
-            searchString = new App.core.Product();
-        } else {
-            this.addObjectForm.commit();
-            selection   = this.addObjectInstance.attributes.selection;
-            num         = this.addObjectInstance.attributes.num;
-            category    = this.addObjectInstance.attributes.category;
-            page        = new App.core.Page({
-                type: "content",
-                selection: selection,
-                num: num,
-                category: category
-            }),
+        this.addObjectForm.commit();
+        objectType  = this.addObjectInstance.attributes.object;
+        selection   = this.addObjectInstance.attributes.selection;
+        num         = this.addObjectInstance.attributes.num;
+        priority    = this.addObjectInstance.attributes.priority;
+        category    = this.addObjectInstance.attributes.category;
+
+        page = new App.core.Page({
+            selection: selection,
+            num: num,
+            priority: priority,
+            category: category
+        });
+        if (objectType === "Content") {
+            page.attributes.type = "content";
             searchString = new App.core.Content();
+        } else {
+            page.attributes.type = "product";
+            searchString = new App.core.Product();
         }
-
         if (selection === 'URL')
             searchString.set({url: num});
         if (selection === 'ID')
@@ -740,6 +784,9 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             responseText = JSON.parse(result.responseText);
             idLength = responseText.ids.length;
             if (idLength === 1) {
+                // object with that selection has been found
+
+                // Add the tile to the page with specified priority
                 if (objectType === "Product") {
                     page = new App.core.Page({
                         type: "product",
@@ -763,25 +810,51 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 result = page.add(page);
                 result.always(function () {
                     responseText = JSON.parse(result.responseText);
+                    status = responseText.status;
                     if (result.status === 200) {
-                        alertType = 'success';
-                    }
-                    else {
+                        // Use batch to update the other tiles' priorities ONLY if adding
+                        //     was successful
+                        if (batch.length !== 0) {
+                            // Only do an API call if batch contains items to be updated
+                            batch = JSON.stringify(batch);
+                            options = {
+                                'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
+                            };
+
+                            setTilePriorities = new App.core.TileCollection();
+                            setTilePriorities.set({data: batch});
+
+                            result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
+                            result.always(function () {
+                                if (result.responseJSON.length !== 0) {
+                                    // Patch of new tile priority successful
+                                    alertType = 'success';
+                                    status = status + ' Please refresh to see the new tile.'
+                                } else {
+                                    alertType = 'danger';
+                                    status = "Tile priority patching failed due to an error.";
+                                }
+                                that.hideAndShowModal(that, alertType, status);
+                            });
+                        } else {
+                            alertType = 'success';
+                            status = status + ' Please refresh to see the new tile.';
+                            that.hideAndShowModal(that, alertType, status);
+                        }
+                    } else {
                         alertType = 'warning';
+                        that.hideAndShowModal(that, alertType, status);
                     }
-                    that.$el.modal('hide'); // Toggle Bootstrap modal to hide
-                    App.feedback.show(new App.core.FeedbackView({
-                        'alertType': alertType,
-                        'status': responseText.status
-                    }));
-                })
+                });
             } else {
                 if (idLength > 1) {
+                    // Multiple objects found
                     App.feedback.show(new App.core.FeedbackView({
                         'alertType': 'danger',
                         'status': "Error: " + responseText.status
                     }));
                 } else {
+                    // No object found
                     if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
                         App.feedback.show(new App.core.FeedbackView({
                             'alertType': 'info',
@@ -817,6 +890,14 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             }
         });
     },
+
+    hideAndShowModal: function (instance, alertType, status) {
+        instance.$el.modal('hide'); // Toggle Bootstrap modal to hide
+        App.feedback.show(new App.core.FeedbackView({
+            'alertType': alertType,
+            'status': status
+        }));
+    }
 });
 
 App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
@@ -826,25 +907,39 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
         // Once the remove modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
 
+        var objectType = this.options.objectType;
+        var that = this;
+
+        var selectionOptions = {
+            'Product': ['URL', 'ID', 'SKU'],
+            'Content': ['URL', 'ID']
+        };
+
         var removeObjectModel = Backbone.Model.extend({
             schema: {
-                selection: { title: 'Selection', type: 'Select', options: ['URL', 'ID'] },
+                object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
+                selection: { title: 'Selection', type: 'Select', options: selectionOptions[objectType] },
                 num:       { title: 'Number', type: 'Text' },
             },
             defaults: {
+                object: objectType,
                 selection: 'ID',
             },
         });
 
         this.removeObjectInstance = new removeObjectModel();
-
-        if (this.options.objectType === "Product") {
-            this.removeObjectInstance.schema.selection.options.push("SKU");
-        }
-
+        
         this.removeObjectForm = new Backbone.Form({
             model: this.removeObjectInstance,
         }).render();
+
+        this.removeObjectForm.on('object:change', function(form, removeObjectEditor) {
+            var object = removeObjectEditor.getValue(),
+                newOptions = selectionOptions[object];
+            
+            that.options.objectType = object;
+            form.fields.selection.editor.setOptions(newOptions);
+        });
 
         this.$el.find('.remove-form').html(this.removeObjectForm.el);
         this.$el.modal('show'); // Toggle Bootstrap modal to show
