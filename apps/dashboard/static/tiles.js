@@ -25,7 +25,6 @@ var App = Marionette.Application.extend({
             $('#loading-spinner').hide();
 
             App.controlBar.show(new App.core.ControlBarView());
-
             App.categories = new App.core.Categories();
             App.categories.fetch();
             App.categoriesView = new App.core.CategoriesView({ collection: App.categories });
@@ -256,18 +255,18 @@ App.core.TileView = Marionette.ItemView.extend({
     },
 
     addLeft: function () {
-        //Draw the modal displayed when the add tile to left is clicked
-        //If we're adding to the left, we need to check then shift all tiles to the left up by 1
+        // If we're adding to the left, we need to check then shift all tiles to the left up by 1
         //   if its current priority can't fit an extra tile
+        // New tile priority will always be the current tile+1 so that it'll be on the left
+        // Once the batch file and new priority is determined, draw the modal displayed when the 
+        //   add tile to left button is clicked
         var diff,
-            newTilePriority = 0,
             batch = [],
             tileCollection = this._parent.collection,
             tiles = tileCollection.models,
             tilePriority = this.model.attributes.priority,
-            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)});
-
-        newTilePriority = tilePriority + 1;
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)}),
+            newTilePriority = tilePriority + 1;
 
         if ( (tileInd !== 0) && (tiles[tileInd - 1].attributes.priority <= tilePriority + 1) ){
             // This means the tiles on the left is either same priority or has prio = ind + 1
@@ -295,8 +294,49 @@ App.core.TileView = Marionette.ItemView.extend({
     },
 
     addRight: function () {
-        //Draw the modal displayed when the add tile to left is clicked
-        console.log("addRight");
+        // Draw the modal displayed when the add tile to left is clicked
+        // If we're adding to the right, need to check then shift all tiles from tile ind to beginning by 1
+        //   if its current priority can't fit an extra tile
+        // New tile priority will always be the tileInd+1's priority+1 so it'll be on the right
+        // Once the batch file and new priority is determined, draw the modal displayed when the 
+        //   add tile to left button is clicked
+        var diff, newTilePriority,
+            batch = [],
+            tileCollection = this._parent.collection,
+            tiles = tileCollection.models,
+            tilePriority = this.model.attributes.priority,
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)});
+
+        if (tileInd !== tiles.length - 1) {
+            newTilePriority = tiles[tileInd+1].get('priority') + 1;
+
+            if ((tilePriority === tiles[tileInd+1].get('priority')) || (tilePriority === tiles[tileInd+1].get('priority') + 1)) {
+                // This means the tiles from curr ind to 0 has either same priority as ind+1 or +1 of ind+1
+                // So need to + the difference from tileInd to beginning so tileInd is +2 of ind+1's priority
+
+                // First clone the tiles:
+                _.each(tiles, function(val, i){ tiles[i] = val.clone(); });
+
+                // Find the amount that the tiles' priority need to be incremented by
+                diff = 2 - (tilePriority - tiles[tileInd+1].get('priority'));
+                // Now shift prio of everything from tileInd up by the difference
+                for (var i = tileInd; i >= 0; i--) {
+                    tiles[i].set({priority: tiles[i].get('priority') + diff});
+                    batch.push({
+                        'id': tiles[i].get('id'),
+                        'priority': tiles[i].get('priority')
+                    });
+                }
+            }
+        } else {
+            // If tile is at the end, just set newTilePriority to be tileInd - 1 so it's on the right
+            newTilePriority = tilePriority - 1;
+        }
+
+        App.modal.show(new App.core.AddObjectModalView({
+            newTilePriority: newTilePriority,
+            batch: batch,
+        }));
     },
 
     removeModal: function () {
@@ -688,18 +728,17 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
     onRender: function () {
         // Once the add modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
-        var objectType = this.options.objectType;
-        var newPriority;
-        var that = this;
+        var newPriority,
+            objectType = this.options.objectType,
+            newPriority = this.options.newTilePriority,
+            that = this;
 
         if ( (objectType == null) || (objectType == undefined) ){
             objectType = 'Product';
         }
 
-        if (this.options.newTilePriority == null) {
+        if (newPriority == null) {
             newPriority = 0;
-        } else {
-            newPriority = this.options.newTilePriority;
         }
 
         var selectionOptions = {
@@ -783,6 +822,10 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         result.always(function () {
             responseText = JSON.parse(result.responseText);
             idLength = responseText.ids.length;
+            App.feedback.show(new App.core.FeedbackView({
+                'alertType': 'info',
+                'status': 'Processing... Please wait.'
+            }));
             if (idLength === 1) {
                 // object with that selection has been found
 
@@ -837,13 +880,10 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                 that.hideAndShowModal(that, alertType, status);
                             });
                         } else {
-                            alertType = 'success';
-                            status = status + ' Please refresh to see the new tile.';
-                            that.hideAndShowModal(that, alertType, status);
+                            that.hideAndShowModal(that, 'success', status + ' Please refresh to see the new tile.');
                         }
                     } else {
-                        alertType = 'warning';
-                        that.hideAndShowModal(that, alertType, status);
+                        that.hideAndShowModal(that, 'warning', status);
                     }
                 });
             } else {
@@ -861,18 +901,17 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                             'status': responseText.status + " Scraping..."
                         }));
                         if (objectType === "Product") {
-                            var scrapeURL = new App.core.Product({
+                            var processURL = new App.core.Product({
                                 url: num,
                                 page_id: pageID
                             });
-                            result = scrapeURL.scrape(scrapeURL);
                         } else {
-                            var uploadURL = new App.core.Content({
+                            var processURL = new App.core.Content({
                                 url: num,
                                 page_id: pageID
                             });
-                            result = uploadURL.scrape(uploadURL);
                         }
+                        result = processURL.scrape(processURL);
                         result.always(function () {
                             responseText = JSON.parse(result.responseText);
                             App.feedback.show(new App.core.FeedbackView({
