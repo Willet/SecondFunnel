@@ -264,11 +264,11 @@ App.core.TileView = Marionette.ItemView.extend({
             batch = [],
             tileCollection = this._parent.collection,
             tiles = tileCollection.models,
-            tilePriority = this.model.attributes.priority,
-            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)}),
+            tilePriority = this.model.get('priority'),
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.get('id'))}),
             newTilePriority = tilePriority + 1;
 
-        if ( (tileInd !== 0) && (tiles[tileInd - 1].attributes.priority <= tilePriority + 1) ){
+        if ( (tileInd !== 0) && (tiles[tileInd - 1].get('priority') <= tilePriority + 1) ){
             // This means the tiles on the left is either same priority or has prio = ind + 1
             // So need to +1 to priority of everything to the beginning 
 
@@ -304,8 +304,8 @@ App.core.TileView = Marionette.ItemView.extend({
             batch = [],
             tileCollection = this._parent.collection,
             tiles = tileCollection.models,
-            tilePriority = this.model.attributes.priority,
-            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)});
+            tilePriority = this.model.get('priority'),
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.get('id'))});
 
         if (tileInd !== tiles.length - 1) {
             newTilePriority = tiles[tileInd+1].get('priority') + 1;
@@ -749,8 +749,8 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         var addObjectModel = Backbone.Model.extend({
             schema: {
                 object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
-                selection: { title: 'Selection', type: 'Select', options: selectionOptions[objectType] },
-                num:       { title: 'Number', type: 'Text' },
+                selection: { title: 'Add using:', type: 'Select', options: selectionOptions[objectType] },
+                num:       { title: 'Value:', type: 'Text' },
                 category:  { title: 'Category', type: 'Text' },
                 priority: { title: 'Priority', type: 'Text' },
             },
@@ -791,12 +791,15 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             that        = this,
             batch       = this.options.batch;
 
+        if ( (batch == null) || (batch == undefined) ){
+            batch = [];
+        }
         this.addObjectForm.commit();
-        objectType  = this.addObjectInstance.attributes.object;
-        selection   = this.addObjectInstance.attributes.selection;
-        num         = this.addObjectInstance.attributes.num;
-        priority    = this.addObjectInstance.attributes.priority;
-        category    = this.addObjectInstance.attributes.category;
+        objectType  = this.addObjectInstance.get('object');
+        selection   = this.addObjectInstance.get('selection');
+        num         = this.addObjectInstance.get('num');
+        priority    = this.addObjectInstance.get('priority');
+        category    = this.addObjectInstance.get('category');
 
         page = new App.core.Page({
             selection: selection,
@@ -805,10 +808,10 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             category: category
         });
         if (objectType === "Content") {
-            page.attributes.type = "content";
+            page.get('type') = "content";
             searchString = new App.core.Content();
         } else {
-            page.attributes.type = "product";
+            page.get('type') = "product";
             searchString = new App.core.Product();
         }
         if (selection === 'URL')
@@ -834,13 +837,13 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                     page = new App.core.Page({
                         type: "product",
                         id: responseText.ids[0],
-                        force_create: $('#force-create').is(':checked').toString(),
+                        force_create_tile: $('#force-create').is(':checked').toString(),
                     });
                 } else {
                     page = new App.core.Page({
                         type: "content",
                         id: responseText.ids[0],
-                        force_create: $('#force-create').is(':checked').toString(),
+                        force_create_tile: $('#force-create').is(':checked').toString(),
                     });
                 }
                 if (priority !== "") {
@@ -849,7 +852,6 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 if (category !== "") {
                     page.set({category: category});
                 }
-
                 result = page.add(page);
                 result.always(function () {
                     responseText = JSON.parse(result.responseText);
@@ -898,7 +900,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                     if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
                         App.feedback.show(new App.core.FeedbackView({
                             'alertType': 'info',
-                            'status': responseText.status + " Scraping..."
+                            'status': "Object could not be found. Scraping..."
                         }));
                         if (objectType === "Product") {
                             var processURL = new App.core.Product({
@@ -914,10 +916,76 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                         result = processURL.scrape(processURL);
                         result.always(function () {
                             responseText = JSON.parse(result.responseText);
-                            App.feedback.show(new App.core.FeedbackView({
-                                'alertType': 'success',
-                                'status': responseText.status
-                            }));
+                            if (result.status !== 200) {
+                                App.feedback.show(new App.core.FeedbackView({
+                                    'alertType': 'danger',
+                                    'status': responseText.status,
+                                }));
+                            } else {
+                                alertType = 'success';
+                                status = responseText.status + ". Creating tile.";
+                                App.feedback.show(new App.core.FeedbackView({
+                                    'alertType': alertType,
+                                    'status': status,
+                                }));
+                                // Now add tile
+                                if (objectType === "Product") {
+                                    page = new App.core.Page({
+                                        type: "product",
+                                        id: responseText.id,
+                                        force_create_tile: $('#force-create').is(':checked').toString(),
+                                    });
+                                } else {
+                                    page = new App.core.Page({
+                                        type: "content",
+                                        id: responseText.id,
+                                        force_create_tile: $('#force-create').is(':checked').toString(),
+                                    });
+                                }
+                                if (priority !== "") {
+                                    page.set({priority: priority});
+                                }
+                                if (category !== "") {
+                                    page.set({category: category});
+                                }
+
+                                result = page.add(page);
+                                result.always(function () {
+                                    responseText = JSON.parse(result.responseText);
+                                    status = responseText.status;
+                                    if (result.status === 200) {
+                                        // Use batch to update the other tiles' priorities ONLY if adding
+                                        //     was successful
+                                        if (batch.length !== 0) {
+                                            // Only do an API call if batch contains items to be updated
+                                            batch = JSON.stringify(batch);
+                                            options = {
+                                                'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
+                                            };
+
+                                            setTilePriorities = new App.core.TileCollection();
+                                            setTilePriorities.set({data: batch});
+
+                                            result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
+                                            result.always(function () {
+                                                if (result.responseJSON.length !== 0) {
+                                                    // Patch of new tile priority successful
+                                                    alertType = 'success';
+                                                    status = status + ' Please refresh to see the new tile.'
+                                                } else {
+                                                    alertType = 'danger';
+                                                    status = "Tile priority patching failed due to an error.";
+                                                }
+                                                that.hideAndShowModal(that, alertType, status);
+                                            });
+                                        } else {
+                                            that.hideAndShowModal(that, 'success', status + ' Please refresh to see the new tile.');
+                                        }
+                                    } else {
+                                        that.hideAndShowModal(that, 'warning', status);
+                                    }
+                                });
+                            }
                         })
                     } else {
                         App.feedback.show(new App.core.FeedbackView({
@@ -937,6 +1005,60 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             'status': status
         }));
     }
+});
+
+App.core.UploadObjectModalView = App.core.BaseModalView.extend({
+    template: _.template($('#upload-object-template').html()),
+
+    onRender: function () {
+        this.unwrapEl();
+         
+
+        this.$el.modal('show'); // Toggle Bootstrap modal to show
+        $('input[type=file]').change(function(){
+            $(this).simpleUpload(window.location.href + '/upload', {
+                start: function(file){
+                    //upload started 
+                },
+
+                progress: function(progress){
+                    //received progress 
+                    this.progressBar.width(progress + "%");
+                },
+
+                success: function(data){
+                    //upload successful 
+                    console.log(data);
+                    if (data.success) {
+                        //now fill the block with the format of the uploaded file 
+                        var format = data.format;
+                        var formatDiv = $('<div class="format"></div>').text(format);
+                        this.block.append(formatDiv);
+                    } else {
+                        var error = data.error.message;
+                        var errorDiv = $('<div class="error"></div>').text(error);
+                        this.block.append(errorDiv);
+                    }
+                },
+
+                error: function(error){
+                    //upload failed 
+                    var error = error.message;
+                    var errorDiv = $('<div class="error"></div>').text(error);
+                    this.block.append(errorDiv);
+                }
+            });
+        });
+    },
+
+    events: {
+        "click button#upload": "uploadObject",
+        "click button#close": "closeModal",
+    },
+    
+    uploadObject: function () {
+        console.log("upload!");
+    },
 });
 
 App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
@@ -998,8 +1120,8 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
 
         if (objectType === "Product") {
             this.removeObjectForm.commit();
-            selection   = this.removeObjectInstance.attributes.selection;
-            num         = this.removeObjectInstance.attributes.num;
+            selection   = this.removeObjectInstance.get('selection');
+            num         = this.removeObjectInstance.get('num');
             page        = new App.core.Page({
                 type: "product",
                 selection: selection,
@@ -1008,8 +1130,8 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             searchString = new App.core.Product();
         } else {
             this.removeObjectForm.commit();
-            selection   = this.removeObjectInstance.attributes.selection,
-            num         = this.removeObjectInstance.attributes.num,
+            selection   = this.removeObjectInstance.get('selection'),
+            num         = this.removeObjectInstance.get('num'),
             page        = new App.core.Page({
                 type: "content",
                 selection: selection,
@@ -1096,7 +1218,10 @@ App.core.ControlBarView = Marionette.ItemView.extend({
         "click button#remove-product": "removeProduct",
         "click button#add-content": "addContent",
         "click button#remove-content": "removeContent",
+        "click button#upload-content": "uploadContent",
     },
+
+    className: 'control-bar-wrapper',
 
     filterClicked: function (e) {
         /**
@@ -1137,6 +1262,11 @@ App.core.ControlBarView = Marionette.ItemView.extend({
     removeContent: function () {
         // Generate and render the remove content modal
         App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Content"}));
+    },
+
+    uploadContent: function () {
+        // Generate and render the upload content modal
+        App.modal.show(new App.core.UploadObjectModalView({'objectType': "Content"}));
     },
 });
 

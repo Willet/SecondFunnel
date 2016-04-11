@@ -3904,12 +3904,53 @@ div[data-role="editor-toolbar"] {
     width: 100%;
 }
 
-.object-add-remove div {
-    border: 2px solid #333;
+.object-add-remove-upload {
+    display: inline-block;
+    float: right;
+    border: 1px solid #333;
     border-radius: 3px;
     padding: 2px;
     padding-left: 5px;
+    margin: 2px;
     background: #F9F8F8;
+}
+
+.control-bar-wrapper {    
+    display: block;
+    padding-bottom: 40px;
+}
+
+.bar {
+    height: 18px;
+    background: green;
+}
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+.category-label {
+    display: inline-block;
+    float: left;
+}
+
+.category-dropdown {
+    display: inline-block;
+    float: left;
 }
 
 .content .red {

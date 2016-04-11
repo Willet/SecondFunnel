@@ -8,11 +8,7 @@
     <script>
         var pageID = {{ pageID }};
     </script>
-    <script src="{% static "js/jquery-ui.min.js" %}"></script>
-    <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
-    <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/backbone.marionette.min.js" %}"></script>
+
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
     <script type="text/javascript" src="{% static "common.js" %}"></script>
 {% endblock %}
@@ -62,28 +58,25 @@
                 </script>
 
                 <script type="text/template" id="control-bar-template">
-                    <table class="control-bar-table">
-                        <td width="2%">Category: </td>
-                        <td width="45%">
-                            <div class="dropdown" id="category-filter">
+                    <div class="category-label">Category: </div>
+                    <div class="category-dropdown">
+                        <div class="dropdown" id="category-filter">
                             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" id="category-dropdown-button">View all tiles
                             <span class="caret"></span></button>
                             <ul class="dropdown-menu" id="categories">
-                        </td>
-                        <td width="12%" class="object-add-remove">
-                            <div>
-                                Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
-                                            <button type="button" id="remove-product" class="btn btn-default">Remove</button>
-                            </div>
-                        </td>
-                        <td width="1%"></td>
-                        <td width="12%" class="object-add-remove">
-                            <div>
-                                Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
-                                            <button type="button" id="remove-content" class="btn btn-default">Remove</button>
-                            </div>
-                        </td>
-                    </table>
+                        </div>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
+                                    <button type="button" id="remove-product" class="btn btn-default">Remove</button>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
+                                    <button type="button" id="remove-content" class="btn btn-default">Remove</button>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Content upload: <button type="button" id="upload-content" class="btn btn-default">Upload</button>
+                    </div>
                 </script>
 
                 <script type="text/template" id="feedback-template">
@@ -161,6 +154,33 @@
                                 <div class="modal-footer">
                                     <button type="button" id="remove" class="btn btn-default">
                                         Remove
+                                    </button>
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
+                <script type="text/template" id="upload-object-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Upload</br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="uploads"></div>
+                                    <span class="btn btn-default btn-file">
+                                        Browse <input type="file" multiple>
+                                    </span>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="upload" class="btn btn-default">
+                                        Upload
                                     </button>
                                     <button type="button" id="close" class="btn btn-default">
                                         Close

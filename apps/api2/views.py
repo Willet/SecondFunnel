@@ -1,5 +1,6 @@
 import ast, json
 from multiprocessing import Process
+from urlparse import urlparse
 
 from django.db.models import Q
 from django.contrib.auth.models import User
@@ -16,7 +17,8 @@ from rest_framework_bulk import generics, BulkListSerializer
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 from apps.dashboard.models import Dashboard, UserProfile
-from apps.imageservice.utils import upload_to_cloudinary
+from apps.imageservice.tasks import process_image, process_gif
+from apps.imageservice.utils import delete_cloudinary_resource, create_image_path, get_filetype
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
 from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
@@ -147,7 +149,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 'refresh_images': True
             }
 
-            url = data['url']
+            url = unicode(data['url'], "utf-8")
 
             try:
                 page = Page.objects.get(id=data['page_id'])
@@ -158,7 +160,10 @@ class ProductViewSet(viewsets.ModelViewSet):
                 def process(request, page, url, options):
                     PageMaintainer(page).add(source_urls=[url], options=options)
 
-                p = Process(target=process, args=[page, url, options])
+                from django.db import connection 
+                connection.close()
+                
+                p = Process(target=process, args=[request, page, url, options])
                 p.start()
                 p.join()
 
@@ -170,7 +175,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 else:
                     return_dict['status'] = u"Scraping has succeeded. Product ID: {}".format(product.id)
                     return_dict['id'] = product.id
-                    return_dict['product'].append(ProductSerializer(product).data)
+                    return_dict['product'] = ProductSerializer(product).data
                     status_code = 200
 
         return Response(return_dict, status=status_code)
@@ -227,7 +232,11 @@ class ContentViewSet(viewsets.ModelViewSet):
 
                 if url_filter:
                     key = ('URL', 'url')
-                    filters = Q(url=url_filter)
+                    parsed_url = urlparse(url_filter)
+                    if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
+                        filters = Q(url=url_filter)
+                    else:
+                        filters = Q(source_url=url_filter)
             except (ValueError, TypeError):
                 return_dict['status'] = u"Expecting a number as input, but got non-number."
                 status_code = 400
@@ -257,18 +266,17 @@ class ContentViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def scrape(self, request):
         """
-        Upload content to cloudinary
+        Upload content to cloudinary and create an image object along with it
 
         inputs:
             url: url from which image is uploaded
 
         returns:
-            status: status message containing result of upload
-            url: if upload successful, secure url of uploaded image on cloudinary
-            image: if upload successful, image object returned by cloudinary
+            status: status message containing result of upload and image ID if successful
+            url: if upload successful, url of uploaded image on cloudinary
+            image: if upload successful, image object created
             error: if upload unsuccessful, error messages returned by cloudinary
         """
-
         return_dict = {'status': "", 'image': []}
         status_code = 400
 
@@ -277,11 +285,14 @@ class ContentViewSet(viewsets.ModelViewSet):
         except SyntaxError:
             data = {}
 
+        page = get_object_or_404(Page, pk=data['page_id'])
+        store = get_object_or_404(Store, pk=page.store_id)
+
         if not 'url' in data:
             return_dict['status'] = "No URL found."
         else:
             try:
-                img_obj = upload_to_cloudinary(data['url'])
+                img_obj = process_image(data['url'])
             except Exception as e:
                 return_dict['status'] = u"Upload failed. Error: {}".format(str(e))
                 return_dict['error'] = str(e)
@@ -290,10 +301,25 @@ class ContentViewSet(viewsets.ModelViewSet):
                     return_dict['status'] = u"Upload failed. Error: {}".format(img_obj['error']['http_code'])
                     return_dict['error'] = img_obj['error']
                 else:
-                    return_dict['status'] = u"Uploaded. Image URL: {}".format(img_obj['secure_url'])
-                    return_dict['url'] = img_obj['secure_url']
-                    return_dict['image'] = img_obj
+                    kwargs = {
+                        "store_id": page.store_id,
+                        "file_type": img_obj['format'],
+                        "attributes": {"sizes": img_obj['sizes']},
+                        "dominant_color": img_obj['dominant_color'],
+                        "source": "upload",
+                        "source_url": data['url'],
+                        "url": img_obj['sizes']['master']['url'],
+                        "width": img_obj['sizes']['master']['width'],
+                        "height": img_obj['sizes']['master']['height'],
+                    }
+                    image = Image(**kwargs)
+                    image.save()
+
+                    return_dict['status'] = u"Uploaded. Image ID: {}".format(image.id)
+                    return_dict['id'] = image.id
+                    return_dict['image'] = ImageSerializer(image).data
                     status_code = 200
+
 
         return Response(return_dict, status=status_code)
 
@@ -372,7 +398,7 @@ class PageViewSet(viewsets.ModelViewSet):
                       "failed.").format(str(product_id), page.store.name)
             raise AttributeError(status)
         else:
-            if page.feed.tiles.filter(products=product, template="product"):
+            if page.feed.tiles.filter(products=product, template="product") and not force_create_tile:
                 status = (u"Product with ID: {0}, Name: {1}, Store: {2} is already added. "
                           "Add failed.").format(str(product_id), product.name, page.store.name)
                 raise AttributeError(status)
@@ -553,7 +579,6 @@ class PageViewSet(viewsets.ModelViewSet):
             add_type = data.get('type', None)
 
             force_create_tile = bool(data.get('force_create_tile') in ["True", "true"])
-            
             if not obj_id:
                 status = "Missing 'id' field from input."
             elif not add_type:

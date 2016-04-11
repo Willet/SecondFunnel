@@ -19,6 +19,8 @@ from apps.api2.serializers import TileSerializer
 from apps.dashboard.models import Dashboard, UserProfile, Query
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.views import scrape
+from apps.imageservice.utils import create_image, upload_to_cloudinary, create_image_path
+from apps.imageservice.tasks import process_image
 
 LOGIN_URL = '/dashboard/login'
 API_URL = '/api2/'
@@ -142,34 +144,6 @@ def overview(request):
     })
 
 @login_required(login_url=LOGIN_URL)
-def dashboard_products(request, dashboard_slug):
-    profile = UserProfile.objects.get(user=request.user)
-    dashboard = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
-
-    if not dashboard:
-        return HttpResponseRedirect('/dashboard/')
-    dashboard_id = dashboard.first().id
-    page_id = dashboard.first().page_id
-
-    if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
-        return HttpResponseRedirect('/dashboard/')
-    else:
-        try:
-            dashboard = Dashboard.objects.get(pk=dashboard_id)
-        except (Dashboard.MultipleObjectsReturned, Dashboard.DoesNotExist):
-            return HttpResponseRedirect('/dashboard/')
-        
-        context = RequestContext(request)
-        dashboard_page = dashboard.page
-
-        return render(request, 'products.html', {
-                'context': context, 
-                'siteName': dashboard.site_name, 
-                'url_slug': page_id,
-                'page': dashboard_page
-            })
-
-@login_required(login_url=LOGIN_URL)
 @ensure_csrf_cookie
 def dashboard_tiles(request, dashboard_slug):
     profile = UserProfile.objects.get(user=request.user)
@@ -196,6 +170,21 @@ def dashboard_tiles(request, dashboard_slug):
                 'siteName': dashboard.site_name, 
                 'page': dashboard_page,
             })
+
+@require_POST
+def upload(request, dashboard_slug):
+    profile = UserProfile.objects.get(user=request.user)
+    dashboards = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
+    page = get_object_or_404(Page, pk=dashboards.first().page_id)
+    img_path = create_image_path(page.store.id)
+
+    if 'file' not in request.FILES:
+        return HttpResponse("Error", status_code=400)
+    else:
+        uploaded_file = request.FILES['file']
+        img_obj = upload_to_cloudinary(uploaded_file, path=img_path)
+
+        return HttpResponse(img_obj.get('secure_url'), status_code=200)
 
 @ensure_csrf_cookie
 def user_login(request):
