@@ -1,29 +1,24 @@
 import json
-import collections
 import requests
 from time import sleep
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
-from django.shortcuts import render_to_response, render, get_object_or_404
-from django.template import RequestContext
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.views.decorators.http import require_POST
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
+from django.shortcuts import render_to_response, render, get_object_or_404
+from django.template import RequestContext
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 
-from apps.assets.models import Category, Page, Product, Store, ProductImage
-from apps.api2.serializers import TileSerializer
-from apps.dashboard.models import Dashboard, UserProfile, Query
-from apps.intentrank.algorithms import ir_magic
+from apps.assets.models import Content, Image, Page, Store
+from apps.dashboard.models import Dashboard, Query, UserProfile
+from apps.imageservice.utils import create_image_path, upload_to_cloudinary
 from apps.scrapy.views import scrape
-from apps.imageservice.utils import create_image, upload_to_cloudinary, create_image_path
-from apps.imageservice.tasks import process_image
 
 LOGIN_URL = '/dashboard/login'
-API_URL = '/api2/'
 
 def error(error_message):
     print error_message
@@ -176,15 +171,52 @@ def upload(request, dashboard_slug):
     profile = UserProfile.objects.get(user=request.user)
     dashboards = profile.dashboards.all().filter(page__url_slug=dashboard_slug)
     page = get_object_or_404(Page, pk=dashboards.first().page_id)
-    img_path = create_image_path(page.store.id)
+    img_path = create_image_path(page.store_id)
 
     if 'file' not in request.FILES:
-        return HttpResponse("Error", status_code=400)
+        status = u"Upload failed. No files were found."
+        status_code = 400
     else:
         uploaded_file = request.FILES['file']
-        img_obj = upload_to_cloudinary(uploaded_file, path=img_path)
+        try:
+            img_obj = upload_to_cloudinary(uploaded_file, path=img_path)
+        except Exception as e:
+            status = u"Upload failed. Error: {}".format(str(e))
+            status_code = 400
+        else:
+            if 'error' in img_obj:
+                status = u"Upload failed. Error: {}. Error code: {}".format(img_obj['error'], img_obj['error']['http_code'])
+                status_code = 400
+            else:
+                kwargs = {
+                    "store_id": page.store_id,
+                    "file_type": img_obj.get('format', ''),
+                    "attributes": {"sizes": img_obj.get('sizes', {"master": {
+                                                                    "url": img_obj.get('secure_url'),
+                                                                    "width": img_obj.get('width'),
+                                                                    "height": img_obj.get('height'),
+                                                                }})},
+                    "dominant_color": img_obj.get('dominant_color', ''),
+                    "source": "upload",
+                    "source_url": img_obj.get('secure_url'),
+                    "url": img_obj.get('secure_url', img_obj.get('url', '')),
+                    "width": img_obj.get('width', img_obj.get('sizes', {}).get('master', {}).get('width', '')),
+                    "height": img_obj.get('height', img_obj.get('sizes', {}).get('master', {}).get('height', '')),
+                }
+                image = Image(**kwargs)
+                image.save()
 
-        return HttpResponse(img_obj.get('secure_url'), status_code=200)
+                content = get_object_or_404(Content, pk=image.id)
+                (tile, result) = page.feed.add(content)
+
+                if result:
+                    status = u"Uploaded. Image ID: {}. Tile ID: {}.".format(image.id, tile.id)
+                    status_code = 200
+                else:
+                    status = u"Uploaded. Image ID: {}. Tile adding failed due to an unknown error.".format(image.id)
+                    status_code = 400
+
+    return HttpResponse(status, status=status_code)
 
 @ensure_csrf_cookie
 def user_login(request):

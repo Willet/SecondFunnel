@@ -808,10 +808,10 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             category: category
         });
         if (objectType === "Content") {
-            page.get('type') = "content";
+            page.attributes.type = "content";
             searchString = new App.core.Content();
         } else {
-            page.get('type') = "product";
+            page.attributes.type = "product";
             searchString = new App.core.Product();
         }
         if (selection === 'URL')
@@ -1011,40 +1011,36 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
     template: _.template($('#upload-object-template').html()),
 
     onRender: function () {
+        var that = this;
+
         this.unwrapEl();
-         
 
         this.$el.modal('show'); // Toggle Bootstrap modal to show
+
         $('input[type=file]').change(function(){
             $(this).simpleUpload(window.location.href + '/upload', {
-                start: function(file){
-                    //upload started 
-                },
+                allowedExts: ["jpg", "jpeg", "jpe", "jif", "jfif", "jfi", "png", "gif"],
+                
+                allowedTypes: ["image/pjpeg", "image/jpeg", "image/png", "image/x-png", "image/gif", "image/x-gif"],
 
-                progress: function(progress){
-                    //received progress 
-                    this.progressBar.width(progress + "%");
+                expect: "text",
+
+                start: function(file){
+                    this.block = $('<div class="block"></div>');
+                    that.$el.find('#uploads').append(this.block);
+
+                    this.fileName = file.name;
                 },
 
                 success: function(data){
-                    //upload successful 
-                    console.log(data);
-                    if (data.success) {
-                        //now fill the block with the format of the uploaded file 
-                        var format = data.format;
-                        var formatDiv = $('<div class="format"></div>').text(format);
-                        this.block.append(formatDiv);
-                    } else {
-                        var error = data.error.message;
-                        var errorDiv = $('<div class="error"></div>').text(error);
-                        this.block.append(errorDiv);
-                    }
+                    var status = "File: " + this.fileName + ". " + data,
+                        formatDiv = $('<div class="format"></div>').text(status);
+                    this.block.append(formatDiv);
                 },
 
                 error: function(error){
-                    //upload failed 
-                    var error = error.message;
-                    var errorDiv = $('<div class="error"></div>').text(error);
+                    var error = "File: " + this.fileName + ". " + error.message,
+                        errorDiv = $('<div class="error"></div>').text(error);
                     this.block.append(errorDiv);
                 }
             });
@@ -1052,12 +1048,7 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
     },
 
     events: {
-        "click button#upload": "uploadObject",
         "click button#close": "closeModal",
-    },
-    
-    uploadObject: function () {
-        console.log("upload!");
     },
 });
 

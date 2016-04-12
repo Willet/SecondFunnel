@@ -67,15 +67,15 @@
                         </div>
                     </div>
                     <div class="object-add-remove-upload">
-                        Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
-                                    <button type="button" id="remove-product" class="btn btn-default">Remove</button>
+                        Image upload: <button type="button" id="upload-content" class="btn btn-default">Upload</button>
                     </div>
                     <div class="object-add-remove-upload">
                         Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
                                     <button type="button" id="remove-content" class="btn btn-default">Remove</button>
                     </div>
                     <div class="object-add-remove-upload">
-                        Content upload: <button type="button" id="upload-content" class="btn btn-default">Upload</button>
+                        Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
+                                    <button type="button" id="remove-product" class="btn btn-default">Remove</button>
                     </div>
                 </script>
 
@@ -174,14 +174,13 @@
                                 </div>
                                 <div class="modal-body">
                                     <div id="uploads"></div>
-                                    <span class="btn btn-default btn-file">
-                                        Browse <input type="file" multiple>
-                                    </span>
+                                    <div class="browse-button-wrapper">
+                                        <div class="btn btn-default btn-file" id="browse-button">
+                                            Browse <input type="file" multiple>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" id="upload" class="btn btn-default">
-                                        Upload
-                                    </button>
                                     <button type="button" id="close" class="btn btn-default">
                                         Close
                                     </button>

@@ -2,28 +2,27 @@ import ast, json
 from multiprocessing import Process
 from urlparse import urlparse
 
-from django.db.models import Q
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 
-from rest_framework import renderers, viewsets, permissions, status
+from rest_framework import permissions, renderers, status, viewsets
 from rest_framework.decorators import api_view, detail_route, list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework_bulk import generics, BulkListSerializer
 
-from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
+from apps.assets.models import Category, Content, Feed, Gif, Image, Page, Product, ProductImage, Store, Tile, Video
 from apps.dashboard.models import Dashboard, UserProfile
-from apps.imageservice.tasks import process_image, process_gif
-from apps.imageservice.utils import delete_cloudinary_resource, create_image_path, get_filetype
+from apps.imageservice.tasks import process_image
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
-from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
-    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer, \
-    TileSerializerBulk
+from .serializers import CategorySerializer, ContentSerializer, FeedSerializer, GifSerializer, ImageSerializer, \
+    PageSerializer, ProductSerializer, ProductImageSerializer, StoreSerializer, TileSerializer, TileSerializerBulk, \
+    VideoSerializer
 from .generics import ListCreateDestroyBulkUpdateAPIView
 
 
@@ -160,6 +159,9 @@ class ProductViewSet(viewsets.ModelViewSet):
                 def process(request, page, url, options):
                     PageMaintainer(page).add(source_urls=[url], options=options)
 
+                # Close the connection so that once the scrape process completes
+                # There won't be multiple processes trying to use the same socket
+                # Which causes "DatabaseError: SSL error: decryption failed or bad record mac"
                 from django.db import connection 
                 connection.close()
                 
@@ -470,7 +472,7 @@ class PageViewSet(viewsets.ModelViewSet):
         """
 
         tile = None
-        
+
         try:
             content = Content.objects.get(filters)
         except Content.DoesNotExist:
@@ -483,7 +485,7 @@ class PageViewSet(viewsets.ModelViewSet):
             raise AttributeError(status)
         else:
             # Content adding
-            if page.feed.tiles.filter(content=content):
+            if page.feed.tiles.filter(content=content) and not force_create_tile:
                 status = (u"Content with ID: {0}, Store: {1} is already added. Add "
                           "failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)
