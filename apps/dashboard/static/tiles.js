@@ -38,6 +38,32 @@ App.core = {};
 
 App.core.apiURL = "http://" + window.location.host + "/api2/";
 
+App.core.ProductCollection = Backbone.Collection.extend({
+    defaults: {},
+
+    url: App.core.apiURL + 'page/' + pageID + '/products/',
+
+    parse: function (response) {
+        return response;
+    },
+
+    comparator: function (a, b) {
+        /**
+        Comparator used when sorting products, sort from highest product ID at top
+        to lowest product ID at bottom
+        **/
+        if (a.get("id") > b.get("id")) {
+            return -1;
+        }
+        if (a.get("id") < b.get("id")) {
+            return 1;
+        }
+        if (a.get("id") === b.get("id")) {
+            return 0;
+        }
+    },
+});
+
 App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
 
@@ -240,6 +266,50 @@ App.core.TileCollection = Backbone.Collection.extend({
     },
 });
 
+App.core.Tile = Backbone.Model.extend({
+    defaults: {},
+
+    urlRoot: App.core.apiURL,
+
+    getCustomURL: function (method, tileID) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
+        switch (method) {
+            case 'tag':
+                return App.core.apiURL + 'tile/' + tileID + '/' + method;
+        }
+    },
+
+    sync: function (method, model, options) {
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.sync.call(this, method, model, options);
+    },
+
+    tag: function (tagObject, tileID) {
+        /**
+        Calls for a tag of the tile by doing a Backbone.sync to API server
+
+        inputs:
+            tagObject: containing the tag information (Products/Content IDs)
+
+        output:
+            API server response
+        **/
+        var options = {
+            'url': this.getCustomURL('tag', tileID),
+        };
+        return Backbone.sync.call(this, 'create', tagObject, options);
+    },   
+});
+
 App.core.TileView = Marionette.ItemView.extend({
     template: _.template($('#tile-template').html()),
 
@@ -399,6 +469,13 @@ App.core.FeedbackView = Marionette.ItemView.extend({
     },
 });
 
+App.core.FeedbackNoTimeoutView = App.core.FeedbackView.extend({
+    // Identical to FeedbackView except there are no timeouts after 10s
+    initialize: function (options) {
+
+    },
+});
+
 App.core.BaseModalView = Marionette.ItemView.extend({
     // BaseModalView: Contains the shared modal functions.
 
@@ -424,9 +501,96 @@ App.core.BaseModalView = Marionette.ItemView.extend({
 App.core.EditModalView = App.core.BaseModalView.extend({
     template: _.template($('#edit-modal-template').html()),
 
+    onRender: function () {
+        var that = this;
+        if ( (App.productsList == null) || (App.productsList == undefined) ){
+            App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                'alertType': 'info',
+                'status': "Fetching all product info..."
+            }));
+            App.productsList = new App.core.ProductCollection();
+            App.productsList.fetch().done(function () {
+                App.productsList.sort();
+                App.feedback.empty();
+                
+                that.unwrapEl();
+                that.$el.modal('show'); // Toggle Bootstrap modal to show
+                that.populateMultiSelect('#product-selector');
+            });
+        } else {
+            that.unwrapEl();
+            that.$el.modal('show'); // Toggle Bootstrap modal to show
+            that.populateMultiSelect('#product-selector');
+        }
+    },
+
+    populateMultiSelect: function(divName) {
+        var that = this;
+
+        that.$el.find(divName).multiSelect({
+            selectionHeader: "<div class='custom-header'>Products to be Tagged</div>",
+            selectableHeader: "<div class='custom-header'>List of Products</div>",
+        }); // Must run this line before we can access
+            //    multiSelect's options
+        _.each(App.productsList.models, function (val) {
+            that.$el.find(divName).multiSelect('addOption', { 
+                value: val.get('id'), text: val.get('id') + ' - ' + val.get('name')
+            });
+        });
+    },
+
     events: {
         "click button#close": "closeModal",
+        "click button#tagTile": "tagTile",
         "click button#change": "changePriority",
+    },
+
+    tagTile: function () {
+        var result, alertType, status, tile,
+            tileID = this.model.get('id'),
+            selected = [],
+            that = this;
+
+        _.each(this.$el.find('#product-selector')[0].options, function (val) {
+            if (val.selected) {
+                selected.push(val.value);
+            }
+        });
+
+        if (selected.length > 0) {
+            App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                'alertType': 'info',
+                'status':  "Tile tagging in progress..",
+            }));
+            // Now send an API request to tag the tile with products
+            tile = new App.core.Tile();
+            tile.set({data: {
+                'pageID': pageID,
+                'products': selected
+            }});
+            
+            result = tile.tag(tile, tileID);
+            result.always(function () {
+                status = JSON.parse(result.responseText)['detail'];
+                if (result.status === 200) {
+                    that.$el.modal('hide'); // Toggle Bootstrap modal to hide
+                    alertType = 'success';
+                    status = status + " Please refresh to see the changes."
+                } else {
+                    alertType = 'warning';
+                }
+                App.feedback.empty();
+                App.feedback.show(new App.core.FeedbackView({
+                    'alertType': alertType,
+                    'status': status,
+                }));
+            });
+        } else {
+            App.feedback.show(new App.core.FeedbackView({
+                'alertType': 'warning',
+                'status':  "No products have been selected.",
+            }));
+        }
     },
 
     changePriority: function () {
@@ -444,7 +608,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             }
             this.$el.modal('hide'); // Toggle Bootstrap modal to hide
 
-            App.feedback.show(new App.core.FeedbackView({
+            App.feedback.show(new App.core.FeedbackNoTimeoutView({
                 'alertType': 'info',
                 'status': 'Processing... Please wait.'
             }));
@@ -464,6 +628,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                     alertType = 'danger';
                     status = result.priority;
                 }
+                App.feedback.empty();
                 App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
             });
         }
@@ -488,7 +653,7 @@ App.core.RemoveModalView = App.core.BaseModalView.extend({
             modelID     = currModel.id;
         this.$el.modal('hide'); // Toggle Bootstrap modal to hide
 
-        App.feedback.show(new App.core.FeedbackView({
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
             'alertType': 'info',
             'status': 'Processing... Please wait.'
         }));
@@ -515,6 +680,7 @@ App.core.RemoveModalView = App.core.BaseModalView.extend({
                     }
                 }
             }
+            App.feedback.empty();
             App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
         })
     },
@@ -748,11 +914,11 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
 
         var addObjectModel = Backbone.Model.extend({
             schema: {
-                object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
-                selection: { title: 'Add using:', type: 'Select', options: selectionOptions[objectType] },
-                num:       { title: 'Value:', type: 'Text' },
-                category:  { title: 'Category', type: 'Text' },
-                priority: { title: 'Priority', type: 'Text' },
+                object:     { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
+                selection:  { title: '', type: 'Select', options: selectionOptions[objectType] },
+                num:        { title: '', type: 'Text' },
+                category:   { title: 'Category', type: 'Text' },
+                priority:   { title: 'Priority', type: 'Text' },
             },
             defaults: {
                 object: objectType,
@@ -764,6 +930,8 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         this.addObjectInstance = new addObjectModel();
 
         this.addObjectForm = new Backbone.Form({
+            template: _.template($('#add-form-template').html()),
+
             model: this.addObjectInstance,
         }).render();
 
@@ -825,7 +993,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         result.always(function () {
             responseText = JSON.parse(result.responseText);
             idLength = responseText.ids.length;
-            App.feedback.show(new App.core.FeedbackView({
+            App.feedback.show(new App.core.FeedbackNoTimeoutView({
                 'alertType': 'info',
                 'status': 'Processing... Please wait.'
             }));
@@ -854,6 +1022,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 }
                 result = page.add(page);
                 result.always(function () {
+                    App.feedback.empty();
                     responseText = JSON.parse(result.responseText);
                     status = responseText.status;
                     if (result.status === 200) {
@@ -898,7 +1067,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 } else {
                     // No object found
                     if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
-                        App.feedback.show(new App.core.FeedbackView({
+                        App.feedback.show(new App.core.FeedbackNoTimeoutView({
                             'alertType': 'info',
                             'status': "Object could not be found. Scraping..."
                         }));
@@ -915,6 +1084,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                         }
                         result = processURL.scrape(processURL);
                         result.always(function () {
+                            App.feedback.empty();
                             responseText = JSON.parse(result.responseText);
                             if (result.status !== 200) {
                                 App.feedback.show(new App.core.FeedbackView({
@@ -924,7 +1094,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                             } else {
                                 alertType = 'success';
                                 status = responseText.status + ". Creating tile.";
-                                App.feedback.show(new App.core.FeedbackView({
+                                App.feedback.show(new App.core.FeedbackNoTimeoutView({
                                     'alertType': alertType,
                                     'status': status,
                                 }));
@@ -951,6 +1121,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
 
                                 result = page.add(page);
                                 result.always(function () {
+                                    App.feedback.empty();
                                     responseText = JSON.parse(result.responseText);
                                     status = responseText.status;
                                     if (result.status === 200) {
@@ -977,6 +1148,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                                     status = "Tile priority patching failed due to an error.";
                                                 }
                                                 that.hideAndShowModal(that, alertType, status);
+                                                // Once scrape and add's successful, need to open the modal to edit it
                                             });
                                         } else {
                                             that.hideAndShowModal(that, 'success', status + ' Please refresh to see the new tile.');
@@ -1070,8 +1242,8 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
         var removeObjectModel = Backbone.Model.extend({
             schema: {
                 object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
-                selection: { title: 'Selection', type: 'Select', options: selectionOptions[objectType] },
-                num:       { title: 'Number', type: 'Text' },
+                selection: { title: '', type: 'Select', options: selectionOptions[objectType] },
+                num:       { title: '', type: 'Text' },
             },
             defaults: {
                 object: objectType,
@@ -1082,6 +1254,8 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
         this.removeObjectInstance = new removeObjectModel();
         
         this.removeObjectForm = new Backbone.Form({
+            template: _.template($('#remove-form-template').html()),
+
             model: this.removeObjectInstance,
         }).render();
 
@@ -1210,6 +1384,7 @@ App.core.ControlBarView = Marionette.ItemView.extend({
         "click button#add-content": "addContent",
         "click button#remove-content": "removeContent",
         "click button#upload-content": "uploadContent",
+        "click button#tag-product": "tagProduct",
     },
 
     className: 'control-bar-wrapper',

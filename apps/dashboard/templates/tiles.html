@@ -115,6 +115,23 @@
                     </script>
                 </ul>
 
+                <script id="add-form-template" type="text/html">
+                    <form>
+                        <div data-fields="object"></div>
+                        <div data-fields="selection" class="selection-field"></div>
+                        <div data-fields="num" class="num-field"></div>
+                        <div data-fields="category,priority"></div>
+                    </form>
+                </script>
+
+                <script id="remove-form-template" type="text/html">
+                    <form>
+                        <div data-fields="object"></div>
+                        <div data-fields="selection" class="selection-field"></div>
+                        <div data-fields="num" class="num-field"></div>
+                    </form>
+                </script>
+
                 <script type="text/template" id="add-object-template">
                     <div class="modal" id="modal-dialog-box" role="dialog" >
                         <div class="modal-dialog">
@@ -196,14 +213,22 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title"><%= name %> </br></h4>
+                                    <h4 class="modal-title"><%= id %> - <%= name %> </br></h4>
                                 </div>
                                 <div class="modal-body">
                                     Current Priority: <%= priority %></br>
                                     New Priority: <input type="text" id="new_priority">
                                     <div id="editError"></div>
+                                    <select multiple="multiple" id="product-selector" name="product-selector[]"></select>
+                                    Tag using:
+                                    <input type="text" class="selection-field">
+                                    <input type="text" class="num-field">
+
                                 </div>
                                 <div class="modal-footer">
+                                    <button type="button" id="tagTile" class="btn btn-default">
+                                        Tag
+                                    </button>
                                     <button type="button" id="change" class="btn btn-default">
                                         Change Priority
                                     </button>
@@ -217,7 +242,7 @@
                 </script>
 
                 <script type="text/template" id="remove-modal-template">
-                    <div class="modal" id="remove-modal-dialog-box" role="dialog">
+                    <div class="modal" id="modal-dialog-box" role="dialog">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -238,8 +263,7 @@
                             </div>
                         </div>
                     </div>
-                </script>  
-
+                </script>
             </div>
         </div>
     </div>

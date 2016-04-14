@@ -258,15 +258,15 @@ class APITest(APITestCase):
 
     def product_search_URL_input_numbers_test(self):
         response = self.client.post('/api2/product/search/', {'url': "12345"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], 'Product with URL: 12345 could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a URL as input, but got number.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['products'], [])
 
     def product_search_URL_input_letters_test(self):
         response = self.client.post('/api2/product/search/', {'url': "asdf1234asf"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], 'Product with URL: asdf1234asf could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Expecting a URL as input, but got string.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['products'], [])
 
@@ -365,9 +365,9 @@ class APITest(APITestCase):
         self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def content_search_URL_successful_test(self):
-        response = self.client.post('/api2/content/search/', {'url': '/content.jpg'})
+        response = self.client.post('/api2/content/search/', {'url': 'www.google.com'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with URL: /content.jpg has been found.')
+        self.assertEqual(response.data['status'], 'Content with URL: www.google.com has been found.')
         self.assertEqual(response.data['ids'], [6])
         self.assertEqual(response.data['contents'][0]['status'], u'needs-review')
         self.assertEqual(response.data['contents'][0]['tagged_products'], [])
@@ -387,31 +387,42 @@ class APITest(APITestCase):
         self.assertEqual(response.data['ids'], [16])
 
     def content_search_multiple_test(self):
-        response = self.client.post('/api2/content/search/', {'url': "/contentMULTIPLE.jpg"})
+        response = self.client.post('/api2/content/search/', {'url': "www.facebook.com"})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Multiple contents have been found. IDs: 534 535')
-        self.assertEqual(response.data['ids'], [534, 535])
+        self.assertEqual(response.data['status'], 'Multiple contents have been found. IDs: 16 534 535')
+        self.assertEqual(response.data['ids'], [16, 534, 535])
         self.assertEqual(response.data['contents'][0]['status'], u'approved')
         self.assertEqual(response.data['contents'][0]['tagged_products'], [])
-        self.assertEqual(response.data['contents'][0]['description'], u'blah blah blah534')
-        self.assertEqual(response.data['contents'][0]['url'], u'/contentMULTIPLE.jpg')
+        self.assertEqual(response.data['contents'][0]['description'], u'blah blah blah')
+        self.assertEqual(response.data['contents'][0]['url'], u'/content2.jpg')
         self.assertEqual(response.data['contents'][0]['source_url'], u'www.facebook.com')
         self.assertEqual(response.data['contents'][0]['source'], u'upload')
         self.assertEqual(response.data['contents'][0]['attributes'], u'{}')
-        self.assertEqual(response.data['contents'][0]['id'], 534)
+        self.assertEqual(response.data['contents'][0]['id'], 16)
         self.assertEqual(response.data['contents'][0]['store'], 14)
-        self.assertEqual(response.data['contents'][0]['name'], u'blah534')
+        self.assertEqual(response.data['contents'][0]['name'], u'blah16')
 
         self.assertEqual(response.data['contents'][1]['status'], u'approved')
         self.assertEqual(response.data['contents'][1]['tagged_products'], [])
-        self.assertEqual(response.data['contents'][1]['description'], u'blah blah blah535')
+        self.assertEqual(response.data['contents'][1]['description'], u'blah blah blah534')
         self.assertEqual(response.data['contents'][1]['url'], u'/contentMULTIPLE.jpg')
         self.assertEqual(response.data['contents'][1]['source_url'], u'www.facebook.com')
         self.assertEqual(response.data['contents'][1]['source'], u'upload')
         self.assertEqual(response.data['contents'][1]['attributes'], u'{}')
-        self.assertEqual(response.data['contents'][1]['id'], 535)
+        self.assertEqual(response.data['contents'][1]['id'], 534)
         self.assertEqual(response.data['contents'][1]['store'], 14)
-        self.assertEqual(response.data['contents'][1]['name'], u'blah535')
+        self.assertEqual(response.data['contents'][1]['name'], u'blah534')
+
+        self.assertEqual(response.data['contents'][2]['status'], u'approved')
+        self.assertEqual(response.data['contents'][2]['tagged_products'], [])
+        self.assertEqual(response.data['contents'][2]['description'], u'blah blah blah535')
+        self.assertEqual(response.data['contents'][2]['url'], u'/contentMULTIPLE.jpg')
+        self.assertEqual(response.data['contents'][2]['source_url'], u'www.facebook.com')
+        self.assertEqual(response.data['contents'][2]['source'], u'upload')
+        self.assertEqual(response.data['contents'][2]['attributes'], u'{}')
+        self.assertEqual(response.data['contents'][2]['id'], 535)
+        self.assertEqual(response.data['contents'][2]['store'], 14)
+        self.assertEqual(response.data['contents'][2]['name'], u'blah535')
 
     def content_search_URL_unsuccessful_test(self):
         response = self.client.post('/api2/content/search/', {'url': 'www.secondfunnel.com'})
@@ -429,15 +440,15 @@ class APITest(APITestCase):
 
     def content_search_URL_input_numbers_test(self):
         response = self.client.post('/api2/content/search/', {'url': "12345"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], u'Content with URL: 12345 could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], u'Expecting a URL as input, but got number.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['contents'], [])
 
     def content_search_URL_input_letters_test(self):
         response = self.client.post('/api2/content/search/', {'url': "asdf1234asf"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], u'Content with URL: asdf1234asf could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], u'Expecting a URL as input, but got string.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['contents'], [])
 
@@ -450,6 +461,7 @@ class APITest(APITestCase):
 
     def content_search_ID_input_letters_test(self):
         response = self.client.post('/api2/content/search/', {'id': "asdf1234"})
+        print response
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u'Expecting a number as input, but got non-number.')
         self.assertEqual(response.data['ids'], [])

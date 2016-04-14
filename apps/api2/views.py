@@ -86,10 +86,17 @@ class ProductViewSet(viewsets.ModelViewSet):
                     filters = Q(sku=sku_filter)
 
                 if url_filter:
+                    if url_filter.isdigit():
+                        raise Exception("Expecting a URL as input, but got number.")
+                    if '.' not in url_filter:
+                        raise Exception("Expecting a URL as input, but got string.")
                     key = ('URL', 'url')
                     filters = Q(url=url_filter)
             except (ValueError, TypeError):
                 return_dict['status'] = u"Expecting a number as input, but got non-number."
+                status_code = 400
+            except Exception as e:
+                return_dict['status'] = str(e)
                 status_code = 400
             else:
                 try:
@@ -233,6 +240,10 @@ class ContentViewSet(viewsets.ModelViewSet):
                     filters = Q(name=name_filter)
 
                 if url_filter:
+                    if url_filter.isdigit():
+                        raise Exception("Expecting a URL as input, but got number.")
+                    if '.' not in url_filter:
+                        raise Exception("Expecting a URL as input, but got string.")
                     key = ('URL', 'url')
                     parsed_url = urlparse(url_filter)
                     if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
@@ -241,6 +252,9 @@ class ContentViewSet(viewsets.ModelViewSet):
                         filters = Q(source_url=url_filter)
             except (ValueError, TypeError):
                 return_dict['status'] = u"Expecting a number as input, but got non-number."
+                status_code = 400
+            except Exception as e:
+                return_dict['status'] = str(e)
                 status_code = 400
             else:
                 try:
@@ -542,6 +556,33 @@ class PageViewSet(viewsets.ModelViewSet):
         
         return (status, success)
 
+    @detail_route(methods=['get'])
+    def products(self, request, pk):
+        """
+        List all products available for this page
+
+        inputs:
+            id: page ID
+
+        returns:
+            list of dictionaries containing product details for page
+        """
+        profile = UserProfile.objects.get(user=self.request.user)
+        page = get_object_or_404(Page, pk=pk)
+        store = get_object_or_404(Store, pk=page.store_id)
+        products = Product.objects.filter(store=store)
+
+        serialized_products = []
+        for p in products:
+            # ProductSerializer is not used here since that'll cause too many 
+            #    DB calls, causing pages with a lot of products to crash
+            serialized_products.append({
+                'id': p.id,
+                'name': p.name,
+            })
+
+        return Response(serialized_products)
+
     @detail_route(methods=['post'])
     def add(self, request, pk):
         """
@@ -747,6 +788,66 @@ class TileDetail(APIView):
 
         return serialized_tile
 
+    def tile_tagger(self, tile, products, contents):
+        try:
+            for p in products:
+                p = get_object_or_404(Product, pk=p)
+                tile.products.add(p)
+            for c in contents:
+                c = get_object_or_404(Content, pk=c)
+                tile.content.add(c)
+        except Exception as e:
+            status = str(e)
+            status_code = 400
+        else:
+            status = "Tile tagging was successful."
+            status_code = 200
+        return (status, status_code)
+
+    def post(self, request, pk, method):
+        profile = UserProfile.objects.get(user=self.request.user)
+        tile = get_object_or_404(Tile, pk=pk)
+
+        return_dict = {}
+
+        if method == 'tag':
+            data = request.data.get('data', {})
+            if type(data) is not dict:
+                data = ast.literal_eval(request.data.get('data', {}))
+
+            products = data.get('products', [])
+            contents = data.get('contents', [])
+            try:
+                page_id = data['pageID']
+            except KeyError:
+                (status, status_code) = ("Missing pageID parameter.", 400)
+            else:
+                page = get_object_or_404(Page, pk=page_id)
+                store = get_object_or_404(Store, pk=page.store_id)
+                if tile.feed != page.feed:
+                    (status, status_code) = ("Tile is not part of this page.", 400)
+                else:
+                    # Now need to check if the products/contents listed are part of tile store
+                    for p in products:
+                        p = get_object_or_404(Product, pk=p)
+                        if p.store_id != store.id:
+                            return_dict['detail'] = "Product with ID: " + str(p.id) + " is not part of the " + store.name + " store."
+                            status = 400
+                            return Response(return_dict, status=status)
+                    for c in contents:
+                        c = get_object_or_404(Content, pk=c)
+                        if c.store_id != store.id:
+                            return_dict['detail'] = "Content with ID: " + str(c.id) + " is not part of the " + store.name + " store."
+                            status = 400
+                            return Response(return_dict, status=status)
+                    (status, status_code) = self.tile_tagger(tile, products, contents)
+        else:
+            (status, status_code) = ("Method not allowed.", 403)
+
+        return_dict = {'detail': status}
+
+        return Response(return_dict, status=status_code)
+
     def get(self, request, pk, format=None):
         """
         Returns the serialized tile
@@ -769,7 +870,7 @@ class TileDetail(APIView):
             status = "Not allowed."
             status_code = 400
 
-        return Response(status, status_code)
+        return Response(status, status=status_code)
 
     def patch(self, request, pk, format=None):
         """

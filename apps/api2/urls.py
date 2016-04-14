@@ -18,5 +18,6 @@ urlpatterns = patterns(
 	'',
     url(r'^', include(router.urls)),
     url(r'^tile$', views.TileViewSetBulk.as_view()),
+    url(r'^tile/(?P<pk>[0-9]+)/(?P<method>[\w\-]+)$', views.TileDetail.as_view()),
     url(r'^tile/(?P<pk>[0-9]+)/$', views.TileDetail.as_view()),
 )
