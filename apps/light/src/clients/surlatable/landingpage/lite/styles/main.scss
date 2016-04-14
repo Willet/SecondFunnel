@@ -511,9 +511,6 @@ body {
         .current.sale {
             color: $slt-sale-price-color;
         }
-        .current.no-sale {
-            display: none;
-        }
         .current:before {
             content: "$";
             font-size: .6em;
