@@ -173,7 +173,7 @@ class ImageTileSerializer(TileSerializer):
                 image = [i.to_json() for i in images if i.id == defaultImageId][0]
             except IndexError:
                 raise SerializerError(u"Image Tile #{} is not tagged with its "
-                                    + u"default Image #{}".format(tile.id, defaultImageId))
+                                      u"default Image #{}".format(tile.id, defaultImageId))
         else:
             try:
                 # cleanly handles subclasses (ie: Gif uses GifSerializer)
@@ -190,7 +190,7 @@ class ImageTileSerializer(TileSerializer):
                 expandedImage = [i.to_json() for i in images if i.id == expandedImageId][0]
             except IndexError:
                 raise SerializerError(u"Image Tile #{} is not tagged with its "
-                                    + u"expanded Image #{}".format(tile.id, expandedImageId))
+                                      u"expanded Image #{}".format(tile.id, expandedImageId))
 
         mobileExpandedImageId = (tile.attributes.get('mobileExpandedImage')
                                  or tile.attributes.get('mobile-expanded-image'))
@@ -200,7 +200,7 @@ class ImageTileSerializer(TileSerializer):
                 mobileExpandedImage = [i.to_json() for i in images if i.id == mobileExpandedImageId][0]
             except IndexError:
                 raise SerializerError(u"Image Tile #{} is not tagged with its "
-                                    + u"mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
+                                      u"mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
 
         data = self.get_core_attributes(tile)
         data.update({
@@ -269,7 +269,7 @@ class BannerTileSerializer(TileSerializer):
                 image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
                 raise SerializerError(u"Banner Tile #{} expecting "
-                                    + u"content to be an image".format(tile.id))
+                                      u"content to be an image".format(tile.id))
         else:
             product = tile.products.first() # Could return None
             try:
@@ -281,7 +281,7 @@ class BannerTileSerializer(TileSerializer):
                 except AttributeError:
                     # Ran out of options
                     raise SerializerError(u"Banner Tile #{} must have an image "
-                                        + u"or a product with an image".format(tile.id))
+                                          u"or a product with an image".format(tile.id))
 
         data = self.get_core_attributes(tile)
         data['default-image'] = image
@@ -313,14 +313,14 @@ class CollectionTileSerializer(TileSerializer):
                 image = [i.to_json() for i in images if i.id == defaultImageId][0]
             except IndexError:
                 raise SerializerError(u"Collection Tile #{} is not tagged with its "
-                                    + u"default Image #{}".format(tile.id, defaultImageId))
+                                      u"default Image #{}".format(tile.id, defaultImageId))
         else:
             # Grab first tagged image
             try:
                 image = self.get_dump_first_content_of(self.contenttype, tile)
             except LookupError:
                 raise SerializerError(u"Collection Tile #{} expecting content to "
-                                    + u"include an image".format(tile.id))
+                                      u"include an image".format(tile.id))
 
         expandedImageId = tile.attributes.get('expandedImage') or tile.attributes.get('expanded-image')
         expandedImage = None
@@ -329,7 +329,7 @@ class CollectionTileSerializer(TileSerializer):
                 expandedImage = [i.to_json() for i in images if i.id == expandedImageId][0]
             except IndexError:
                 raise SerializerError(u"Collection Tile #{} is not tagged with its "
-                                    + u"expanded Image #{}".format(tile.id, expandedImageId))
+                                      u"expanded Image #{}".format(tile.id, expandedImageId))
 
         mobileExpandedImageId = (tile.attributes.get('mobileExpandedImage')
                                  or tile.attributes.get('mobile-expanded-image'))
@@ -339,7 +339,7 @@ class CollectionTileSerializer(TileSerializer):
                 mobileExpandedImage = [i.to_json() for i in images if i.id == mobileExpandedImageId][0]
             except IndexError:
                 raise SerializerError(u"Collection Tile #{} is not tagged with its "
-                                    + u"mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
+                                      u"mobile expanded Image #{}".format(tile.id, mobileExpandedImageId))
 
         products = self.get_dump_tagged_products(tile)
 
@@ -397,7 +397,7 @@ class HerovideoTileSerializer(TileSerializer):
             video = self.get_dump_first_content_of(self.contenttype, tile)
         except LookupError:
             raise SerializerError(u"Herovideo Tile #{} expecting "
-                                + u"content to include a video".format(tile.id))
+                                  u"content to include a video".format(tile.id))
         try:
             image = self.get_dump_first_content_of('assets.Image', tile)
         except LookupError:

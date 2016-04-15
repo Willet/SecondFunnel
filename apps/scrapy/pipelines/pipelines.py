@@ -419,7 +419,7 @@ class PageUpdatePipeline(ItemManifold):
                     # If this is a new product from the datafeed, it will not be in the set
                     pass
 
-    def spider_opened(self, spider):
+    def open_spider(self, spider):
         """ Create list of products for this page """
         if getattr(spider, 'page_update', False):
             store_slug = getattr(spider, 'store_slug', False)
@@ -466,8 +466,9 @@ class TileSerializationPipeline(object):
         self.queue = TileSerializationQueue()
         super(TileSerializationPipeline, self).__init__(*args, **kwargs)
 
-    def spider_opened(self, spider):
+    def open_spider(self, spider):
         """ Captures all tile serialization signals, keeps queue of tiles """
+        spider.logger.info(u"Delaying tile serialization")
         self.queue.start()
 
     def close_spider(self, spider):

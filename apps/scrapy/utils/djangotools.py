@@ -54,7 +54,7 @@ def get_or_create(model):
         # We have no unique identifier at the moment; use the url / store
         return get_or_return_product(model, { 'url': model.url, 'store_id': model.store.id })
     elif isinstance(model, Content):
-        # since there is no unique identifier for content, assuming source_url is unique
+        # since there is no unique identifier for content, assume source_url is unique
         return get_or_return(model, { 'source_url': model.source_url })
     elif isinstance(model, Category):
         return get_or_return(model, { 'name': model.name, 'store_id': model.store.id })

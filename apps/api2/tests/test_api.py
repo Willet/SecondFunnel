@@ -56,8 +56,8 @@ class APITest(APITestCase):
 
     def store_error_test(self):
         response = self.client.get(reverse('store-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def product_test(self):
         response = self.client.get(reverse('product-list'))
@@ -131,8 +131,8 @@ class APITest(APITestCase):
 
     def product_error_test(self):
         response = self.client.get(reverse('product-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def product_search_URL_successful_test(self):
         response = self.client.post('/api2/product/search/', {'url': 'www.facebook.com/product'})
@@ -361,8 +361,8 @@ class APITest(APITestCase):
     def content_error_test(self):
         response = self.client.get(reverse('content-list')+'100/')
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def content_search_URL_successful_test(self):
         response = self.client.post('/api2/content/search/', {'url': '/content.jpg'})
@@ -510,8 +510,8 @@ class APITest(APITestCase):
 
     def image_error_test(self):
         response = self.client.get(reverse('image-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def gif_test(self):
         response = self.client.get(reverse('gif-list'))
@@ -554,8 +554,8 @@ class APITest(APITestCase):
 
     def gif_error_test(self):
         response = self.client.get(reverse('gif-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def productimage_test(self):
         response = self.client.get(reverse('productimage-list'))
@@ -619,8 +619,8 @@ class APITest(APITestCase):
 
     def productimage_error_test(self):
         response = self.client.get(reverse('productimage-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def video_test(self):
         response = self.client.get(reverse('video-list'))
@@ -661,8 +661,8 @@ class APITest(APITestCase):
 
     def video_error_test(self):
         response = self.client.get(reverse('video-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def page_test(self):
         response = self.client.get(reverse('page-list'))
@@ -714,8 +714,8 @@ class APITest(APITestCase):
 
     def page_error_test(self):
         response = self.client.get(reverse('page-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def page_add_product_successful_test(self):
         response = self.client.post('/api2/page/8/remove/', {'type': 'product', 'id': 3})
@@ -1060,8 +1060,8 @@ class APITest(APITestCase):
         self.assertEqual(tile0['placeholder'], False)
         self.assertEqual(tile0['in_stock'], True)
         self.assertEqual(tile0['attributes'], '{}')
-        self.assertEqual(tile0['defaultImage'],"/image.jpg")
-        self.assertEqual(tile0['name'],"Default")
+        self.assertEqual(tile0['defaultImage'], "/image.jpg")
+        self.assertEqual(tile0['name'], "Default")
 
         self.assertEqual(tile1['id'], 14)
         self.assertEqual(tile1['feed'], 9)
@@ -1074,8 +1074,8 @@ class APITest(APITestCase):
         self.assertEqual(tile1['placeholder'], False)
         self.assertEqual(tile1['in_stock'], True)
         self.assertEqual(tile1['attributes'], '{}')
-        self.assertEqual(tile1['defaultImage'],"/content.jpg")
-        self.assertEqual(tile1['name'],"blah6")
+        self.assertEqual(tile1['defaultImage'], "/content.jpg")
+        self.assertEqual(tile1['name'], "blah6")
 
         self.assertEqual(tile2['id'], 12)
         self.assertEqual(tile2['feed'], 9)
@@ -1088,8 +1088,8 @@ class APITest(APITestCase):
         self.assertEqual(tile2['placeholder'], False)
         self.assertEqual(tile2['in_stock'], True)
         self.assertEqual(tile2['attributes'], '{}')
-        self.assertEqual(tile2['defaultImage'],"/image.jpg")
-        self.assertEqual(tile2['name'],"Default5")
+        self.assertEqual(tile2['defaultImage'], "/image.jpg")
+        self.assertEqual(tile2['name'], "Default5")
 
         self.assertEqual(tile3['id'], 11)
         self.assertEqual(tile3['feed'], 9)
@@ -1102,8 +1102,8 @@ class APITest(APITestCase):
         self.assertEqual(tile3['placeholder'], False)
         self.assertEqual(tile3['in_stock'], True)
         self.assertEqual(tile3['attributes'], '{}')
-        self.assertEqual(tile3['defaultImage'],"/content.jpg")
-        self.assertEqual(tile3['name'],"blah6")
+        self.assertEqual(tile3['defaultImage'], "/content.jpg")
+        self.assertEqual(tile3['name'], "blah6")
 
         self.assertEqual(tile4['id'], 10)
         self.assertEqual(tile4['feed'], 9)
@@ -1116,8 +1116,8 @@ class APITest(APITestCase):
         self.assertEqual(tile4['placeholder'], False)
         self.assertEqual(tile4['in_stock'], True)
         self.assertEqual(tile4['attributes'], '{}')
-        self.assertEqual(tile4['defaultImage'],"/image.jpg")
-        self.assertEqual(tile4['name'],"Default6")
+        self.assertEqual(tile4['defaultImage'], "/image.jpg")
+        self.assertEqual(tile4['name'], "Default6")
 
     def tile_single_test(self):
         user = User.objects.get(pk=1)
@@ -1138,8 +1138,8 @@ class APITest(APITestCase):
         self.assertEqual(tile['placeholder'], False)
         self.assertEqual(tile['in_stock'], True)
         self.assertEqual(tile['attributes'], '{}')
-        self.assertEqual(tile['defaultImage'],"/content.jpg")
-        self.assertEqual(tile['name'],"blah6")
+        self.assertEqual(tile['defaultImage'], "/content.jpg")
+        self.assertEqual(tile['name'], "blah6")
 
     def tile_change_prio_test(self):
         user = User.objects.get(pk=1)
@@ -1223,8 +1223,40 @@ class APITest(APITestCase):
         self.client.login(username='testuser', password='testpassword')
         
         response = self.client.get('/api2/tile/999/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
+
+    def tile_delete_successful_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+        
+        tiles = Page.objects.get(pk=8).feed.tiles.all()
+        tile = Tile.objects.get(pk=10)
+        self.assertTrue(tile in tiles)
+
+        response = self.client.delete('/api2/tile/10/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, "Successfully deleted tile with ID: 10.")
+
+        tile = Tile.objects.filter(pk=10)
+        self.assertEqual(list(tile), [])
+
+        tiles = Page.objects.get(pk=8).feed.tiles.all()
+        self.assertTrue(not tile in tiles)
+
+    def tile_delete_unsuccessful_test(self):
+        user = User.objects.get(pk=1)
+        user.set_password('testpassword')
+        user.save()
+        self.client.login(username='testuser', password='testpassword')
+
+        response = self.client.delete('/api2/tile/40000/')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def feed_test(self):
         response = self.client.get(reverse('feed-list'))
@@ -1233,22 +1265,22 @@ class APITest(APITestCase):
         feed1 = response.data[1]
 
         self.assertEqual(feed0['id'],9)
-        self.assertEqual(feed0['feed_algorithm'],"magic")
-        self.assertEqual(feed0['feed_ratio'],u'0.20')
+        self.assertEqual(feed0['feed_algorithm'], "magic")
+        self.assertEqual(feed0['feed_ratio'], u'0.20')
 
         self.assertEqual(feed1['id'],13)
-        self.assertEqual(feed1['feed_algorithm'],"priority")
-        self.assertEqual(feed1['feed_ratio'],u'0.60')
+        self.assertEqual(feed1['feed_algorithm'], "priority")
+        self.assertEqual(feed1['feed_ratio'], u'0.60')
 
     def feed_single_test(self):
         response = self.client.get(reverse('feed-list')+'18/')
-        self.assertEqual(response.data['feed_algorithm'],"non-priority")
-        self.assertEqual(response.data['feed_ratio'],u'0.30')
+        self.assertEqual(response.data['feed_algorithm'], "non-priority")
+        self.assertEqual(response.data['feed_ratio'], u'0.30')
 
     def feed_error_test(self):
         response = self.client.get(reverse('feed-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def category_test(self):
         response = self.client.get(reverse('category-list'))
@@ -1256,18 +1288,18 @@ class APITest(APITestCase):
         category0 = response.data[0]
         category1 = response.data[1]
 
-        self.assertEqual(category0['name'],u'TestCategory')
+        self.assertEqual(category0['name'], u'TestCategory')
         self.assertEqual(category0['id'],7)
 
-        self.assertEqual(category1['name'],u'TestCategory2')
+        self.assertEqual(category1['name'], u'TestCategory2')
         self.assertEqual(category1['id'],8)
 
     def category_single_test(self):
         response = self.client.get(reverse('category-list')+'8/')
-        self.assertEqual(response.data['name'],u'TestCategory2')
+        self.assertEqual(response.data['name'], u'TestCategory2')
         self.assertEqual(response.data['id'],8)
 
     def category_error_test(self):
         response = self.client.get(reverse('category-list')+'100/')
-        self.assertEqual(response.data,{u'detail': u'Not found.'})
-        self.assertEqual(response.data[u'detail'],u'Not found.')
+        self.assertEqual(response.data, {u'detail': u'Not found.'})
+        self.assertEqual(response.data[u'detail'], u'Not found.')
