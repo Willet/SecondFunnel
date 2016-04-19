@@ -503,6 +503,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
 
     onRender: function () {
         var that = this;
+
         if ( (App.productsList == null) || (App.productsList == undefined) ){
             App.feedback.show(new App.core.FeedbackNoTimeoutView({
                 'alertType': 'info',
@@ -525,16 +526,68 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     populateMultiSelect: function(divName) {
-        var that = this;
+        var selection, num,
+            that = this,
+            products = this.model.get('products');
 
         that.$el.find(divName).multiSelect({
-            selectionHeader: "<div class='custom-header'>Products to be Tagged</div>",
-            selectableHeader: "<div class='custom-header'>List of Products</div>",
-        }); // Must run this line before we can access
+            selectableHeader:   "<div class='custom-header'>List of Products</div>" +
+                                "<select id='selection-field-select' class='multiselect-selection-field'>" +
+                                "<option>URL</option><option selected='selected'>ID</option><option>SKU</option><option>Name</option>" +
+                                "</select>" +
+                                "<input type='text' class='multiselect-num-field' autocomplete='off'>",
+            selectionHeader:    "<div class='custom-header'>Products to be Tagged</div>" +
+                                "<input type='text' class='multiselect-products-field' autocomplete='off'>",
+            afterInit: function(ms){
+                var typingTimer, data, result, productsList,
+                    those = this,
+                    selectableSearch = those.$selectableUl.prev(),
+                    selectionSearch = those.$selectionUl.prev();
+
+                selectableSearch.keyup(function(){
+                    clearTimeout(typingTimer);
+                    if (selectableSearch.val()) {
+                        typingTimer = setTimeout(function () {
+                            App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                'alertType': 'info',
+                                'status': "Fetching product info..."
+                            }));
+                            // Refresh products list by doing API call and refresh multiselect
+                            selection = that.$el.find('.multiselect-selection-field')[0].value;
+                            num = that.$el.find('.multiselect-num-field')[0].value;
+
+                            data = {};
+                            data[selection] = num;
+
+                            productsList = new App.core.ProductCollection();
+                            result = productsList.fetch({
+                                data: data,
+                            });
+                            result.always(function () {
+                                App.feedback.empty();
+                                if (result.status === 200) {
+                                    App.productsList = productsList;
+                                    that.closeModal();
+                                    that.render();
+                                } else {
+                                    App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                        'alertType': 'warning',
+                                        'status': JSON.parse(result.responseText).status,
+                                    }));
+                                }
+                            });
+                        }, 1000);
+                    }
+                });
+            },
+        }); // Must run this before we can access
             //    multiSelect's options
         _.each(App.productsList.models, function (val) {
+            var modelID = val.get('id');
+            var modelName = val.get('name');
             that.$el.find(divName).multiSelect('addOption', { 
-                value: val.get('id'), text: val.get('id') + ' - ' + val.get('name')
+                value: modelID, 
+                text: modelID + ' - ' + modelName,
             });
         });
     },
@@ -543,6 +596,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
         "click button#close": "closeModal",
         "click button#tagTile": "tagTile",
         "click button#change": "changePriority",
+        "click button#changeAttributes": "changeAttributes",
     },
 
     tagTile: function () {
@@ -634,6 +688,48 @@ App.core.EditModalView = App.core.BaseModalView.extend({
         }
         catch(err) {
             this.$el.find('#editError').html(err);
+        }
+    },
+
+    changeAttributes: function () {
+        var result,
+            newAttributes = this.$el.find('#attributes-textarea').val(),
+            currModel = this.model;
+
+        this.$el.find('#editError').html("");
+
+        if (newAttributes !== currModel.get('attributes')) {
+            try {
+                JSON.parse(newAttributes);
+                App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                    'alertType': 'info',
+                    'status': 'Processing... Please wait.'
+                }));
+
+                result = currModel.save({attributes: newAttributes}, {
+                    patch: true,
+                    url: App.core.apiURL + 'tile/' + currModel.id + '/',
+                });
+
+                result.always(function () {
+                result = JSON.parse(result.responseText);
+                    if (_.has(result, "id")) {
+                        alertType = 'success';
+                        status = "The attributes of tile with ID: " + currModel.id +
+                                 " has been changed.";
+                    } else {
+                        alertType = 'danger';
+                        status = result.priority;
+                    }
+                    App.feedback.empty();
+                    App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+                });
+            } 
+            catch (e) {
+                this.$el.find('#editError').html(e.message);
+            }
+        } else {
+
         }
     },
 });

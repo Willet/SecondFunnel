@@ -217,13 +217,14 @@
                                 </div>
                                 <div class="modal-body">
                                     Current Priority: <%= priority %></br>
-                                    New Priority: <input type="text" id="new_priority">
+                                    New Priority: <input type="text" id="new_priority"></br>
+                                    Template: <%= template %></br>
+                                    In-stock: <%= in_stock %></br>
+                                    Attributes: </br>
+                                    <textarea id="attributes-textarea" rows="4" cols="50"><%= attributes %></textarea>
                                     <div id="editError"></div>
+                                    <hr>
                                     <select multiple="multiple" id="product-selector" name="product-selector[]"></select>
-                                    Tag using:
-                                    <input type="text" class="selection-field">
-                                    <input type="text" class="num-field">
-
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" id="tagTile" class="btn btn-default">
@@ -231,6 +232,9 @@
                                     </button>
                                     <button type="button" id="change" class="btn btn-default">
                                         Change Priority
+                                    </button>
+                                    <button type="button" id="changeAttributes" class="btn btn-default">
+                                        Change Attributes
                                     </button>
                                     <button type="button" id="close" class="btn btn-default">
                                         Close

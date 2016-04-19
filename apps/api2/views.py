@@ -567,21 +567,72 @@ class PageViewSet(viewsets.ModelViewSet):
         returns:
             list of dictionaries containing product details for page
         """
+        # Set the maximum number of results to return
+        return_limit = 100
+
         profile = UserProfile.objects.get(user=self.request.user)
         page = get_object_or_404(Page, pk=pk)
         store = get_object_or_404(Store, pk=page.store_id)
-        products = Product.objects.filter(store=store)
+        return_dict = {}
 
-        serialized_products = []
-        for p in products:
-            # ProductSerializer is not used here since that'll cause too many 
-            #    DB calls, causing pages with a lot of products to crash
-            serialized_products.append({
-                'id': p.id,
-                'name': p.name,
-            })
+        # Handle both products query ie /products?id=XXXX and /products data="{'id':XXXX}"
+        data = request.data.get('data', {})
+        if type(data) is not dict:
+            data = ast.literal_eval(request.data.get('data', {}))
 
-        return Response(serialized_products)
+        if data == {}:
+            # Test if the format's /products?id=XXXX or not
+            data = request.GET
+
+        # Setting up filters to query for product
+        id_filter = data.get('id', data.get('ID', None))
+        sku_filter = data.get('sku', data.get('SKU', None))
+        url_filter = data.get('url', data.get('URL', None))
+        name_filter = data.get('name', data.get('Name', None))
+
+        filters = Q(store=store)
+        try:
+            if id_filter:
+                id_filter = int(id_filter)
+                filters = filters & Q(id__icontains=id_filter)
+            elif sku_filter:
+                sku_filter = int(sku_filter)
+                filters = filters & Q(sku__icontains=sku_filter)
+            elif name_filter:
+                filters = filters & Q(name__icontains=name_filter)
+            elif url_filter:
+                if url_filter.isdigit():
+                    raise Exception("Expecting a URL as input, but got number.")
+                if '.' not in url_filter:
+                    raise Exception("Expecting a URL as input, but got string.")
+                filters = filters & Q(url__icontains=url_filter)
+        except ValueError:
+            return_dict['status'] = "Expecting a number as input, but got non-number."
+            status_code = 400
+        except Exception as e:
+            return_dict['status'] = str(e)
+            status_code = 400
+        else:
+            products = Product.objects.filter(filters).order_by('-id')
+            serialized_products = []
+
+            count = 0
+            for p in products:
+                # ProductSerializer is not used here since that'll cause too many 
+                #    DB calls, causing pages with a lot of products to crash
+                if count < return_limit:
+                    serialized_products.append({
+                        'id': p.id,
+                        'name': p.name,
+                    })
+                    count += 1
+                else:
+                    break
+
+            return_dict = serialized_products
+            status_code = 200
+        
+        return Response(return_dict, status=status_code)
 
     @detail_route(methods=['post'])
     def add(self, request, pk):

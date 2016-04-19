@@ -3823,14 +3823,35 @@ div[data-role="editor-toolbar"] {
     width: 100%;
     position: absolute;
 }
+
 .ms-selectable {
     width: 100%;
 }
+
 .ms-container {
     width: 100%;
 }
+
 .ms-elem-selectable {
     width: 100%;
+}
+
+.custom-header {
+    width: 100%;
+}
+
+.multiselect-selection-field {
+    width: 75px;
+    height: 35px;
+}
+
+.multiselect-products-field {
+    opacity: 0;
+}
+
+#attributes-textarea {
+    width: 100%;
+    height: 100px;
 }
 
 .tile {
