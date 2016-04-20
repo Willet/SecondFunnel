@@ -120,6 +120,9 @@
                         <div data-fields="object"></div>
                         <div data-fields="selection" class="selection-field"></div>
                         <div data-fields="num" class="num-field"></div>
+                        <hr>
+                        <select multiple="multiple" id="product-selector" name="product-selector[]"></select>
+                        <hr>
                         <div data-fields="category,priority"></div>
                     </form>
                 </script>
@@ -221,7 +224,7 @@
                                     Template: <%= template %></br>
                                     In-stock: <%= in_stock %></br>
                                     Attributes: </br>
-                                    <textarea id="attributes-textarea" rows="4" cols="50"><%= attributes %></textarea>
+                                    <textarea id="attributes-textarea" rows="4" cols="50"><%= JSON.stringify(attributes) %></textarea>
                                     <div id="editError"></div>
                                     <hr>
                                     <select multiple="multiple" id="product-selector" name="product-selector[]"></select>

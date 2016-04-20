@@ -4,6 +4,13 @@ from django.contrib.auth.models import User
 
 from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
 
+class JSONSerializerField(serializers.Field):
+    """ Serializer for JSONField -- required to make field writable"""
+    def to_internal_value(self, data):
+        return data
+    def to_representation(self, value):
+        return value
+
 class StoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
@@ -11,30 +18,35 @@ class StoreSerializer(serializers.ModelSerializer):
             'default_page', 'public_base_url')
 
 class ProductSerializer(serializers.ModelSerializer):    
+    attributes = JSONSerializerField()
     class Meta:
         model = Product
         fields = ('id', 'store', 'name', 'description', 'details', 'url', 'sku', 'price', 'sale_price', 
             'currency', 'default_image', 'last_scraped_at', 'in_stock', 'attributes', 'similar_products')
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    attributes = JSONSerializerField()
     class Meta:
         model = ProductImage
         fields = ('id', 'product', 'url', 'original_url', 'file_type', 'file_checksum', 'width', 'height', 
             'dominant_color', 'image_sizes', 'attributes')
 
 class ContentSerializer(serializers.ModelSerializer):
+    attributes = JSONSerializerField()
     class Meta:
         model = Content
         fields = ('id', 'store', 'name', 'description', 'url', 'source', 'source_url', 'tagged_products', 
             'attributes', 'status')
 
 class ImageSerializer(serializers.ModelSerializer):
+    attributes = JSONSerializerField()
     class Meta:
         model = Image
         fields = ('id', 'file_type', 'file_checksum', 'width', 'height', 'dominant_color', 'store',
             'name', 'description', 'url', 'source', 'source_url', 'tagged_products', 'attributes', 'status')
 
 class GifSerializer(serializers.ModelSerializer):
+    attributes = JSONSerializerField()
     class Meta:
         model = Gif
         fields = ('id', 'gif_url', 'file_type', 'file_checksum', 'width', 'height', 'dominant_color',
@@ -42,24 +54,29 @@ class GifSerializer(serializers.ModelSerializer):
             'attributes', 'status')
 
 class VideoSerializer(serializers.ModelSerializer):
+    attributes = JSONSerializerField()
     class Meta:
         model = Video
         fields = ('id', 'player', 'file_type', 'file_checksum', 'original_id', 'store', 'name',
             'description', 'url', 'source', 'source_url', 'tagged_products', 'attributes', 'status')
 
 class PageSerializer(serializers.ModelSerializer):
+    theme_settings = JSONSerializerField()
+    dashboard_settings = JSONSerializerField()
     class Meta:
         model = Page
         fields = ('id', 'store', 'name', 'theme', 'theme_settings', 'dashboard_settings', 'campaign', 
             'description', 'url_slug', 'legal_copy', 'last_published_at', 'feed')
 
 class TileSerializer(serializers.ModelSerializer):
+    attributes = JSONSerializerField()
     class Meta:
         model = Tile
         fields = ('id', 'feed', 'template', 'products', 'content', 'priority', 'clicks', 'views', 'placeholder',
             'in_stock', 'attributes')
 
 class TileSerializerBulk(BulkSerializerMixin, serializers.ModelSerializer):
+    attributes = JSONSerializerField()
     class Meta:
         model = Tile
         fields = ('id', 'feed', 'template', 'products', 'content', 'priority', 'clicks', 'views', 'placeholder',

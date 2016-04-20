@@ -601,10 +601,6 @@ class PageViewSet(viewsets.ModelViewSet):
             elif name_filter:
                 filters = filters & Q(name__icontains=name_filter)
             elif url_filter:
-                if url_filter.isdigit():
-                    raise Exception("Expecting a URL as input, but got number.")
-                if '.' not in url_filter:
-                    raise Exception("Expecting a URL as input, but got string.")
                 filters = filters & Q(url__icontains=url_filter)
         except ValueError:
             return_dict['status'] = "Expecting a number as input, but got non-number."
@@ -938,7 +934,12 @@ class TileDetail(APIView):
 
         status = {"detail": "Not allowed"}
         status_code = 400
-        
+
+        if 'attributes' in request.data:
+            attributes = request.data.get('attributes')
+            if type(attributes) is unicode:
+                request.data['attributes'] = ast.literal_eval(request.data['attributes'])
+
         tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
 
         if tile_in_user_dashboards:
