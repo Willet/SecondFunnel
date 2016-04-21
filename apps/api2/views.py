@@ -3,6 +3,8 @@ from multiprocessing import Process
 from urlparse import urlparse
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import connection 
 from django.db.models import Q
 from django.http import Http404
@@ -87,10 +89,11 @@ class ProductViewSet(viewsets.ModelViewSet):
                     filters = Q(sku=sku_filter)
 
                 if url_filter:
-                    if url_filter.isdigit():
-                        raise Exception("Expecting a URL as input, but got number.")
-                    if '.' not in url_filter:
-                        raise Exception("Expecting a URL as input, but got string.")
+                    validator = URLValidator()
+                    try:
+                        validator(url_filter)
+                    except ValidationError:
+                        raise Exception("Bad URL input detected.")
                     key = ('URL', 'url')
                     filters = Q(url=url_filter)
             except (ValueError, TypeError):
@@ -240,10 +243,11 @@ class ContentViewSet(viewsets.ModelViewSet):
                     filters = Q(name=name_filter)
 
                 if url_filter:
-                    if url_filter.isdigit():
-                        raise Exception("Expecting a URL as input, but got number.")
-                    if '.' not in url_filter:
-                        raise Exception("Expecting a URL as input, but got string.")
+                    validator = URLValidator()
+                    try:
+                        validator(url_filter)
+                    except ValidationError:
+                        raise Exception("Bad URL input detected.")
                     key = ('URL', 'url')
                     parsed_url = urlparse(url_filter)
                     if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:

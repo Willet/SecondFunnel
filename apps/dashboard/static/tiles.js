@@ -990,7 +990,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
     onRender: function () {
         // Once the add modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
-        
+
         var addObjectModel,
             objectType = this.options.objectType,
             newPriority = this.options.newTilePriority,
@@ -1116,8 +1116,12 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                     page.attributes.type = "product";
                     searchString = new App.core.Product();
                 }
-                if (selection === 'URL')
+                if (selection === 'URL') {
+                    if (num.search('http') === -1) {
+                        num = 'http://' + num;
+                    }
                     searchString.set({url: num});
+                }
                 if (selection === 'ID')
                     searchString.set({id: num});
                 if (selection === 'SKU')
@@ -1558,8 +1562,12 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             searchString = new App.core.Content();
         }
 
-        if (selection === 'URL')
+        if (selection === 'URL') {
+            if (num.search('http') === -1) {
+                num = 'http://' + num;
+            }
             searchString.set({url: num});
+        }
         if (selection === 'ID')
             searchString.set({id: num});
         if (selection === 'SKU')
