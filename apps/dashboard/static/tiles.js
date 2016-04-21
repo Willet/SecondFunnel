@@ -510,25 +510,19 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     onRender: function () {
         var that = this;
 
-        if ( (App.productsList == null) || (App.productsList == undefined) ){
-            App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                'alertType': 'info',
-                'status': "Fetching all product info..."
-            }));
-            App.productsList = new App.core.ProductCollection();
-            App.productsList.fetch().done(function () {
-                App.productsList.sort();
-                App.feedback.empty();
-                
-                that.unwrapEl();
-                that.$el.modal('show'); // Toggle Bootstrap modal to show
-                that.populateMultiSelect('#object-selector');
-            });
-        } else {
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+            'alertType': 'info',
+            'status': "Fetching all product info..."
+        }));
+        App.productsList = new App.core.ProductCollection();
+        App.productsList.fetch().done(function () {
+            App.productsList.sort();
+            App.feedback.empty();
+            
             that.unwrapEl();
             that.$el.modal('show'); // Toggle Bootstrap modal to show
             that.populateMultiSelect('#object-selector');
-        }
+        });
     },
 
     populateMultiSelect: function(divName) {
@@ -543,7 +537,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             afterInit: function(ms){
                 var typingTimer, data, result, productsList,
                     those = this,
-                    selectableSearch = those.$selectableUl.prev();
+                    selectableSearch = that.$el.find('input[name=num]');
 
                 _.each(App.productsList.models, function (val) {
                     var modelID = val.get('id'),
@@ -562,8 +556,8 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                             'status': "Fetching product info..."
                         }));
                         // Refresh products list by doing API call and refresh multiselect
-                        selection = that.$el.find('.multiselect-selection-field')[0].value;
-                        num = that.$el.find('.multiselect-num-field')[0].value;
+                        selection = that.$el.find('.edit-modal-selection-field')[0].value;
+                        num = that.$el.find('.edit-modal-num-field')[0].value;
 
                         data = {};
                         data[selection] = num;
@@ -576,8 +570,8 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                             App.feedback.empty();
                             if (result.status === 200) {
                                 App.productsList = productsList;
-                                that.closeModal();
-                                that.render();
+                                that.$el.find(divName).empty();
+                                that.$el.find(divName).multiSelect('refresh');
                             } else {
                                 App.feedback.show(new App.core.FeedbackNoTimeoutView({
                                     'alertType': 'warning',
@@ -1031,7 +1025,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
 
         this.$el.find('.add-form').html(this.addObjectForm.el);
         
-        if ( (App.productsList == null) || (App.productsList == undefined) ){
+        if (objectType === "Product") {
             App.feedback.show(new App.core.FeedbackNoTimeoutView({
                 'alertType': 'info',
                 'status': "Fetching all product info..."
@@ -1045,8 +1039,18 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 that.$el.modal('show'); // Toggle Bootstrap modal to show
             });
         } else {
-            that.populateMultiSelect('#object-selector', objectType + "s");
-            that.$el.modal('show'); // Toggle Bootstrap modal to show
+            App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                'alertType': 'info',
+                'status': "Fetching all content info..."
+            }));
+            App.contentsList = new App.core.ContentCollection();
+            App.contentsList.fetch().done(function () {
+                App.contentsList.sort();
+                App.feedback.empty();
+
+                that.populateMultiSelect('#object-selector', objectType + "s");
+                that.$el.modal('show'); // Toggle Bootstrap modal to show
+            });
         }
     },
 
