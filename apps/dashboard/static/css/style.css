@@ -3819,6 +3819,19 @@ div[data-role="editor-toolbar"] {
     float: left;
 }
 
+.edit-modal-selection-field {
+    position: inherit;
+    float: left;
+    width: 15%;
+    height: 36px;
+}
+
+.edit-modal-num-field {
+    position: inherit;
+    width: 40%;
+    height: 36px;
+}
+
 .ms-list {
     width: 100%;
     position: absolute;

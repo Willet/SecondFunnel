@@ -225,6 +225,13 @@
                                     <textarea id="attributes-textarea" rows="4" cols="50"><%= JSON.stringify(attributes) %></textarea>
                                     <div id="editError"></div>
                                     <hr>
+                                    <select id="edit-modal-selection" name="selection" class="edit-modal-selection-field">
+                                        <option>URL</option>
+                                        <option selected="selected">ID</option>
+                                        <option>SKU</option>
+                                        <option>Name</option>
+                                    </select>
+                                    <input id="edit-modal-input" name="num" type="text" class="edit-modal-num-field">
                                     <select multiple="multiple" id="object-selector" name="object-selector[]"></select>
                                 </div>
                                 <div class="modal-footer">
