@@ -559,7 +559,7 @@ class PageViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['get'])
     def products(self, request, pk):
         """
-        List all products available for this page
+        List all products available for this page, up to a limit set by return_dict
 
         inputs:
             id: page ID
@@ -626,6 +626,73 @@ class PageViewSet(viewsets.ModelViewSet):
                     break
 
             return_dict = serialized_products
+            status_code = 200
+        
+        return Response(return_dict, status=status_code)
+
+    @detail_route(methods=['get'])
+    def contents(self, request, pk):
+        """
+        List all contents available for this page, up to a limit set by return_dict
+
+        inputs:
+            id: page ID
+
+        returns:
+            list of dictionaries containing content details for page
+        """
+        # Set the maximum number of results to return
+        return_limit = 100
+
+        profile = UserProfile.objects.get(user=self.request.user)
+        page = get_object_or_404(Page, pk=pk)
+        store = get_object_or_404(Store, pk=page.store_id)
+        return_dict = {}
+
+        # Handle both contents query ie /contents?id=XXXX and /contents data="{'id':XXXX}"
+        data = request.data.get('data', {})
+        if type(data) is not dict:
+            data = ast.literal_eval(request.data.get('data', {}))
+
+        if data == {}:
+            # Test if the format's /contents?id=XXXX or not
+            data = request.GET
+
+        # Setting up filters to query for product
+        id_filter = data.get('id', data.get('ID', None))
+        url_filter = data.get('url', data.get('URL', None))
+
+        filters = Q(store=store)
+        try:
+            if id_filter:
+                id_filter = int(id_filter)
+                filters = filters & Q(id__icontains=id_filter)
+            elif url_filter:
+                filters = filters & Q(url__icontains=url_filter)
+        except ValueError:
+            return_dict['status'] = "Expecting a number as input, but got non-number."
+            status_code = 400
+        except Exception as e:
+            return_dict['status'] = str(e)
+            status_code = 400
+        else:
+            contents = Content.objects.filter(filters).order_by('-id')
+            serialized_contents = []
+
+            count = 0
+            for c in contents:
+                # ContentSerializer is not used here since that'll cause too many 
+                #    DB calls, causing pages with a lot of contents to crash
+                if count < return_limit:
+                    serialized_contents.append({
+                        'id': c.id,
+                        'name': c.name,
+                    })
+                    count += 1
+                else:
+                    break
+
+            return_dict = serialized_contents
             status_code = 200
         
         return Response(return_dict, status=status_code)

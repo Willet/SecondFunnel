@@ -117,11 +117,9 @@
 
                 <script id="add-form-template" type="text/html">
                     <form>
-                        <div data-fields="object"></div>
                         <div data-fields="selection" class="selection-field"></div>
                         <div data-fields="num" class="num-field"></div>
-                        <hr>
-                        <select multiple="multiple" id="product-selector" name="product-selector[]"></select>
+                        <select multiple="multiple" id="object-selector" name="object-selector[]"></select>
                         <hr>
                         <div data-fields="category,priority"></div>
                     </form>
@@ -166,7 +164,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Remove <%= objectType %></br></h4>
+                                    <h4 class="modal-title">Remove Object</br></h4>
                                 </div>
                                 <div class="modal-body">
                                     <div class="remove-form"></div>
@@ -227,7 +225,7 @@
                                     <textarea id="attributes-textarea" rows="4" cols="50"><%= JSON.stringify(attributes) %></textarea>
                                     <div id="editError"></div>
                                     <hr>
-                                    <select multiple="multiple" id="product-selector" name="product-selector[]"></select>
+                                    <select multiple="multiple" id="object-selector" name="object-selector[]"></select>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" id="tagTile" class="btn btn-default">
