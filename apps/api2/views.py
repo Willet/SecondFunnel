@@ -3,6 +3,7 @@ from multiprocessing import Process
 from urlparse import urlparse
 
 from django.contrib.auth.models import User
+from django.db import connection 
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -169,7 +170,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                 # Close the connection so that once the scrape process completes
                 # There won't be multiple processes trying to use the same socket
                 # Which causes "DatabaseError: SSL error: decryption failed or bad record mac"
-                from django.db import connection 
                 connection.close()
                 
                 p = Process(target=process, args=[request, page, url, options])
@@ -610,20 +610,8 @@ class PageViewSet(viewsets.ModelViewSet):
             status_code = 400
         else:
             products = Product.objects.filter(filters).order_by('-id')
-            serialized_products = []
 
-            count = 0
-            for p in products:
-                # ProductSerializer is not used here since that'll cause too many 
-                #    DB calls, causing pages with a lot of products to crash
-                if count < return_limit:
-                    serialized_products.append({
-                        'id': p.id,
-                        'name': p.name,
-                    })
-                    count += 1
-                else:
-                    break
+            serialized_products = [ {'id': p.id, 'name': p.name, } for p in products[:return_limit]]
 
             return_dict = serialized_products
             status_code = 200
@@ -677,20 +665,8 @@ class PageViewSet(viewsets.ModelViewSet):
             status_code = 400
         else:
             contents = Content.objects.filter(filters).order_by('-id')
-            serialized_contents = []
 
-            count = 0
-            for c in contents:
-                # ContentSerializer is not used here since that'll cause too many 
-                #    DB calls, causing pages with a lot of contents to crash
-                if count < return_limit:
-                    serialized_contents.append({
-                        'id': c.id,
-                        'name': c.name,
-                    })
-                    count += 1
-                else:
-                    break
+            serialized_contents = [ {'id': c.id, 'name': c.name, } for c in contents[:return_limit]]
 
             return_dict = serialized_contents
             status_code = 200
