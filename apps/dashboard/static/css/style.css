@@ -3805,6 +3805,55 @@ div[data-role="editor-toolbar"] {
     font-weight: 700;
 }
 
+.selection-field select {
+    width: 75px;
+    height: 36px;
+}
+
+.num-field {
+    position: inherit;
+}
+
+.selection-field {
+    position: inherit;
+    float: left;
+}
+
+.ms-list {
+    width: 100%;
+    position: absolute;
+}
+
+.ms-selectable {
+    width: 100%;
+}
+
+.ms-container {
+    width: 100%;
+}
+
+.ms-elem-selectable {
+    width: 100%;
+}
+
+.custom-header {
+    width: 100%;
+}
+
+.multiselect-selection-field {
+    width: 75px;
+    height: 35px;
+}
+
+.multiselect-products-field {
+    opacity: 0;
+}
+
+#attributes-textarea {
+    width: 100%;
+    height: 100px;
+}
+
 .tile {
     position: relative;
     float: left;
@@ -3826,7 +3875,16 @@ div[data-role="editor-toolbar"] {
 }
 
 .tile .remove {
-    display: none;
+    opacity: 0;
+    position: absolute;
+    display: block;
+    top: 15px;
+    right: 1000px;
+    -webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
 .tile:hover .remove {
@@ -3838,10 +3896,20 @@ div[data-role="editor-toolbar"] {
     right: 7px;
     padding: 0px;
     z-index: 10;
+    opacity: 1;
 }
 
 .tile .add-side-buttons-right {
-    display: none;
+    opacity: 0;    
+    position: absolute;
+    display: block;
+    top: 15px;
+    right: 1000px;
+    -webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
 .tile:hover .add-side-buttons-right {
@@ -3850,13 +3918,23 @@ div[data-role="editor-toolbar"] {
     outline: 1px solid black;
     position: absolute;
     top: 45%;
-    right: -25px;
+    right: -28px;
     padding: 0px;
     z-index: 10;
+    opacity: 1;
 }
 
 .tile .add-side-buttons-left {
-    display: none;
+    position: absolute;
+    display: block;
+    top: 15px;
+    left: 1000px;
+    opacity: 0;
+    -webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
 .tile:hover .add-side-buttons-left {
@@ -3868,6 +3946,7 @@ div[data-role="editor-toolbar"] {
     left: -25px;
     padding: 0px;
     z-index: 10;
+    opacity: 1;
 }
 
 .tile img {
@@ -3904,12 +3983,66 @@ div[data-role="editor-toolbar"] {
     width: 100%;
 }
 
-.object-add-remove div {
-    border: 2px solid #333;
+.object-add-remove-upload {
+    display: inline-block;
+    float: right;
+    border: 1px solid #333;
     border-radius: 3px;
     padding: 2px;
     padding-left: 5px;
+    margin: 2px;
     background: #F9F8F8;
+}
+
+.control-bar-wrapper {    
+    display: block;
+    padding-bottom: 40px;
+}
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+.browse-button-wrapper {
+    text-align: center;
+    position: initial;
+    top: 20px;
+    z-index: 10001;
+    right: 20%;
+    left: 20%;
+}
+
+.browse-button {
+    display: inline-block;
+    margin-bottom: 0;
+    box-shadow: 0 8px 6px -6px black;
+}
+
+.category-label {
+    display: inline-block;
+    float: left;
+}
+
+.category-dropdown {
+    display: inline-block;
+    float: left;
 }
 
 .content .red {
@@ -3952,10 +4085,6 @@ div[data-role="editor-toolbar"] {
 
 #backbone-tiles .ui-selected { 
     background: #4074fe;  /* selected */
-}
-
-.add-button {
-
 }
 
 /* Loading spinner CSS */

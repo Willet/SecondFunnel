@@ -8,11 +8,7 @@
     <script>
         var pageID = {{ pageID }};
     </script>
-    <script src="{% static "js/jquery-ui.min.js" %}"></script>
-    <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
-    <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/backbone.marionette.min.js" %}"></script>
+
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
     <script type="text/javascript" src="{% static "common.js" %}"></script>
 {% endblock %}
@@ -62,28 +58,25 @@
                 </script>
 
                 <script type="text/template" id="control-bar-template">
-                    <table class="control-bar-table">
-                        <td width="2%">Category: </td>
-                        <td width="45%">
-                            <div class="dropdown" id="category-filter">
+                    <div class="category-label">Category: </div>
+                    <div class="category-dropdown">
+                        <div class="dropdown" id="category-filter">
                             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" id="category-dropdown-button">View all tiles
                             <span class="caret"></span></button>
                             <ul class="dropdown-menu" id="categories">
-                        </td>
-                        <td width="12%" class="object-add-remove">
-                            <div>
-                                Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
-                                            <button type="button" id="remove-product" class="btn btn-default">Remove</button>
-                            </div>
-                        </td>
-                        <td width="1%"></td>
-                        <td width="12%" class="object-add-remove">
-                            <div>
-                                Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
-                                            <button type="button" id="remove-content" class="btn btn-default">Remove</button>
-                            </div>
-                        </td>
-                    </table>
+                        </div>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Image upload: <button type="button" id="upload-content" class="btn btn-default">Upload</button>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
+                                    <button type="button" id="remove-content" class="btn btn-default">Remove</button>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
+                                    <button type="button" id="remove-product" class="btn btn-default">Remove</button>
+                    </div>
                 </script>
 
                 <script type="text/template" id="feedback-template">
@@ -122,6 +115,24 @@
                     </script>
                 </ul>
 
+                <script id="add-form-template" type="text/html">
+                    <form>
+                        <div data-fields="selection" class="selection-field"></div>
+                        <div data-fields="num" class="num-field"></div>
+                        <select multiple="multiple" id="object-selector" name="object-selector[]"></select>
+                        <hr>
+                        <div data-fields="category,priority"></div>
+                    </form>
+                </script>
+
+                <script id="remove-form-template" type="text/html">
+                    <form>
+                        <div data-fields="object"></div>
+                        <div data-fields="selection" class="selection-field"></div>
+                        <div data-fields="num" class="num-field"></div>
+                    </form>
+                </script>
+
                 <script type="text/template" id="add-object-template">
                     <div class="modal" id="modal-dialog-box" role="dialog" >
                         <div class="modal-dialog">
@@ -153,7 +164,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Remove <%= objectType %></br></h4>
+                                    <h4 class="modal-title">Remove Object</br></h4>
                                 </div>
                                 <div class="modal-body">
                                     <div class="remove-form"></div>
@@ -171,22 +182,60 @@
                     </div>
                 </script>
 
+                <script type="text/template" id="upload-object-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Upload</br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="uploads"></div>
+                                    <div class="browse-button-wrapper">
+                                        <div class="btn btn-default btn-file" id="browse-button">
+                                            Browse <input type="file" multiple>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
                 <script type="text/template" id="edit-modal-template">
                     <div class="modal" id="modal-dialog-box" role="dialog" >
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title"><%= name %> </br></h4>
+                                    <h4 class="modal-title"><%= id %> - <%= name %> </br></h4>
                                 </div>
                                 <div class="modal-body">
                                     Current Priority: <%= priority %></br>
-                                    New Priority: <input type="text" id="new_priority">
+                                    New Priority: <input type="text" id="new_priority"></br>
+                                    Template: <%= template %></br>
+                                    In-stock: <%= in_stock %></br>
+                                    Attributes: </br>
+                                    <textarea id="attributes-textarea" rows="4" cols="50"><%= JSON.stringify(attributes) %></textarea>
                                     <div id="editError"></div>
+                                    <hr>
+                                    <select multiple="multiple" id="object-selector" name="object-selector[]"></select>
                                 </div>
                                 <div class="modal-footer">
+                                    <button type="button" id="tagTile" class="btn btn-default">
+                                        Tag
+                                    </button>
                                     <button type="button" id="change" class="btn btn-default">
                                         Change Priority
+                                    </button>
+                                    <button type="button" id="changeAttributes" class="btn btn-default">
+                                        Change Attributes
                                     </button>
                                     <button type="button" id="close" class="btn btn-default">
                                         Close
@@ -198,7 +247,7 @@
                 </script>
 
                 <script type="text/template" id="remove-modal-template">
-                    <div class="modal" id="remove-modal-dialog-box" role="dialog">
+                    <div class="modal" id="modal-dialog-box" role="dialog">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -219,8 +268,7 @@
                             </div>
                         </div>
                     </div>
-                </script>  
-
+                </script>
             </div>
         </div>
     </div>

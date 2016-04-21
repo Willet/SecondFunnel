@@ -84,7 +84,7 @@ class APITest(APITestCase):
         self.assertEqual(product2['name'], u'Default4')
         self.assertEqual(product2['description'], u'default default')
         self.assertEqual(product2['details'], u'<li>blah blah</li>')
-        self.assertEqual(product2['url'], u'www.google.com/product')
+        self.assertEqual(product2['url'], u'http://www.google.com/product')
         self.assertEqual(product2['sku'], u'1234566789')
         self.assertEqual(product2['price'], u'29.99')
         self.assertEqual(product2['sale_price'], u'9.99')
@@ -92,7 +92,7 @@ class APITest(APITestCase):
         self.assertEqual(product2['default_image'], 11)
         self.assertEqual(product2['last_scraped_at'], None)
         self.assertEqual(product2['in_stock'], True)
-        self.assertEqual(product2['attributes'], '{}')
+        self.assertEqual(product2['attributes'], {})
         self.assertEqual(product2['similar_products'], [])
 
         self.assertEqual(product3['id'], 111)
@@ -118,7 +118,7 @@ class APITest(APITestCase):
         self.assertEqual(product['name'], u'Default4')
         self.assertEqual(product['description'], u'default default')
         self.assertEqual(product['details'], u'<li>blah blah</li>')
-        self.assertEqual(product['url'], u'www.google.com/product')
+        self.assertEqual(product['url'], u'http://www.google.com/product')
         self.assertEqual(product['sku'], u'1234566789')
         self.assertEqual(product['price'], u'29.99')
         self.assertEqual(product['sale_price'], u'9.99')
@@ -126,7 +126,7 @@ class APITest(APITestCase):
         self.assertEqual(product['default_image'], 11)
         self.assertEqual(product['last_scraped_at'], None)
         self.assertEqual(product['in_stock'], True)
-        self.assertEqual(product['attributes'], '{}')
+        self.assertEqual(product['attributes'], {})
         self.assertEqual(product['similar_products'], [])
 
     def product_error_test(self):
@@ -135,13 +135,13 @@ class APITest(APITestCase):
         self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def product_search_URL_successful_test(self):
-        response = self.client.post('/api2/product/search/', {'url': 'www.facebook.com/product'})
+        response = self.client.post('/api2/product/search/', {'url': 'http://www.facebook.com/product'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Product found: ID 12.')
         self.assertEqual(response.data['ids'], [12])
         self.assertEqual(response.data['products'][0]['sku'], u'355353')
         self.assertEqual(response.data['products'][0]['description'], u'wah')
-        self.assertEqual(response.data['products'][0]['url'], u'www.facebook.com/product')
+        self.assertEqual(response.data['products'][0]['url'], u'http://www.facebook.com/product')
         self.assertEqual(response.data['products'][0]['price'], u'20.99')
         self.assertEqual(response.data['products'][0]['last_scraped_at'], None)
         self.assertEqual(response.data['products'][0]['similar_products'], [])
@@ -149,7 +149,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['products'][0]['in_stock'], False)
         self.assertEqual(response.data['products'][0]['default_image'], 4)
         self.assertEqual(response.data['products'][0]['details'], u'<li>wah wah</li>')
-        self.assertEqual(response.data['products'][0]['attributes'], u'{}')
+        self.assertEqual(response.data['products'][0]['attributes'], {})
         self.assertEqual(response.data['products'][0]['sale_price'], u'19.99')
         self.assertEqual(response.data['products'][0]['id'], 12)
         self.assertEqual(response.data['products'][0]['store'], 1)
@@ -162,7 +162,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['ids'], [12])
         self.assertEqual(response.data['products'][0]['sku'], u'355353')
         self.assertEqual(response.data['products'][0]['description'], u'wah')
-        self.assertEqual(response.data['products'][0]['url'], u'www.facebook.com/product')
+        self.assertEqual(response.data['products'][0]['url'], u'http://www.facebook.com/product')
         self.assertEqual(response.data['products'][0]['price'], u'20.99')
         self.assertEqual(response.data['products'][0]['last_scraped_at'], None)
         self.assertEqual(response.data['products'][0]['similar_products'], [])
@@ -170,7 +170,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['products'][0]['in_stock'], False)
         self.assertEqual(response.data['products'][0]['default_image'], 4)
         self.assertEqual(response.data['products'][0]['details'], u'<li>wah wah</li>')
-        self.assertEqual(response.data['products'][0]['attributes'], u'{}')
+        self.assertEqual(response.data['products'][0]['attributes'], {})
         self.assertEqual(response.data['products'][0]['sale_price'], u'19.99')
         self.assertEqual(response.data['products'][0]['id'], 12)
         self.assertEqual(response.data['products'][0]['store'], 1)
@@ -183,7 +183,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['ids'], [12])
         self.assertEqual(response.data['products'][0]['sku'], u'355353')
         self.assertEqual(response.data['products'][0]['description'], u'wah')
-        self.assertEqual(response.data['products'][0]['url'], u'www.facebook.com/product')
+        self.assertEqual(response.data['products'][0]['url'], u'http://www.facebook.com/product')
         self.assertEqual(response.data['products'][0]['price'], u'20.99')
         self.assertEqual(response.data['products'][0]['last_scraped_at'], None)
         self.assertEqual(response.data['products'][0]['similar_products'], [])
@@ -191,21 +191,21 @@ class APITest(APITestCase):
         self.assertEqual(response.data['products'][0]['in_stock'], False)
         self.assertEqual(response.data['products'][0]['default_image'], 4)
         self.assertEqual(response.data['products'][0]['details'], u'<li>wah wah</li>')
-        self.assertEqual(response.data['products'][0]['attributes'], u'{}')
+        self.assertEqual(response.data['products'][0]['attributes'], {})
         self.assertEqual(response.data['products'][0]['sale_price'], u'19.99')
         self.assertEqual(response.data['products'][0]['id'], 12)
         self.assertEqual(response.data['products'][0]['store'], 1)
         self.assertEqual(response.data['products'][0]['name'], u'Default2')
 
     def product_search_multiple_test(self):
-        response = self.client.post('/api2/product/search/', {'url': "www.yahoo.com/product"})
+        response = self.client.post('/api2/product/search/', {'url': "http://www.yahoo.com/product"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Multiple products have been found. IDs: 111 112')
         self.assertEqual(response.data['ids'], [111, 112])
 
         self.assertEqual(response.data['products'][0]['sku'], u'5555')
         self.assertEqual(response.data['products'][0]['description'], u'default5 default5')
-        self.assertEqual(response.data['products'][0]['url'], u'www.yahoo.com/product')
+        self.assertEqual(response.data['products'][0]['url'], u'http://www.yahoo.com/product')
         self.assertEqual(response.data['products'][0]['price'], u'19.99')
         self.assertEqual(response.data['products'][0]['last_scraped_at'], None)
         self.assertEqual(response.data['products'][0]['similar_products'], [])
@@ -213,7 +213,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['products'][0]['in_stock'], True)
         self.assertEqual(response.data['products'][0]['default_image'], 4)
         self.assertEqual(response.data['products'][0]['details'], u'<li>5 5</li>')
-        self.assertEqual(response.data['products'][0]['attributes'], u'{}')
+        self.assertEqual(response.data['products'][0]['attributes'], {})
         self.assertEqual(response.data['products'][0]['sale_price'], u'9.99')
         self.assertEqual(response.data['products'][0]['id'], 111)
         self.assertEqual(response.data['products'][0]['store'], 1)
@@ -221,7 +221,7 @@ class APITest(APITestCase):
 
         self.assertEqual(response.data['products'][1]['sku'], u'6666')
         self.assertEqual(response.data['products'][1]['description'], u'default6 default6')
-        self.assertEqual(response.data['products'][1]['url'], u'www.yahoo.com/product')
+        self.assertEqual(response.data['products'][1]['url'], u'http://www.yahoo.com/product')
         self.assertEqual(response.data['products'][1]['price'], u'2.99')
         self.assertEqual(response.data['products'][1]['last_scraped_at'], None)
         self.assertEqual(response.data['products'][1]['similar_products'], [])
@@ -229,16 +229,16 @@ class APITest(APITestCase):
         self.assertEqual(response.data['products'][1]['in_stock'], True)
         self.assertEqual(response.data['products'][1]['default_image'], 4)
         self.assertEqual(response.data['products'][1]['details'], u'<li>6 6</li>')
-        self.assertEqual(response.data['products'][1]['attributes'], u'{}')
+        self.assertEqual(response.data['products'][1]['attributes'], {})
         self.assertEqual(response.data['products'][1]['sale_price'], u'1.99')
         self.assertEqual(response.data['products'][1]['id'], 112)
         self.assertEqual(response.data['products'][1]['store'], 1)
         self.assertEqual(response.data['products'][1]['name'], u'Default6')
 
     def product_search_URL_unsuccessful_test(self):
-        response = self.client.post('/api2/product/search/', {'url': 'www.secondfunnel.com'})
+        response = self.client.post('/api2/product/search/', {'url': 'http://www.secondfunnel.com'})
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], 'Product with URL: www.secondfunnel.com could not be found.')
+        self.assertEqual(response.data['status'], 'Product with URL: http://www.secondfunnel.com could not be found.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['products'], [])
 
@@ -258,15 +258,15 @@ class APITest(APITestCase):
 
     def product_search_URL_input_numbers_test(self):
         response = self.client.post('/api2/product/search/', {'url': "12345"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], 'Product with URL: 12345 could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Bad URL input detected.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['products'], [])
 
     def product_search_URL_input_letters_test(self):
         response = self.client.post('/api2/product/search/', {'url': "asdf1234asf"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], 'Product with URL: asdf1234asf could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], 'Bad URL input detected.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['products'], [])
 
@@ -328,9 +328,9 @@ class APITest(APITestCase):
         self.assertEqual(content0['description'], u"wah wah wah")
         self.assertEqual(content0['url'], u"/content.jpg")
         self.assertEqual(content0['source'], u"upload")
-        self.assertEqual(content0['source_url'], u"www.google.com")
+        self.assertEqual(content0['source_url'], u"http://www.google.com")
         self.assertEqual(content0['tagged_products'], [])
-        self.assertEqual(content0['attributes'], '{}')
+        self.assertEqual(content0['attributes'], {})
         self.assertEqual(content0['status'], u'needs-review')
 
         self.assertEqual(content1['id'], 16)
@@ -339,9 +339,9 @@ class APITest(APITestCase):
         self.assertEqual(content1['description'], u"blah blah blah")
         self.assertEqual(content1['url'], u"/content2.jpg")
         self.assertEqual(content1['source'], u"upload")
-        self.assertEqual(content1['source_url'], u"www.facebook.com")
+        self.assertEqual(content1['source_url'], u"http://www.facebook.com")
         self.assertEqual(content1['tagged_products'], [])
-        self.assertEqual(content1['attributes'], '{}')
+        self.assertEqual(content1['attributes'], {})
         self.assertEqual(content1['status'], u'approved')
 
     def content_single_test(self):
@@ -353,9 +353,9 @@ class APITest(APITestCase):
         self.assertEqual(content['description'], "wah wah wah")
         self.assertEqual(content['url'], u'/content.jpg')
         self.assertEqual(content['source'], u'upload')
-        self.assertEqual(content['source_url'], u'www.google.com')
+        self.assertEqual(content['source_url'], u'http://www.google.com')
         self.assertEqual(content['tagged_products'], [])
-        self.assertEqual(content['attributes'], '{}')
+        self.assertEqual(content['attributes'], {})
         self.assertEqual(content['status'], u'needs-review')
 
     def content_error_test(self):
@@ -365,17 +365,17 @@ class APITest(APITestCase):
         self.assertEqual(response.data[u'detail'], u'Not found.')
 
     def content_search_URL_successful_test(self):
-        response = self.client.post('/api2/content/search/', {'url': '/content.jpg'})
+        response = self.client.post('/api2/content/search/', {'url': 'http://www.google.com'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Content with URL: /content.jpg has been found.')
+        self.assertEqual(response.data['status'], 'Content with URL: http://www.google.com has been found.')
         self.assertEqual(response.data['ids'], [6])
         self.assertEqual(response.data['contents'][0]['status'], u'needs-review')
         self.assertEqual(response.data['contents'][0]['tagged_products'], [])
         self.assertEqual(response.data['contents'][0]['description'], u'wah wah wah')
         self.assertEqual(response.data['contents'][0]['url'], u'/content.jpg')
-        self.assertEqual(response.data['contents'][0]['source_url'], u'www.google.com')
+        self.assertEqual(response.data['contents'][0]['source_url'], u'http://www.google.com')
         self.assertEqual(response.data['contents'][0]['source'], u'upload')
-        self.assertEqual(response.data['contents'][0]['attributes'], u'{}')
+        self.assertEqual(response.data['contents'][0]['attributes'], {})
         self.assertEqual(response.data['contents'][0]['id'], 6)
         self.assertEqual(response.data['contents'][0]['store'], 1)
         self.assertEqual(response.data['contents'][0]['name'], u'blah6')
@@ -387,36 +387,47 @@ class APITest(APITestCase):
         self.assertEqual(response.data['ids'], [16])
 
     def content_search_multiple_test(self):
-        response = self.client.post('/api2/content/search/', {'url': "/contentMULTIPLE.jpg"})
+        response = self.client.post('/api2/content/search/', {'url': "http://www.facebook.com"})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['status'], 'Multiple contents have been found. IDs: 534 535')
-        self.assertEqual(response.data['ids'], [534, 535])
+        self.assertEqual(response.data['status'], 'Multiple contents have been found. IDs: 16 534 535')
+        self.assertEqual(response.data['ids'], [16, 534, 535])
         self.assertEqual(response.data['contents'][0]['status'], u'approved')
         self.assertEqual(response.data['contents'][0]['tagged_products'], [])
-        self.assertEqual(response.data['contents'][0]['description'], u'blah blah blah534')
-        self.assertEqual(response.data['contents'][0]['url'], u'/contentMULTIPLE.jpg')
-        self.assertEqual(response.data['contents'][0]['source_url'], u'www.facebook.com')
+        self.assertEqual(response.data['contents'][0]['description'], u'blah blah blah')
+        self.assertEqual(response.data['contents'][0]['url'], u'/content2.jpg')
+        self.assertEqual(response.data['contents'][0]['source_url'], u'http://www.facebook.com')
         self.assertEqual(response.data['contents'][0]['source'], u'upload')
-        self.assertEqual(response.data['contents'][0]['attributes'], u'{}')
-        self.assertEqual(response.data['contents'][0]['id'], 534)
+        self.assertEqual(response.data['contents'][0]['attributes'], {})
+        self.assertEqual(response.data['contents'][0]['id'], 16)
         self.assertEqual(response.data['contents'][0]['store'], 14)
-        self.assertEqual(response.data['contents'][0]['name'], u'blah534')
+        self.assertEqual(response.data['contents'][0]['name'], u'blah16')
 
         self.assertEqual(response.data['contents'][1]['status'], u'approved')
         self.assertEqual(response.data['contents'][1]['tagged_products'], [])
-        self.assertEqual(response.data['contents'][1]['description'], u'blah blah blah535')
+        self.assertEqual(response.data['contents'][1]['description'], u'blah blah blah534')
         self.assertEqual(response.data['contents'][1]['url'], u'/contentMULTIPLE.jpg')
-        self.assertEqual(response.data['contents'][1]['source_url'], u'www.facebook.com')
+        self.assertEqual(response.data['contents'][1]['source_url'], u'http://www.facebook.com')
         self.assertEqual(response.data['contents'][1]['source'], u'upload')
-        self.assertEqual(response.data['contents'][1]['attributes'], u'{}')
-        self.assertEqual(response.data['contents'][1]['id'], 535)
+        self.assertEqual(response.data['contents'][1]['attributes'], {})
+        self.assertEqual(response.data['contents'][1]['id'], 534)
         self.assertEqual(response.data['contents'][1]['store'], 14)
-        self.assertEqual(response.data['contents'][1]['name'], u'blah535')
+        self.assertEqual(response.data['contents'][1]['name'], u'blah534')
+
+        self.assertEqual(response.data['contents'][2]['status'], u'approved')
+        self.assertEqual(response.data['contents'][2]['tagged_products'], [])
+        self.assertEqual(response.data['contents'][2]['description'], u'blah blah blah535')
+        self.assertEqual(response.data['contents'][2]['url'], u'/contentMULTIPLE.jpg')
+        self.assertEqual(response.data['contents'][2]['source_url'], u'http://www.facebook.com')
+        self.assertEqual(response.data['contents'][2]['source'], u'upload')
+        self.assertEqual(response.data['contents'][2]['attributes'], {})
+        self.assertEqual(response.data['contents'][2]['id'], 535)
+        self.assertEqual(response.data['contents'][2]['store'], 14)
+        self.assertEqual(response.data['contents'][2]['name'], u'blah535')
 
     def content_search_URL_unsuccessful_test(self):
-        response = self.client.post('/api2/content/search/', {'url': 'www.secondfunnel.com'})
+        response = self.client.post('/api2/content/search/', {'url': 'http://www.secondfunnel.com'})
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], 'Content with URL: www.secondfunnel.com could not be found.')
+        self.assertEqual(response.data['status'], 'Content with URL: http://www.secondfunnel.com could not be found.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['contents'], [])
 
@@ -429,15 +440,15 @@ class APITest(APITestCase):
 
     def content_search_URL_input_numbers_test(self):
         response = self.client.post('/api2/content/search/', {'url': "12345"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], u'Content with URL: 12345 could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], u'Bad URL input detected.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['contents'], [])
 
     def content_search_URL_input_letters_test(self):
         response = self.client.post('/api2/content/search/', {'url': "asdf1234asf"})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['status'], u'Content with URL: asdf1234asf could not be found.')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['status'], u'Bad URL input detected.')
         self.assertEqual(response.data['ids'], [])
         self.assertEqual(response.data['contents'], [])
 
@@ -450,6 +461,7 @@ class APITest(APITestCase):
 
     def content_search_ID_input_letters_test(self):
         response = self.client.post('/api2/content/search/', {'id': "asdf1234"})
+        print response
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['status'], u'Expecting a number as input, but got non-number.')
         self.assertEqual(response.data['ids'], [])
@@ -484,9 +496,9 @@ class APITest(APITestCase):
         self.assertEqual(image['store'], 1)
         self.assertEqual(image['url'], u"/content.jpg")
         self.assertEqual(image['source'], u"upload")
-        self.assertEqual(image['source_url'], u"www.google.com")
+        self.assertEqual(image['source_url'], u"http://www.google.com")
         self.assertEqual(image['tagged_products'], [])
-        self.assertEqual(image['attributes'], '{}')
+        self.assertEqual(image['attributes'], {})
         self.assertEqual(image['status'], u'needs-review')
 
     def image_single_test(self):
@@ -503,9 +515,9 @@ class APITest(APITestCase):
         self.assertEqual(image['store'], 1)
         self.assertEqual(image['url'], u"/content.jpg")
         self.assertEqual(image['source'], u"upload")
-        self.assertEqual(image['source_url'], u"www.google.com")
+        self.assertEqual(image['source_url'], u"http://www.google.com")
         self.assertEqual(image['tagged_products'], [])
-        self.assertEqual(image['attributes'], '{}')
+        self.assertEqual(image['attributes'], {})
         self.assertEqual(image['status'], u'needs-review')
 
     def image_error_test(self):
@@ -529,8 +541,8 @@ class APITest(APITestCase):
         self.assertEqual(gif['store'], 1)
         self.assertEqual(gif['url'], u'/content.jpg')
         self.assertEqual(gif['source'], u'upload')
-        self.assertEqual(gif['source_url'], u"www.google.com")
-        self.assertEqual(gif['attributes'], '{}')
+        self.assertEqual(gif['source_url'], u"http://www.google.com")
+        self.assertEqual(gif['attributes'], {})
         self.assertEqual(gif['status'], u'needs-review')
 
     def gif_single_test(self):
@@ -548,8 +560,8 @@ class APITest(APITestCase):
         self.assertEqual(gif['store'], 1)
         self.assertEqual(gif['url'], u'/content.jpg')
         self.assertEqual(gif['source'], u'upload')
-        self.assertEqual(gif['source_url'], u"www.google.com")
-        self.assertEqual(gif['attributes'], '{}')
+        self.assertEqual(gif['source_url'], u"http://www.google.com")
+        self.assertEqual(gif['attributes'], {})
         self.assertEqual(gif['status'], u'needs-review')
 
     def gif_error_test(self):
@@ -583,7 +595,7 @@ class APITest(APITestCase):
               "height": 480,
             },
           })
-        self.assertEqual(pi0['attributes'], '{}')
+        self.assertEqual(pi0['attributes'], {})
 
         self.assertEqual(pi1['product'], 13)
 
@@ -615,7 +627,7 @@ class APITest(APITestCase):
             "height": 400,
           },
         })
-        self.assertEqual(pi['attributes'], '{}')
+        self.assertEqual(pi['attributes'], {})
 
     def productimage_error_test(self):
         response = self.client.get(reverse('productimage-list')+'100/')
@@ -636,9 +648,9 @@ class APITest(APITestCase):
         self.assertEqual(video['store'], 1)
         self.assertEqual(video['url'], u'/content.jpg')
         self.assertEqual(video['source'], u'upload')
-        self.assertEqual(video['source_url'], u"www.google.com")
+        self.assertEqual(video['source_url'], u"http://www.google.com")
         self.assertEqual(video['tagged_products'], [])
-        self.assertEqual(video['attributes'], '{}')
+        self.assertEqual(video['attributes'], {})
         self.assertEqual(video['status'], u'needs-review')
 
     def video_single_test(self):
@@ -654,9 +666,9 @@ class APITest(APITestCase):
         self.assertEqual(video['store'], 14)
         self.assertEqual(video['url'], u'/content2.jpg')
         self.assertEqual(video['source'], u'upload')
-        self.assertEqual(video['source_url'], u"www.facebook.com")
+        self.assertEqual(video['source_url'], u"http://www.facebook.com")
         self.assertEqual(video['tagged_products'], [])
-        self.assertEqual(video['attributes'], '{}')
+        self.assertEqual(video['attributes'], {})
         self.assertEqual(video['status'], u'approved')
 
     def video_error_test(self):
@@ -674,8 +686,8 @@ class APITest(APITestCase):
         self.assertEqual(page0['store'], 1)
         self.assertEqual(page0['name'], u'TestPage1')
         self.assertEqual(page0['theme'], 5)
-        self.assertEqual(page0['theme_settings'], u"{u'color': u'blue', u'font': u'bold'}")
-        self.assertEqual(page0['dashboard_settings'], u"{u'settings': u'user', u'number_of_items': 5}")
+        self.assertEqual(page0['theme_settings'], {u'color': u'blue', u'font': u'bold'})
+        self.assertEqual(page0['dashboard_settings'], {u'settings': u'user', u'number_of_items': 5})
         self.assertEqual(page0['campaign'], None)
         self.assertEqual(page0['description'], "TestPage1 Description")
         self.assertEqual(page0['url_slug'], u'test_page')
@@ -687,8 +699,8 @@ class APITest(APITestCase):
         self.assertEqual(page1['store'], 1)
         self.assertEqual(page1['name'], u'TestPage2')
         self.assertEqual(page1['theme'], 6)
-        self.assertEqual(page1['theme_settings'], u"{u'color': u'red', u'font': u'italic'}")
-        self.assertEqual(page1['dashboard_settings'], '{}')
+        self.assertEqual(page1['theme_settings'], {u'color': u'red', u'font': u'italic'})
+        self.assertEqual(page1['dashboard_settings'], {})
         self.assertEqual(page1['campaign'], None)
         self.assertEqual(page1['description'], "TestPage2 Description")
         self.assertEqual(page1['url_slug'], u'other_test_page')
@@ -703,8 +715,8 @@ class APITest(APITestCase):
         self.assertEqual(page['store'], 1)
         self.assertEqual(page['name'], u'TestPage2')
         self.assertEqual(page['theme'], 6)
-        self.assertEqual(page['theme_settings'], u"{u'color': u'red', u'font': u'italic'}")
-        self.assertEqual(page['dashboard_settings'], '{}')
+        self.assertEqual(page['theme_settings'], {u'color': u'red', u'font': u'italic'})
+        self.assertEqual(page['dashboard_settings'], {})
         self.assertEqual(page['campaign'], None)
         self.assertEqual(page['description'], "TestPage2 Description")
         self.assertEqual(page['url_slug'], u'other_test_page')
@@ -733,7 +745,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [3])
         self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -753,7 +765,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [3])
         self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -773,7 +785,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [3])
         self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -793,7 +805,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [3])
         self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -813,7 +825,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [])
         self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -833,7 +845,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [])
         self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -923,7 +935,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [3])
         self.assertEqual(response.data['tile']['template'], 'product')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -972,7 +984,7 @@ class APITest(APITestCase):
         self.assertEqual(response.data['tile']['in_stock'], True)
         self.assertEqual(response.data['tile']['products'], [])
         self.assertEqual(response.data['tile']['template'], 'image')
-        self.assertEqual(response.data['tile']['attributes'], '{}')
+        self.assertEqual(response.data['tile']['attributes'], {})
         self.assertEqual(response.data['tile']['placeholder'], False)
         self.assertEqual(response.data['tile']['id'], 16)
 
@@ -1059,7 +1071,7 @@ class APITest(APITestCase):
         self.assertEqual(tile0['views'], 0)
         self.assertEqual(tile0['placeholder'], False)
         self.assertEqual(tile0['in_stock'], True)
-        self.assertEqual(tile0['attributes'], '{}')
+        self.assertEqual(tile0['attributes'], {})
         self.assertEqual(tile0['defaultImage'], "/image.jpg")
         self.assertEqual(tile0['name'], "Default")
 
@@ -1073,7 +1085,7 @@ class APITest(APITestCase):
         self.assertEqual(tile1['views'], 0)
         self.assertEqual(tile1['placeholder'], False)
         self.assertEqual(tile1['in_stock'], True)
-        self.assertEqual(tile1['attributes'], '{}')
+        self.assertEqual(tile1['attributes'], {})
         self.assertEqual(tile1['defaultImage'], "/content.jpg")
         self.assertEqual(tile1['name'], "blah6")
 
@@ -1087,7 +1099,7 @@ class APITest(APITestCase):
         self.assertEqual(tile2['views'], 0)
         self.assertEqual(tile2['placeholder'], False)
         self.assertEqual(tile2['in_stock'], True)
-        self.assertEqual(tile2['attributes'], '{}')
+        self.assertEqual(tile2['attributes'], {})
         self.assertEqual(tile2['defaultImage'], "/image.jpg")
         self.assertEqual(tile2['name'], "Default5")
 
@@ -1101,7 +1113,7 @@ class APITest(APITestCase):
         self.assertEqual(tile3['views'], 0)
         self.assertEqual(tile3['placeholder'], False)
         self.assertEqual(tile3['in_stock'], True)
-        self.assertEqual(tile3['attributes'], '{}')
+        self.assertEqual(tile3['attributes'], {})
         self.assertEqual(tile3['defaultImage'], "/content.jpg")
         self.assertEqual(tile3['name'], "blah6")
 
@@ -1115,7 +1127,7 @@ class APITest(APITestCase):
         self.assertEqual(tile4['views'], 0)
         self.assertEqual(tile4['placeholder'], False)
         self.assertEqual(tile4['in_stock'], True)
-        self.assertEqual(tile4['attributes'], '{}')
+        self.assertEqual(tile4['attributes'], {})
         self.assertEqual(tile4['defaultImage'], "/image.jpg")
         self.assertEqual(tile4['name'], "Default6")
 
@@ -1137,7 +1149,7 @@ class APITest(APITestCase):
         self.assertEqual(tile['views'], 0)
         self.assertEqual(tile['placeholder'], False)
         self.assertEqual(tile['in_stock'], True)
-        self.assertEqual(tile['attributes'], '{}')
+        self.assertEqual(tile['attributes'], {})
         self.assertEqual(tile['defaultImage'], "/content.jpg")
         self.assertEqual(tile['name'], "blah6")
 

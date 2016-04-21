@@ -1,27 +1,31 @@
 import ast, json
 from multiprocessing import Process
+from urlparse import urlparse
 
-from django.db.models import Q
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from django.db import connection 
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 
-from rest_framework import renderers, viewsets, permissions, status
+from rest_framework import permissions, renderers, status, viewsets
 from rest_framework.decorators import api_view, detail_route, list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework_bulk import generics, BulkListSerializer
 
-from apps.assets.models import Store, Product, Content, Image, Gif, ProductImage, Video, Page, Tile, Feed, Category
+from apps.assets.models import Category, Content, Feed, Gif, Image, Page, Product, ProductImage, Store, Tile, Video
 from apps.dashboard.models import Dashboard, UserProfile
-from apps.imageservice.utils import upload_to_cloudinary
+from apps.imageservice.tasks import process_image
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
-from .serializers import StoreSerializer, ProductSerializer, ContentSerializer, ImageSerializer, GifSerializer, \
-    ProductImageSerializer, VideoSerializer, PageSerializer, TileSerializer, FeedSerializer, CategorySerializer, \
-    TileSerializerBulk
+from .serializers import CategorySerializer, ContentSerializer, FeedSerializer, GifSerializer, ImageSerializer, \
+    PageSerializer, ProductSerializer, ProductImageSerializer, StoreSerializer, TileSerializer, TileSerializerBulk, \
+    VideoSerializer
 from .generics import ListCreateDestroyBulkUpdateAPIView
 
 
@@ -85,10 +89,18 @@ class ProductViewSet(viewsets.ModelViewSet):
                     filters = Q(sku=sku_filter)
 
                 if url_filter:
+                    validator = URLValidator()
+                    try:
+                        validator(url_filter)
+                    except ValidationError:
+                        raise Exception("Bad URL input detected.")
                     key = ('URL', 'url')
                     filters = Q(url=url_filter)
             except (ValueError, TypeError):
                 return_dict['status'] = u"Expecting a number as input, but got non-number."
+                status_code = 400
+            except Exception as e:
+                return_dict['status'] = str(e)
                 status_code = 400
             else:
                 try:
@@ -147,7 +159,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 'refresh_images': True
             }
 
-            url = data['url']
+            url = unicode(data['url'], "utf-8")
 
             try:
                 page = Page.objects.get(id=data['page_id'])
@@ -158,7 +170,12 @@ class ProductViewSet(viewsets.ModelViewSet):
                 def process(request, page, url, options):
                     PageMaintainer(page).add(source_urls=[url], options=options)
 
-                p = Process(target=process, args=[page, url, options])
+                # Close the connection so that once the scrape process completes
+                # There won't be multiple processes trying to use the same socket
+                # Which causes "DatabaseError: SSL error: decryption failed or bad record mac"
+                connection.close()
+                
+                p = Process(target=process, args=[request, page, url, options])
                 p.start()
                 p.join()
 
@@ -170,7 +187,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 else:
                     return_dict['status'] = u"Scraping has succeeded. Product ID: {}".format(product.id)
                     return_dict['id'] = product.id
-                    return_dict['product'].append(ProductSerializer(product).data)
+                    return_dict['product'] = ProductSerializer(product).data
                     status_code = 200
 
         return Response(return_dict, status=status_code)
@@ -226,10 +243,22 @@ class ContentViewSet(viewsets.ModelViewSet):
                     filters = Q(name=name_filter)
 
                 if url_filter:
+                    validator = URLValidator()
+                    try:
+                        validator(url_filter)
+                    except ValidationError:
+                        raise Exception("Bad URL input detected.")
                     key = ('URL', 'url')
-                    filters = Q(url=url_filter)
+                    parsed_url = urlparse(url_filter)
+                    if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
+                        filters = Q(url=url_filter)
+                    else:
+                        filters = Q(source_url=url_filter)
             except (ValueError, TypeError):
                 return_dict['status'] = u"Expecting a number as input, but got non-number."
+                status_code = 400
+            except Exception as e:
+                return_dict['status'] = str(e)
                 status_code = 400
             else:
                 try:
@@ -257,18 +286,17 @@ class ContentViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def scrape(self, request):
         """
-        Upload content to cloudinary
+        Upload content to cloudinary and create an image object along with it
 
         inputs:
             url: url from which image is uploaded
 
         returns:
-            status: status message containing result of upload
-            url: if upload successful, secure url of uploaded image on cloudinary
-            image: if upload successful, image object returned by cloudinary
+            status: status message containing result of upload and image ID if successful
+            url: if upload successful, url of uploaded image on cloudinary
+            image: if upload successful, image object created
             error: if upload unsuccessful, error messages returned by cloudinary
         """
-
         return_dict = {'status': "", 'image': []}
         status_code = 400
 
@@ -277,11 +305,14 @@ class ContentViewSet(viewsets.ModelViewSet):
         except SyntaxError:
             data = {}
 
+        page = get_object_or_404(Page, pk=data['page_id'])
+        store = get_object_or_404(Store, pk=page.store_id)
+
         if not 'url' in data:
             return_dict['status'] = "No URL found."
         else:
             try:
-                img_obj = upload_to_cloudinary(data['url'])
+                img_obj = process_image(data['url'])
             except Exception as e:
                 return_dict['status'] = u"Upload failed. Error: {}".format(str(e))
                 return_dict['error'] = str(e)
@@ -290,10 +321,25 @@ class ContentViewSet(viewsets.ModelViewSet):
                     return_dict['status'] = u"Upload failed. Error: {}".format(img_obj['error']['http_code'])
                     return_dict['error'] = img_obj['error']
                 else:
-                    return_dict['status'] = u"Uploaded. Image URL: {}".format(img_obj['secure_url'])
-                    return_dict['url'] = img_obj['secure_url']
-                    return_dict['image'] = img_obj
+                    kwargs = {
+                        "store_id": page.store_id,
+                        "file_type": img_obj['format'],
+                        "attributes": {"sizes": img_obj['sizes']},
+                        "dominant_color": img_obj['dominant_color'],
+                        "source": "upload",
+                        "source_url": data['url'],
+                        "url": img_obj['sizes']['master']['url'],
+                        "width": img_obj['sizes']['master']['width'],
+                        "height": img_obj['sizes']['master']['height'],
+                    }
+                    image = Image(**kwargs)
+                    image.save()
+
+                    return_dict['status'] = u"Uploaded. Image ID: {}".format(image.id)
+                    return_dict['id'] = image.id
+                    return_dict['image'] = ImageSerializer(image).data
                     status_code = 200
+
 
         return Response(return_dict, status=status_code)
 
@@ -372,7 +418,7 @@ class PageViewSet(viewsets.ModelViewSet):
                       "failed.").format(str(product_id), page.store.name)
             raise AttributeError(status)
         else:
-            if page.feed.tiles.filter(products=product, template="product"):
+            if page.feed.tiles.filter(products=product, template="product") and not force_create_tile:
                 status = (u"Product with ID: {0}, Name: {1}, Store: {2} is already added. "
                           "Add failed.").format(str(product_id), product.name, page.store.name)
                 raise AttributeError(status)
@@ -444,7 +490,7 @@ class PageViewSet(viewsets.ModelViewSet):
         """
 
         tile = None
-        
+
         try:
             content = Content.objects.get(filters)
         except Content.DoesNotExist:
@@ -457,7 +503,7 @@ class PageViewSet(viewsets.ModelViewSet):
             raise AttributeError(status)
         else:
             # Content adding
-            if page.feed.tiles.filter(content=content):
+            if page.feed.tiles.filter(content=content) and not force_create_tile:
                 status = (u"Content with ID: {0}, Store: {1} is already added. Add "
                           "failed.").format(str(content_id), page.store.name)
                 raise AttributeError(status)
@@ -514,6 +560,123 @@ class PageViewSet(viewsets.ModelViewSet):
         
         return (status, success)
 
+    @detail_route(methods=['get'])
+    def products(self, request, pk):
+        """
+        List all products available for this page, up to a limit set by return_dict
+
+        inputs:
+            id: page ID
+
+        returns:
+            list of dictionaries containing product details for page
+        """
+        # Set the maximum number of results to return
+        return_limit = 100
+
+        profile = UserProfile.objects.get(user=self.request.user)
+        page = get_object_or_404(Page, pk=pk)
+        store = get_object_or_404(Store, pk=page.store_id)
+        return_dict = {}
+
+        # Handle both products query ie /products?id=XXXX and /products data="{'id':XXXX}"
+        data = request.data.get('data', {})
+        if type(data) is not dict:
+            data = ast.literal_eval(request.data.get('data', {}))
+
+        if data == {}:
+            # Test if the format's /products?id=XXXX or not
+            data = request.GET
+
+        # Setting up filters to query for product
+        id_filter = data.get('id', data.get('ID', None))
+        sku_filter = data.get('sku', data.get('SKU', None))
+        url_filter = data.get('url', data.get('URL', None))
+        name_filter = data.get('name', data.get('Name', None))
+
+        filters = Q(store=store)
+        try:
+            if id_filter:
+                id_filter = int(id_filter)
+                filters = filters & Q(id__icontains=id_filter)
+            elif sku_filter:
+                sku_filter = int(sku_filter)
+                filters = filters & Q(sku__icontains=sku_filter)
+            elif name_filter:
+                filters = filters & Q(name__icontains=name_filter)
+            elif url_filter:
+                filters = filters & Q(url__icontains=url_filter)
+        except ValueError:
+            return_dict['status'] = "Expecting a number as input, but got non-number."
+            status_code = 400
+        except Exception as e:
+            return_dict['status'] = str(e)
+            status_code = 400
+        else:
+            products = Product.objects.filter(filters).order_by('-id')
+
+            serialized_products = [ {'id': p.id, 'name': p.name, } for p in products[:return_limit]]
+
+            return_dict = serialized_products
+            status_code = 200
+        
+        return Response(return_dict, status=status_code)
+
+    @detail_route(methods=['get'])
+    def contents(self, request, pk):
+        """
+        List all contents available for this page, up to a limit set by return_dict
+
+        inputs:
+            id: page ID
+
+        returns:
+            list of dictionaries containing content details for page
+        """
+        # Set the maximum number of results to return
+        return_limit = 100
+
+        profile = UserProfile.objects.get(user=self.request.user)
+        page = get_object_or_404(Page, pk=pk)
+        store = get_object_or_404(Store, pk=page.store_id)
+        return_dict = {}
+
+        # Handle both contents query ie /contents?id=XXXX and /contents data="{'id':XXXX}"
+        data = request.data.get('data', {})
+        if type(data) is not dict:
+            data = ast.literal_eval(request.data.get('data', {}))
+
+        if data == {}:
+            # Test if the format's /contents?id=XXXX or not
+            data = request.GET
+
+        # Setting up filters to query for product
+        id_filter = data.get('id', data.get('ID', None))
+        url_filter = data.get('url', data.get('URL', None))
+
+        filters = Q(store=store)
+        try:
+            if id_filter:
+                id_filter = int(id_filter)
+                filters = filters & Q(id__icontains=id_filter)
+            elif url_filter:
+                filters = filters & Q(url__icontains=url_filter)
+        except ValueError:
+            return_dict['status'] = "Expecting a number as input, but got non-number."
+            status_code = 400
+        except Exception as e:
+            return_dict['status'] = str(e)
+            status_code = 400
+        else:
+            contents = Content.objects.filter(filters).order_by('-id')
+
+            serialized_contents = [ {'id': c.id, 'name': c.name, } for c in contents[:return_limit]]
+
+            return_dict = serialized_contents
+            status_code = 200
+        
+        return Response(return_dict, status=status_code)
+
     @detail_route(methods=['post'])
     def add(self, request, pk):
         """
@@ -553,7 +716,6 @@ class PageViewSet(viewsets.ModelViewSet):
             add_type = data.get('type', None)
 
             force_create_tile = bool(data.get('force_create_tile') in ["True", "true"])
-            
             if not obj_id:
                 status = "Missing 'id' field from input."
             elif not add_type:
@@ -720,6 +882,66 @@ class TileDetail(APIView):
 
         return serialized_tile
 
+    def tile_tagger(self, tile, products, contents):
+        try:
+            for p in products:
+                p = get_object_or_404(Product, pk=p)
+                tile.products.add(p)
+            for c in contents:
+                c = get_object_or_404(Content, pk=c)
+                tile.content.add(c)
+        except Exception as e:
+            status = str(e)
+            status_code = 400
+        else:
+            status = "Tile tagging was successful."
+            status_code = 200
+        return (status, status_code)
+
+    def post(self, request, pk, method):
+        profile = UserProfile.objects.get(user=self.request.user)
+        tile = get_object_or_404(Tile, pk=pk)
+
+        return_dict = {}
+
+        if method == 'tag':
+            data = request.data.get('data', {})
+            if type(data) is not dict:
+                data = ast.literal_eval(request.data.get('data', {}))
+
+            products = data.get('products', [])
+            contents = data.get('contents', [])
+            try:
+                page_id = data['pageID']
+            except KeyError:
+                (status, status_code) = ("Missing pageID parameter.", 400)
+            else:
+                page = get_object_or_404(Page, pk=page_id)
+                store = get_object_or_404(Store, pk=page.store_id)
+                if tile.feed != page.feed:
+                    (status, status_code) = ("Tile is not part of this page.", 400)
+                else:
+                    # Now need to check if the products/contents listed are part of tile store
+                    for p in products:
+                        p = get_object_or_404(Product, pk=p)
+                        if p.store_id != store.id:
+                            return_dict['detail'] = "Product with ID: " + str(p.id) + " is not part of the " + store.name + " store."
+                            status = 400
+                            return Response(return_dict, status=status)
+                    for c in contents:
+                        c = get_object_or_404(Content, pk=c)
+                        if c.store_id != store.id:
+                            return_dict['detail'] = "Content with ID: " + str(c.id) + " is not part of the " + store.name + " store."
+                            status = 400
+                            return Response(return_dict, status=status)
+                    (status, status_code) = self.tile_tagger(tile, products, contents)
+        else:
+            (status, status_code) = ("Method not allowed.", 403)
+
+        return_dict = {'detail': status}
+
+        return Response(return_dict, status=status_code)
+
     def get(self, request, pk, format=None):
         """
         Returns the serialized tile
@@ -742,7 +964,7 @@ class TileDetail(APIView):
             status = "Not allowed."
             status_code = 400
 
-        return Response(status, status_code)
+        return Response(status, status=status_code)
 
     def patch(self, request, pk, format=None):
         """
@@ -759,7 +981,12 @@ class TileDetail(APIView):
 
         status = {"detail": "Not allowed"}
         status_code = 400
-        
+
+        if 'attributes' in request.data:
+            attributes = request.data.get('attributes')
+            if type(attributes) is unicode:
+                request.data['attributes'] = ast.literal_eval(request.data['attributes'])
+
         tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
 
         if tile_in_user_dashboards:
