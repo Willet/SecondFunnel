@@ -517,16 +517,23 @@ App.core.EditModalView = App.core.BaseModalView.extend({
         App.productsList = new App.core.ProductCollection();
         App.productsList.fetch().done(function () {
             App.productsList.sort();
-            App.feedback.empty();
-            
-            that.unwrapEl();
-            that.$el.modal('show'); // Toggle Bootstrap modal to show
-            that.populateMultiSelect('#object-selector');
+
+            App.contentsList = new App.core.ContentCollection();
+            App.contentsList.fetch().done(function () {
+                App.contentsList.sort();
+                App.feedback.empty();
+                
+                that.unwrapEl();
+                that.$el.modal('show'); // Toggle Bootstrap modal to show
+                that.populateMultiSelectProduct('#object-selector-product');
+                that.populateMultiSelectContent('#object-selector-content');
+            })
         });
     },
 
-    populateMultiSelect: function(divName) {
+    populateMultiSelectProduct: function(divName) {
         var selection, num,
+            currentModel = this.model,
             that = this;
 
         that.$el.find(divName).multiSelect({
@@ -551,6 +558,14 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                 selectableSearch.keyup(function(){
                     clearTimeout(typingTimer);
                     typingTimer = setTimeout(function () {
+                        var selectedItems = [];
+
+                        _.each(that.$el.find('#object-selector')[0].options, function (val) {
+                            if (val.selected) {
+                                selectedItems.push(val.value);
+                            }
+                        });
+
                         App.feedback.show(new App.core.FeedbackNoTimeoutView({
                             'alertType': 'info',
                             'status': "Fetching product info..."
@@ -569,6 +584,17 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                         result.always(function () {
                             App.feedback.empty();
                             if (result.status === 200) {
+                                // Add products to the productList if the productsList doesn't contain
+                                //     products that the tile contains already 
+                                // for (var i = 0; i < currentModel.get('products').length) { 
+                                //     var val = currentModel.get('products')[i];                              
+                                //     var tempModel = Backbone.Model.extend({url : App.core.apiURL + 'product/' + val + '/'});
+                                //     var tempInstance = new tempModel({id: val});
+                                //     tempInstance.fetch().done(function() {
+                                //         console.log(tempInstance);
+                                //     });
+                                // }
+
                                 App.productsList = productsList;
                                 that.$el.find(divName).empty();
                                 that.$el.find(divName).multiSelect('refresh');
@@ -579,7 +605,88 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                                 }));
                             }
                         });
-                    }, 1000);
+                    }, 2000);
+                });
+            },
+        }); // Must run this before we can access
+            //    multiSelect's options
+    },
+
+    populateMultiSelectContent: function(divName) {
+        var selection, num,
+            currentModel = this.model,
+            that = this;
+
+        that.$el.find(divName).multiSelect({
+            selectableHeader:   "<div class='custom-header'>List of Contents</div>",
+
+            selectionHeader:    "<div class='custom-header'>Contents to be Tagged</div>",
+
+            afterInit: function(ms){
+                var typingTimer, data, result, productsList,
+                    those = this,
+                    selectableSearch = that.$el.find('input[name=num]');
+
+                _.each(App.contentsList.models, function (val) {
+                    var modelID = val.get('id'),
+                        modelName = val.get('name');
+                    that.$el.find(divName).multiSelect('addOption', { 
+                        value: modelID, 
+                        text: "Content " + modelID,
+                    });
+                });
+
+                selectableSearch.keyup(function(){
+                    clearTimeout(typingTimer);
+                    typingTimer = setTimeout(function () {
+                        var selectedItems = [];
+
+                        _.each(that.$el.find('#object-selector')[0].options, function (val) {
+                            if (val.selected) {
+                                selectedItems.push(val.value);
+                            }
+                        });
+
+                        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                            'alertType': 'info',
+                            'status': "Fetching contents info..."
+                        }));
+                        // Refresh products list by doing API call and refresh multiselect
+                        selection = that.$el.find('.edit-modal-selection-field')[0].value;
+                        num = that.$el.find('.edit-modal-num-field')[0].value;
+
+                        data = {};
+                        data[selection] = num;
+
+                        contentsList = new App.core.ContentCollection();
+                        result = contentsList.fetch({
+                            data: data,
+                        });
+                        result.always(function () {
+                            App.feedback.empty();
+                            if (result.status === 200) {
+                                // Add products to the productList if the contentsList doesn't contain
+                                //     products that the tile contains already 
+                                // for (var i = 0; i < currentModel.get('products').length) { 
+                                //     var val = currentModel.get('products')[i];                              
+                                //     var tempModel = Backbone.Model.extend({url : App.core.apiURL + 'product/' + val + '/'});
+                                //     var tempInstance = new tempModel({id: val});
+                                //     tempInstance.fetch().done(function() {
+                                //         console.log(tempInstance);
+                                //     });
+                                // }
+
+                                App.contentsList = contentsList;
+                                that.$el.find(divName).empty();
+                                that.$el.find(divName).multiSelect('refresh');
+                            } else {
+                                App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                    'alertType': 'warning',
+                                    'status': JSON.parse(result.responseText).status,
+                                }));
+                            }
+                        });
+                    }, 2000);
                 });
             },
         }); // Must run this before we can access
@@ -587,143 +694,93 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     events: {
+        "click button#saveChanges": "saveChanges",
         "click button#close": "closeModal",
-        "click button#tagTile": "tagTile",
-        "click button#change": "changePriority",
-        "click button#changeAttributes": "changeAttributes",
     },
 
-    tagTile: function () {
-        var result, alertType, status, tile,
+    saveChanges: function () {
+        var result, alertType, status, tile, 
+            data = {},
+            currModel = this.model,
             tileID = this.model.get('id'),
-            selected = [],
+            newPriority = this.$el.find('#new-priority').val(),
+            newTemplate = this.$el.find('#new-template').val(),
+            newAttributes = this.$el.find('#attributes-textarea').val(),
+            selectedProducts = [],
+            selectedContents = [],
             that = this;
 
-        _.each(this.$el.find('#object-selector')[0].options, function (val) {
-            if (val.selected) {
-                selected.push(val.value);
-            }
-        });
-
-        if (selected.length > 0) {
-            App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                'alertType': 'info',
-                'status':  "Tile tagging in progress..",
-            }));
-            // Now send an API request to tag the tile with products
-            tile = new App.core.Tile();
-            tile.set({data: {
-                'pageID': pageID,
-                'products': selected
-            }});
-            
-            result = tile.tag(tile, tileID);
-            result.always(function () {
-                status = JSON.parse(result.responseText)['detail'];
-                if (result.status === 200) {
-                    that.$el.modal('hide'); // Toggle Bootstrap modal to hide
-                    alertType = 'success';
-                    status = status + " Please refresh to see the changes."
-                } else {
-                    alertType = 'warning';
-                }
-                App.feedback.empty();
-                App.feedback.show(new App.core.FeedbackView({
-                    'alertType': alertType,
-                    'status': status,
-                }));
-            });
-        } else {
-            App.feedback.show(new App.core.FeedbackView({
-                'alertType': 'warning',
-                'status':  "No products have been selected.",
-            }));
-        }
-    },
-
-    changePriority: function () {
-        // Change the priority to the specified value
-        var result, status, alertType,
-            currModel = this.model,
-            newPriority = this.$el.find('#new_priority').val();
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+            'alertType': 'info',
+            'status': 'Processing... Please wait.'
+        }));
 
         try {
-            if (newPriority === '' || newPriority === null) {
-                throw "Error. New priority input is empty."
+            // Change priorities {priority: newPriority}
+            if (newPriority !== this.model.get('priority')) {
+                data['priority'] = newPriority;
             }
-            if (isNaN(newPriority)) {
-                throw "Error. A valid integer is required."
+            // Change template
+            if (newTemplate !== this.model.get('template')) {
+                data['template'] = newTemplate;
             }
-            this.$el.modal('hide'); // Toggle Bootstrap modal to hide
-
-            App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                'alertType': 'info',
-                'status': 'Processing... Please wait.'
-            }));
-
-            result = currModel.save({priority: newPriority}, {
-                patch: true,
-                url: App.core.apiURL + 'tile/' + currModel.id + '/',
+            // Change attributes
+            JSON.parse(newAttributes);
+            if (newAttributes !== this.model.get('attributes')) {
+                data['attributes'] = newAttributes;
+            }
+            // Tag tiles
+            _.each(this.$el.find('#object-selector-product')[0].options, function (val) {
+                if (val.selected) {
+                    selectedProducts.push(val.value);
+                }
             });
-
+            _.each(this.$el.find('#object-selector-content')[0].options, function (val) {
+                if (val.selected) {
+                    selectedContents.push(val.value);
+                }
+            });
+            // Save attributes
+            result = currModel.save(data, {
+                patch: true,
+                url: App.core.apiURL + 'tile/' + tileID + '/',
+            });
             result.always(function () {
                 result = JSON.parse(result.responseText);
                 if (_.has(result,"id")) {
                     alertType = 'success';
-                    status = "The priority of tile with ID: " + currModel.id +
-                             " has been changed to " + currModel.get('priority') + ".";
+                    status = "The attributes of the tile with ID " + tileID + " has been updated.";
                 } else {
                     alertType = 'danger';
                     status = result.priority;
                 }
-                App.feedback.empty();
-                App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+                // tile attributes saving is done, now tag tiles
+                tile = new App.core.Tile();
+                tile.set({data: {
+                    'pageID': pageID,
+                    'products': selectedProducts,
+                    'contents': selectedContents,
+                }});
+
+                result = tile.tag(tile, tileID);
+                result.always(function () {
+                    status = status + " " + JSON.parse(result.responseText)['detail'];
+                    if (result.status === 200) {
+                        location.reload();
+                    } else {
+                        alertType = 'warning';
+                        App.feedback.empty();
+                        App.feedback.show(new App.core.FeedbackView({
+                            'alertType': alertType,
+                            'status': status,
+                        }));
+                    }
+                });
             });
         }
-        catch(err) {
-            this.$el.find('#editError').html(err);
-        }
-    },
-
-    changeAttributes: function () {
-        var result, alertType,
-            newAttributes = this.$el.find('#attributes-textarea').val(),
-            currModel = this.model;
-
-        this.$el.find('#editError').html("");
-
-        if (newAttributes !== currModel.get('attributes')) {
-            try {
-                JSON.parse(newAttributes);
-                App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                    'alertType': 'info',
-                    'status': 'Processing... Please wait.'
-                }));
-
-                result = currModel.save({attributes: newAttributes}, {
-                    patch: true,
-                    url: App.core.apiURL + 'tile/' + currModel.id + '/',
-                });
-
-                result.always(function () {
-                result = JSON.parse(result.responseText);
-                    if (_.has(result, "id")) {
-                        alertType = 'success';
-                        status = "The attributes of tile with ID: " + currModel.id +
-                                 " has been changed.";
-                    } else {
-                        alertType = 'danger';
-                        status = result.priority;
-                    }
-                    App.feedback.empty();
-                    App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
-                });
-            } 
-            catch (e) {
-                this.$el.find('#editError').html(e.message);
-            }
-        } else {
-
+        catch (e) {
+            App.feedback.empty();
+            this.$el.find('#editError').html(e.message);
         }
     },
 });
@@ -1025,6 +1082,8 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
 
         this.$el.find('.add-form').html(this.addObjectForm.el);
         
+        this.$el.find('.modal-title').html("Add " + objectType);
+
         if (objectType === "Product") {
             App.feedback.show(new App.core.FeedbackNoTimeoutView({
                 'alertType': 'info',
@@ -1107,205 +1166,212 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                     selection = "ID";
                     num = selected[0];
                 }
-                page = new App.core.Page({
-                    selection: selection,
-                    num: num,
-                    priority: priority,
-                    category: category
-                });
-                if (objectType === "Content") {
-                    page.attributes.type = "content";
-                    searchString = new App.core.Content();
+
+                if (num === '') {
+                    App.feedback.show(new App.core.FeedbackView({
+                        'alertType': 'warning',
+                        'status': 'No ' + objectType.toLowerCase() + ' was selected or ID/SKU entered'
+                    }));
                 } else {
-                    page.attributes.type = "product";
-                    searchString = new App.core.Product();
-                }
-                if (selection === 'URL') {
-                    if (num.search('http') === -1) {
-                        num = 'http://' + num;
-                    }
-                    searchString.set({url: num});
-                }
-                if (selection === 'ID')
-                    searchString.set({id: num});
-                if (selection === 'SKU')
-                    searchString.set({sku: num});
-
-                result = searchString.search(searchString);
-                result.always(function () {
-                    responseText = JSON.parse(result.responseText);
-                    idLength = responseText.ids.length;
-                    if (idLength === 1) {
-                        // object with that selection has been found
-
-                        // Add the tile to the page with specified priority
-                        if (objectType === "Product") {
-                            page = new App.core.Page({
-                                type: "product",
-                                id: responseText.ids[0],
-                                force_create_tile: force_create,
-                            });
-                        } else {
-                            page = new App.core.Page({
-                                type: "content",
-                                id: responseText.ids[0],
-                                force_create_tile: force_create,
-                            });
-                        }
-                        if (priority !== "") {
-                            page.set({priority: priority});
-                        }
-                        if (category !== "") {
-                            page.set({category: category});
-                        }
-                        result = page.add(page);
-                        result.always(function () {
-                            App.feedback.empty();
-                            responseText = JSON.parse(result.responseText);
-                            status = responseText.status;
-                            if (result.status === 200) {
-                                // Use batch to update the other tiles' priorities ONLY if adding
-                                //     was successful
-                                if (batch.length !== 0) {
-                                    // Only do an API call if batch contains items to be updated
-                                    batch = JSON.stringify(batch);
-                                    options = {
-                                        'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
-                                    };
-
-                                    setTilePriorities = new App.core.TileCollection();
-                                    setTilePriorities.set({data: batch});
-
-                                    result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
-                                    result.always(function () {
-                                        if (result.responseJSON.length !== 0) {
-                                            // Patch of new tile priority successful
-                                            alertType = 'success';
-                                            status = status + ' Please refresh to see the new tile.'
-                                        } else {
-                                            alertType = 'danger';
-                                            status = "Tile priority patching failed due to an error.";
-                                        }
-                                        that.hideAndShowModal(that, alertType, status);
-                                    });
-                                } else {
-                                    that.hideAndShowModal(that, 'success', status + ' Please refresh to see the new tile.');
-                                }
-                            } else {
-                                that.hideAndShowModal(that, 'warning', status);
-                            }
-                        });
+                    page = new App.core.Page({
+                        selection: selection,
+                        num: num,
+                        priority: priority,
+                        category: category
+                    });
+                    if (objectType === "Content") {
+                        page.attributes.type = "content";
+                        searchString = new App.core.Content();
                     } else {
-                        if (idLength > 1) {
-                            // Multiple objects found
-                            App.feedback.show(new App.core.FeedbackView({
-                                'alertType': 'danger',
-                                'status': "Error: " + responseText.status
-                            }));
-                        } else {
-                            // No object found
-                            if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
-                                App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                                    'alertType': 'info',
-                                    'status': "Object could not be found. Scraping..."
-                                }));
-                                if (objectType === "Product") {
-                                    var processURL = new App.core.Product({
-                                        url: num,
-                                        page_id: pageID
-                                    });
-                                } else {
-                                    var processURL = new App.core.Content({
-                                        url: num,
-                                        page_id: pageID
-                                    });
-                                }
-                                result = processURL.scrape(processURL);
-                                result.always(function () {
-                                    App.feedback.empty();
-                                    responseText = JSON.parse(result.responseText);
-                                    if (result.status !== 200) {
-                                        App.feedback.show(new App.core.FeedbackView({
-                                            'alertType': 'danger',
-                                            'status': responseText.status,
-                                        }));
-                                    } else {
-                                        alertType = 'success';
-                                        status = responseText.status + ". Creating tile.";
-                                        App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                                            'alertType': alertType,
-                                            'status': status,
-                                        }));
-                                        // Now add tile
-                                        if (objectType === "Product") {
-                                            page = new App.core.Page({
-                                                type: "product",
-                                                id: responseText.id,
-                                                force_create_tile: $('#force-create').is(':checked').toString(),
-                                            });
-                                        } else {
-                                            page = new App.core.Page({
-                                                type: "content",
-                                                id: responseText.id,
-                                                force_create_tile: $('#force-create').is(':checked').toString(),
-                                            });
-                                        }
-                                        if (priority !== "") {
-                                            page.set({priority: priority});
-                                        }
-                                        if (category !== "") {
-                                            page.set({category: category});
-                                        }
+                        page.attributes.type = "product";
+                        searchString = new App.core.Product();
+                    }
+                    if (selection === 'URL') {
+                        if (num.search('http') === -1) {
+                            num = 'http://' + num;
+                        }
+                        searchString.set({url: num});
+                    }
+                    if (selection === 'ID')
+                        searchString.set({id: num});
+                    if (selection === 'SKU')
+                        searchString.set({sku: num});
 
-                                        result = page.add(page);
+                    result = searchString.search(searchString);
+                    result.always(function () {
+                        responseText = JSON.parse(result.responseText);
+                        idLength = responseText.ids.length;
+                        if (idLength === 1) {
+                            // object with that selection has been found
+
+                            // Add the tile to the page with specified priority
+                            if (objectType === "Product") {
+                                page = new App.core.Page({
+                                    type: "product",
+                                    id: responseText.ids[0],
+                                    force_create_tile: force_create,
+                                });
+                            } else {
+                                page = new App.core.Page({
+                                    type: "content",
+                                    id: responseText.ids[0],
+                                    force_create_tile: force_create,
+                                });
+                            }
+                            if (priority !== "") {
+                                page.set({priority: priority});
+                            }
+                            if (category !== "") {
+                                page.set({category: category});
+                            }
+                            result = page.add(page);
+                            result.always(function () {
+                                App.feedback.empty();
+                                responseText = JSON.parse(result.responseText);
+                                status = responseText.status;
+                                if (result.status === 200) {
+                                    // Use batch to update the other tiles' priorities ONLY if adding
+                                    //     was successful
+                                    if (batch.length !== 0) {
+                                        // Only do an API call if batch contains items to be updated
+                                        batch = JSON.stringify(batch);
+                                        options = {
+                                            'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
+                                        };
+
+                                        setTilePriorities = new App.core.TileCollection();
+                                        setTilePriorities.set({data: batch});
+
+                                        result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
                                         result.always(function () {
-                                            App.feedback.empty();
-                                            responseText = JSON.parse(result.responseText);
-                                            status = responseText.status;
-                                            if (result.status === 200) {
-                                                // Use batch to update the other tiles' priorities ONLY if adding
-                                                //     was successful
-                                                if (batch.length !== 0) {
-                                                    // Only do an API call if batch contains items to be updated
-                                                    batch = JSON.stringify(batch);
-                                                    options = {
-                                                        'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
-                                                    };
-
-                                                    setTilePriorities = new App.core.TileCollection();
-                                                    setTilePriorities.set({data: batch});
-
-                                                    result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
-                                                    result.always(function () {
-                                                        if (result.responseJSON.length !== 0) {
-                                                            // Patch of new tile priority successful
-                                                            alertType = 'success';
-                                                            status = status + ' Please refresh to see the new tile.'
-                                                        } else {
-                                                            alertType = 'danger';
-                                                            status = "Tile priority patching failed due to an error.";
-                                                        }
-                                                        that.hideAndShowModal(that, alertType, status);
-                                                        // Once scrape and add's successful, need to open the modal to edit it
-                                                    });
-                                                } else {
-                                                    that.hideAndShowModal(that, 'success', status + ' Please refresh to see the new tile.');
-                                                }
+                                            if (result.responseJSON.length !== 0) {
+                                                // Patch of new tile priority successful
+                                                location.reload();
                                             } else {
-                                                that.hideAndShowModal(that, 'warning', status);
+                                                alertType = 'danger';
+                                                status = "Tile priority patching failed due to an error.";
+                                                that.hideAndShowModal(that, alertType, status);
                                             }
                                         });
+                                    } else {
+                                        location.reload();
                                     }
-                                })
-                            } else {
+                                } else {
+                                    that.hideAndShowModal(that, 'warning', status);
+                                }
+                            });
+                        } else {
+                            if (idLength > 1) {
+                                // Multiple objects found
                                 App.feedback.show(new App.core.FeedbackView({
-                                    'alertType': 'warning',
-                                    'status': responseText.status
+                                    'alertType': 'danger',
+                                    'status': "Error: " + responseText.status
                                 }));
+                            } else {
+                                // No object found
+                                if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
+                                    App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                        'alertType': 'info',
+                                        'status': "Object could not be found. Scraping..."
+                                    }));
+                                    if (objectType === "Product") {
+                                        var processURL = new App.core.Product({
+                                            url: num,
+                                            page_id: pageID
+                                        });
+                                    } else {
+                                        var processURL = new App.core.Content({
+                                            url: num,
+                                            page_id: pageID
+                                        });
+                                    }
+                                    result = processURL.scrape(processURL);
+                                    result.always(function () {
+                                        App.feedback.empty();
+                                        responseText = JSON.parse(result.responseText);
+                                        if (result.status !== 200) {
+                                            App.feedback.show(new App.core.FeedbackView({
+                                                'alertType': 'danger',
+                                                'status': responseText.status,
+                                            }));
+                                        } else {
+                                            alertType = 'success';
+                                            status = responseText.status + ". Creating tile.";
+                                            App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                                'alertType': alertType,
+                                                'status': status,
+                                            }));
+                                            // Now add tile
+                                            if (objectType === "Product") {
+                                                page = new App.core.Page({
+                                                    type: "product",
+                                                    id: responseText.id,
+                                                    force_create_tile: $('#force-create').is(':checked').toString(),
+                                                });
+                                            } else {
+                                                page = new App.core.Page({
+                                                    type: "content",
+                                                    id: responseText.id,
+                                                    force_create_tile: $('#force-create').is(':checked').toString(),
+                                                });
+                                            }
+                                            if (priority !== "") {
+                                                page.set({priority: priority});
+                                            }
+                                            if (category !== "") {
+                                                page.set({category: category});
+                                            }
+
+                                            result = page.add(page);
+                                            result.always(function () {
+                                                App.feedback.empty();
+                                                responseText = JSON.parse(result.responseText);
+                                                status = responseText.status;
+                                                if (result.status === 200) {
+                                                    // Use batch to update the other tiles' priorities ONLY if adding
+                                                    //     was successful
+                                                    if (batch.length !== 0) {
+                                                        // Only do an API call if batch contains items to be updated
+                                                        batch = JSON.stringify(batch);
+                                                        options = {
+                                                            'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
+                                                        };
+
+                                                        setTilePriorities = new App.core.TileCollection();
+                                                        setTilePriorities.set({data: batch});
+
+                                                        result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
+                                                        result.always(function () {
+                                                            if (result.responseJSON.length !== 0) {
+                                                                // Patch of new tile priority successful
+                                                                location.reload();
+                                                            } else {
+                                                                alertType = 'danger';
+                                                                status = "Tile priority patching failed due to an error.";
+                                                            }
+                                                            that.hideAndShowModal(that, alertType, status);
+                                                            // Once scrape and add's successful, need to open the modal to edit it
+                                                        });
+                                                    } else {
+                                                        location.reload();
+                                                    }
+                                                } else {
+                                                    that.hideAndShowModal(that, 'warning', status);
+                                                }
+                                            });
+                                        }
+                                    })
+                                } else {
+                                    App.feedback.show(new App.core.FeedbackView({
+                                        'alertType': 'warning',
+                                        'status': responseText.status
+                                    }));
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
+                
             }
         }
     },
@@ -1494,23 +1560,27 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
         // Once the remove modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
 
-        var objectType = this.options.objectType,
+        var removeObjectModel,
+            objectType = this.options.objectType,
             that = this,
             selectionOptions = {
                 'Product': ['URL', 'ID', 'SKU'],
                 'Content': ['URL', 'ID']
+            };
+
+        if ( (objectType == null) || (objectType == undefined) ){
+            objectType = 'Product';
+        }
+
+        removeObjectModel = Backbone.Model.extend({
+            schema: {
+                selection: { title: '', type: 'Select', options: selectionOptions[objectType] },
+                num:       { title: '', type: 'Text' },
             },
-            removeObjectModel = Backbone.Model.extend({
-                schema: {
-                    object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
-                    selection: { title: '', type: 'Select', options: selectionOptions[objectType] },
-                    num:       { title: '', type: 'Text' },
-                },
-                defaults: {
-                    object: objectType,
-                    selection: 'ID',
-                },
-            });
+            defaults: {
+                selection: 'ID',
+            },
+        });
 
         this.removeObjectInstance = new removeObjectModel();
         
@@ -1520,15 +1590,16 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             model: this.removeObjectInstance,
         }).render();
 
-        this.removeObjectForm.on('object:change', function(form, removeObjectEditor) {
-            var object = removeObjectEditor.getValue(),
-                newOptions = selectionOptions[object];
+        // this.removeObjectForm.on('object:change', function(form, removeObjectEditor) {
+        //     var object = removeObjectEditor.getValue(),
+        //         newOptions = selectionOptions[object];
             
-            that.options.objectType = object;
-            form.fields.selection.editor.setOptions(newOptions);
-        });
+        //     that.options.objectType = object;
+        //     form.fields.selection.editor.setOptions(newOptions);
+        // });
 
         this.$el.find('.remove-form').html(this.removeObjectForm.el);
+        this.$el.find('.modal-title').html("Remove " + objectType);
         this.$el.modal('show'); // Toggle Bootstrap modal to show
     },
 

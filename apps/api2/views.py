@@ -73,6 +73,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             name_filter = data.get('name', None)
             sku_filter = data.get('sku', None)
             url_filter = data.get('url', None)
+            filters = None
             try:
                 if id_filter:
                     id_filter = int(id_filter)
@@ -232,6 +233,7 @@ class ContentViewSet(viewsets.ModelViewSet):
             id_filter = data.get('id', None)
             name_filter = data.get('name', None)
             url_filter = data.get('url', None)
+            filters = None
             try:
                 if id_filter:
                     id_filter = int(id_filter)

@@ -127,7 +127,6 @@
 
                 <script id="remove-form-template" type="text/html">
                     <form>
-                        <div data-fields="object"></div>
                         <div data-fields="selection" class="selection-field"></div>
                         <div data-fields="num" class="num-field"></div>
                     </form>
@@ -139,7 +138,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Add Object</br></h4>
+                                    <h4 class="modal-title"></h4>
                                 </div>
                                 <div class="modal-body">
                                     <div class="add-form"></div>
@@ -164,7 +163,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Remove Object</br></h4>
+                                    <h4 class="modal-title"></br></h4>
                                 </div>
                                 <div class="modal-body">
                                     <div class="remove-form"></div>
@@ -217,32 +216,49 @@
                                     <h4 class="modal-title"><%= id %> - <%= name %> </br></h4>
                                 </div>
                                 <div class="modal-body">
-                                    Current Priority: <%= priority %></br>
-                                    New Priority: <input type="text" id="new_priority"></br>
-                                    Template: <%= template %></br>
+                                    Priority: <input type="text" id="new_priority" value="<%= priority %>"></br>
+                                    Template:  <input type="text" id="new-template" value="<%= template %>"></br>
                                     In-stock: <%= in_stock %></br>
+                                    Placeholder: <%= placeholder %></br>
+                                    Tagged-Products:
+                                    <% if (products !== undefined) { %>
+                                        <%= products %>
+                                    <% } else { %>
+                                        []
+                                    <% } %>
+                                    </br>
+                                    Tagged-Contents:
+                                    <% if (content !== undefined) { %>
+                                        <%= content %>
+                                    <% } else { %>
+                                        []
+                                    <% } %>
+                                    </br>
                                     Attributes: </br>
-                                    <textarea id="attributes-textarea" rows="4" cols="50"><%= JSON.stringify(attributes) %></textarea>
+                                    <textarea id="attributes-textarea" rows="4" cols="50"><%= JSON.stringify(attributes, null, 2) %></textarea>
                                     <div id="editError"></div>
+
                                     <hr>
-                                    <select id="edit-modal-selection" name="selection" class="edit-modal-selection-field">
+                                    <select id="edit-modal-selection-product" name="selection-product" class="edit-modal-selection-field">
                                         <option>URL</option>
                                         <option selected="selected">ID</option>
                                         <option>SKU</option>
                                         <option>Name</option>
                                     </select>
-                                    <input id="edit-modal-input" name="num" type="text" class="edit-modal-num-field">
-                                    <select multiple="multiple" id="object-selector" name="object-selector[]"></select>
+                                    <input id="edit-modal-input-product" name="num-product" type="text" class="edit-modal-num-field">
+                                    <select multiple="multiple" id="object-selector-product" name="object-selector-product[]"></select>
+
+                                    <hr>
+                                    <select id="edit-modal-selection-content" name="selection-content" class="edit-modal-selection-field">
+                                        <option>URL</option>
+                                        <option selected="selected">ID</option>
+                                    </select>
+                                    <input id="edit-modal-input-content" name="num-content" type="text" class="edit-modal-num-field">
+                                    <select multiple="multiple" id="object-selector-content" name="object-selector-content[]"></select>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" id="tagTile" class="btn btn-default">
-                                        Tag
-                                    </button>
-                                    <button type="button" id="change" class="btn btn-default">
-                                        Change Priority
-                                    </button>
-                                    <button type="button" id="changeAttributes" class="btn btn-default">
-                                        Change Attributes
+                                    <button type="button" id="saveChanges" class="btn btn-default">
+                                        Save
                                     </button>
                                     <button type="button" id="close" class="btn btn-default">
                                         Close
