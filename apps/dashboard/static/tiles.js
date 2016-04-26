@@ -70,6 +70,18 @@ App.core.ContentCollection = App.core.ObjectCollection.extend({
     url: App.core.apiURL + 'page/' + pageID + '/contents/',
 });
 
+App.core.TileContentCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'content/bulk/',
+});
+
+App.core.TileProductCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'product/bulk/',
+});
+
+App.core.TileProductImageCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'productimage/bulk/',
+});
+
 App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
 
@@ -508,11 +520,12 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     template: _.template($('#edit-modal-template').html()),
 
     onRender: function () {
-        var that = this;
+        var products, tileProducts, productImages, tileProductImages, contents, tileContents, result,
+            that = this;
 
         App.feedback.show(new App.core.FeedbackNoTimeoutView({
             'alertType': 'info',
-            'status': "Fetching all product info..."
+            'status': "Fetching product and content info..."
         }));
         App.productsList = new App.core.ProductCollection();
         App.productsList.fetch().done(function () {
@@ -521,17 +534,142 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             App.contentsList = new App.core.ContentCollection();
             App.contentsList.fetch().done(function () {
                 App.contentsList.sort();
-                App.feedback.empty();
                 
-                that.unwrapEl();
-                that.$el.modal('show'); // Toggle Bootstrap modal to show
-                that.populateMultiSelectProduct('#object-selector-product');
-                that.populateMultiSelectContent('#object-selector-content');
+                // Fetch tile content pictures
+                if (that.options.model.get('template') === 'product') {
+                    products = that.options.model.get('products');
+                    tileProducts = new App.core.TileProductCollection();
+                    result = tileProducts.fetch({
+                        data: {
+                            'data': products,
+                        },
+                    }).done(function () {
+                        if (result.status === 200) {
+                            result = JSON.parse(result.responseText);
+
+                            // Products take images from productImages, so we need to grab the images now
+                            console.log(result);
+                            var productImages = [];
+
+                            _.each(result, function (val) {
+                                productImages.push(val.default_image);
+                            });
+
+                            tileProductImages = new App.core.TileProductImageCollection();
+                            result = tileProductImages.fetch({
+                                data: {
+                                    'data': productImages,
+                                }
+                            }).done(function () {
+                                if (result.status === 200) {
+                                    result = JSON.parse(result.responseText);
+
+                                    that.processImageSlider(result);
+
+                                    App.feedback.empty();
+                                    that.unwrapEl();
+                                    that.$el.modal('show'); // Toggle Bootstrap modal to show
+                                    that.populateMultiSelectProduct('#object-selector-product');
+                                    that.populateMultiSelectContent('#object-selector-content'); 
+                                } else {
+                                    that.hideAndShowFeedback('warning', result.responseText);
+                                }
+                            });
+                        } else {
+                            that.hideAndShowFeedback('warning', result.responseText);
+                        }
+                    });
+                } else {
+                    contents = that.options.model.get('content'),
+                    tileContents = new App.core.TileContentCollection(),
+                    result = tileContents.fetch({
+                        data: {
+                            'data': contents,
+                        },
+                    }).done(function () {
+                        if (result.status === 200) {
+                            result = JSON.parse(result.responseText);
+
+                            that.processImageSlider(result);
+
+                            App.feedback.empty();
+                            that.unwrapEl();
+                            that.$el.modal('show'); // Toggle Bootstrap modal to show
+                            that.populateMultiSelectProduct('#object-selector-product');
+                            that.populateMultiSelectContent('#object-selector-content');
+                        } else {
+                            that.hideAndShowFeedback('warning', result.responseText);       
+                        }
+                    });
+                }
             })
         });
     },
 
-    populateMultiSelectProduct: function(divName) {
+    processImageSlider: function (result) {
+        var that = this;
+
+        if (result.length > 1) {
+            _.each(result, function (val) {
+                that.$el.find('#edit-slider ul').append(
+                    '<li id="' + val.id + ' "><button type="button" class="make-default-image">Make default image</button><img class="edit-modal-image" src="' + val.url + '" alt="' + val.id + '"></li>'
+                );
+            });
+        } else {
+            if (result.length === 0) {
+                that.$el.find('#edit-slider ul').append('<li></li>');
+                that.$el.find('#edit-slider ul').append('<li></li>');
+            } else {
+                that.$el.find('#edit-slider ul').append(
+                    '<li id="' + result[0].id + ' "><button type="button" class="make-default-image">Make default image</button><img class="edit-modal-image" src="' + result[0].url + '" alt="' + result[0].id + '"></li>'
+                );
+                that.$el.find('#edit-slider ul').append(
+                    '<li id="' + result[0].id + ' "><button type="button" class="make-default-image">Make default image</button><img class="edit-modal-image" src="' + result[0].url + '" alt="' + result[0].id + '"></li>'
+                );
+            }
+        }
+
+        var slider = that.$el.find('#edit-slider'),
+            sliderUl = that.$el.find('#edit-slider ul'),
+            sliderUlLi = that.$el.find('#edit-slider ul li'),
+            sliderLastChild = that.$el.find('#edit-slider ul li:last-child'),
+            sliderFirstChild = that.$el.find('#edit-slider ul li:first-child'),
+
+            slideCount = sliderUlLi.length,
+            slideWidth = sliderUlLi.width(),
+            slideHeight = sliderUlLi.height(),
+            sliderUlWidth = slideCount * slideWidth;
+
+        slider.css({ width: slideWidth, height: slideHeight });
+        sliderUl.css({ width: sliderUlWidth, marginLeft: - slideWidth });
+        sliderLastChild.prependTo(sliderUl);
+
+        function moveLeft () {
+            sliderUl.animate({
+                left: + slideWidth
+            }, 200, function () {
+                that.$el.find('#edit-slider ul li:last-child').prependTo(sliderUl);
+                sliderUl.css('left', '');
+            });
+        };
+        function moveRight () {
+            $('#edit-slider ul').animate({
+                left: - slideWidth
+            }, 200, function () {
+                that.$el.find('#edit-slider ul li:first-child').appendTo(sliderUl);
+                sliderUl.css('left', '');
+            });
+        };
+
+        $('a.control_prev').click(function () {
+            moveLeft();
+        });
+        $('a.control_next').click(function () {
+            moveRight();
+        });
+    },
+
+    populateMultiSelectProduct: function (divName) {
         var selection, num,
             currentModel = this.model,
             that = this;
@@ -695,7 +833,12 @@ App.core.EditModalView = App.core.BaseModalView.extend({
 
     events: {
         "click button#saveChanges": "saveChanges",
+        "click button.make-default-image": "makeDefaultImage",
         "click button#close": "closeModal",
+    },
+
+    makeDefaultImage: function () {
+        console.log(this);
     },
 
     saveChanges: function () {
@@ -769,11 +912,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                         location.reload();
                     } else {
                         alertType = 'warning';
-                        App.feedback.empty();
-                        App.feedback.show(new App.core.FeedbackView({
-                            'alertType': alertType,
-                            'status': status,
-                        }));
+                        that.hideAndShowFeedback(alertType, status);
                     }
                 });
             });
@@ -783,6 +922,16 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             this.$el.find('#editError').html(e.message);
         }
     },
+
+    hideAndShowFeedback: function (alertType, status) {
+        App.feedback.empty();
+        App.feedback.show(new App.core.FeedbackView({
+            'alertType': alertType,
+            'status': status
+        }));
+    },
+
+
 });
 
 App.core.RemoveModalView = App.core.BaseModalView.extend({
@@ -1186,16 +1335,21 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                         page.attributes.type = "product";
                         searchString = new App.core.Product();
                     }
+
                     if (selection === 'URL') {
                         if (num.search('http') === -1) {
                             num = 'http://' + num;
                         }
                         searchString.set({url: num});
+                    } else {
+                        if (selection === 'ID') {
+                            searchString.set({id: num});
+                        } else {
+                            if (selection === 'SKU') {
+                                searchString.set({sku: num});
+                            }
+                        }
                     }
-                    if (selection === 'ID')
-                        searchString.set({id: num});
-                    if (selection === 'SKU')
-                        searchString.set({sku: num});
 
                     result = searchString.search(searchString);
                     result.always(function () {

@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import connection 
 from django.db.models import Q
-from django.http import Http404
+from django.http import Http404, QueryDict
 from django.shortcuts import get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 
@@ -37,6 +37,52 @@ class StoreViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    @list_route(methods=['get'])
+    def bulk(self, request):
+        """
+        Returns a list of products based on given product IDs
+
+        inputs:
+            list of product ids
+
+        returns:
+            list of serialized products
+        """
+        return_dict = []
+
+        if request.data == {}:
+            products = request.GET
+        elif request.GET == {}:
+            products = request.data
+        else:
+            products = []
+
+        if type(products) is QueryDict:
+            products = dict(products.iterlists())
+
+        products = products.get('data', products.get('data[]', None))
+        
+        if type(products) is unicode:
+            products = ast.literal_eval(products)
+
+        try:
+            for x in range(0, len(products)):
+                if products[x] is not int:
+                    products[x] = int(products[x])
+        except ValueError:
+            return_dict = 'Error. One of the IDs provided is not a number.'
+        except TypeError:
+            if type(products) is int:
+                product = get_object_or_404(Product, pk=products)
+                return_dict = (ProductSerializer(product).data)
+        else:
+            for p in products:
+                product = get_object_or_404(Product, pk=p)
+                return_dict.append(ProductSerializer(product).data)
+
+        return Response(return_dict)
+
 
     @list_route(methods=['post'])
     def search(self, request):
@@ -197,6 +243,51 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ContentViewSet(viewsets.ModelViewSet):
     queryset = Content.objects.all()
     serializer_class = ContentSerializer
+
+    @list_route(methods=['get'])
+    def bulk(self, request):
+        """
+        Returns a list of contents based on given content IDs
+
+        inputs:
+            list of content ids
+
+        returns:
+            list of serialized contents
+        """
+        return_dict = []
+
+        if request.data == {}:
+            contents = request.GET
+        elif request.GET == {}:
+            contents = request.data
+        else:
+            contents = []
+
+        if type(contents) is QueryDict:
+            contents = dict(contents.iterlists())
+
+        contents = contents.get('data', contents.get('data[]', None))
+        
+        if type(contents) is unicode:
+            contents = ast.literal_eval(contents)
+
+        try:
+            for x in range(0, len(contents)):
+                if contents[x] is not int:
+                    contents[x] = int(contents[x])
+        except ValueError:
+            return_dict = 'Error. One of the IDs provided is not a number.'
+        except TypeError:
+            if type(contents) is int:
+                content = get_object_or_404(Content, pk=contents)
+                return_dict = (ContentSerializer(content).data)
+        else:
+            for c in contents:
+                content = get_object_or_404(Content, pk=c)
+                return_dict.append(ContentSerializer(content).data)
+
+        return Response(return_dict)
 
     @list_route(methods=['post'])
     def search(self, request):
@@ -359,6 +450,51 @@ class GifViewSet(viewsets.ModelViewSet):
 class ProductImageViewSet(viewsets.ModelViewSet):
     queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
+
+    @list_route(methods=['get'])
+    def bulk(self, request):
+        """
+        Returns a list of product images based on given product image IDs
+
+        inputs:
+            list of product image ids
+
+        returns:
+            list of serialized product images
+        """
+        return_dict = []
+
+        if request.data == {}:
+            productImagess = request.GET
+        elif request.GET == {}:
+            productImagess = request.data
+        else:
+            productImagess = []
+
+        if type(productImagess) is QueryDict:
+            productImagess = dict(productImagess.iterlists())
+
+        productImagess = productImagess.get('data', productImagess.get('data[]', None))
+        
+        if type(productImagess) is unicode:
+            productImagess = ast.literal_eval(productImagess)
+
+        try:
+            for x in range(0, len(productImagess)):
+                if productImagess[x] is not int:
+                    productImagess[x] = int(productImagess[x])
+        except ValueError:
+            return_dict = 'Error. One of the IDs provided is not a number.'
+        except TypeError:
+            if type(productImagess) is int:
+                productImage = get_object_or_404(ProductImage, pk=productImagess)
+                return_dict = (ProductImageSerializer(productImage).data)
+        else:
+            for pi in productImagess:
+                productImage = get_object_or_404(ProductImage, pk=pi)
+                return_dict.append(ProductImageSerializer(productImage).data)
+
+        return Response(return_dict)
 
 
 class VideoViewSet(viewsets.ModelViewSet):

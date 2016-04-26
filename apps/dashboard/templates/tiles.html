@@ -216,10 +216,18 @@
                                     <h4 class="modal-title"><%= id %> - <%= name %> </br></h4>
                                 </div>
                                 <div class="modal-body">
+                                    <div id="edit-slider">
+                                        <a href="#" class="control_next">></a>
+                                        <a href="#" class="control_prev"><</a>
+                                        <ul class="edit-slider-ul">
+                                        </ul>
+                                    </div>
                                     Priority: <input type="text" id="new_priority" value="<%= priority %>"></br>
                                     Template:  <input type="text" id="new-template" value="<%= template %>"></br>
                                     In-stock: <%= in_stock %></br>
                                     Placeholder: <%= placeholder %></br>
+                                    Attributes: </br>
+                                    <textarea id="attributes-textarea" rows="4" cols="25"><%= JSON.stringify(attributes, null, 2) %></textarea></br>
                                     Tagged-Products:
                                     <% if (products !== undefined) { %>
                                         <%= products %>
@@ -234,8 +242,6 @@
                                         []
                                     <% } %>
                                     </br>
-                                    Attributes: </br>
-                                    <textarea id="attributes-textarea" rows="4" cols="50"><%= JSON.stringify(attributes, null, 2) %></textarea>
                                     <div id="editError"></div>
 
                                     <hr>
