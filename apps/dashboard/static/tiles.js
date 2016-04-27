@@ -607,12 +607,19 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     processImageSlider: function (result) {
-        var that = this;
+        var that = this,
+            tileDefaultImage = that.options.model.get('defaultImage');
 
         if (result.length > 1) {
-            _.each(result, function (val) {
+            _.each(result, function (val, i) {
+                var tileID;
+                if (that.options.model.get('template') === 'product') {
+                    tileID = that.options.model.get('products')[i];
+                } else {
+                    tileID = val.id;
+                }
                 that.$el.find('#edit-slider ul').append(
-                    '<li id="' + val.id + ' "><button type="button" class="make-default-image">Make default image</button><img class="edit-modal-image" src="' + val.url + '" alt="' + val.id + '"></li>'
+                    '<li id="' + val.id + ' "><div class="image-label">' + tileID +'</div><img class="edit-modal-image" src="' + val.url + '" alt="' + tileID + '"></li>'
                 );
             });
         } else {
@@ -620,11 +627,17 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                 that.$el.find('#edit-slider ul').append('<li></li>');
                 that.$el.find('#edit-slider ul').append('<li></li>');
             } else {
+                var tileID;
+                if (that.options.model.get('template') === 'product') {
+                    tileID = that.options.model.get('products')[0];
+                } else {
+                    tileID = result[0].id;
+                }
                 that.$el.find('#edit-slider ul').append(
-                    '<li id="' + result[0].id + ' "><button type="button" class="make-default-image">Make default image</button><img class="edit-modal-image" src="' + result[0].url + '" alt="' + result[0].id + '"></li>'
+                    '<li id="' + result[0].id + ' "><div class="image-label">' + tileID + '</div><img class="edit-modal-image" src="' + result[0].url + '" alt="' + tileID + '"></li>'
                 );
                 that.$el.find('#edit-slider ul').append(
-                    '<li id="' + result[0].id + ' "><button type="button" class="make-default-image">Make default image</button><img class="edit-modal-image" src="' + result[0].url + '" alt="' + result[0].id + '"></li>'
+                    '<li id="' + result[0].id + ' "><div class="image-label">' + tileID + '</div><img class="edit-modal-image" src="' + result[0].url + '" alt="' + tileID + '"></li>'
                 );
             }
         }
@@ -722,17 +735,6 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                         result.always(function () {
                             App.feedback.empty();
                             if (result.status === 200) {
-                                // Add products to the productList if the productsList doesn't contain
-                                //     products that the tile contains already 
-                                // for (var i = 0; i < currentModel.get('products').length) { 
-                                //     var val = currentModel.get('products')[i];                              
-                                //     var tempModel = Backbone.Model.extend({url : App.core.apiURL + 'product/' + val + '/'});
-                                //     var tempInstance = new tempModel({id: val});
-                                //     tempInstance.fetch().done(function() {
-                                //         console.log(tempInstance);
-                                //     });
-                                // }
-
                                 App.productsList = productsList;
                                 that.$el.find(divName).empty();
                                 that.$el.find(divName).multiSelect('refresh');
@@ -803,17 +805,6 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                         result.always(function () {
                             App.feedback.empty();
                             if (result.status === 200) {
-                                // Add products to the productList if the contentsList doesn't contain
-                                //     products that the tile contains already 
-                                // for (var i = 0; i < currentModel.get('products').length) { 
-                                //     var val = currentModel.get('products')[i];                              
-                                //     var tempModel = Backbone.Model.extend({url : App.core.apiURL + 'product/' + val + '/'});
-                                //     var tempInstance = new tempModel({id: val});
-                                //     tempInstance.fetch().done(function() {
-                                //         console.log(tempInstance);
-                                //     });
-                                // }
-
                                 App.contentsList = contentsList;
                                 that.$el.find(divName).empty();
                                 that.$el.find(divName).multiSelect('refresh');
@@ -1743,14 +1734,6 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
 
             model: this.removeObjectInstance,
         }).render();
-
-        // this.removeObjectForm.on('object:change', function(form, removeObjectEditor) {
-        //     var object = removeObjectEditor.getValue(),
-        //         newOptions = selectionOptions[object];
-            
-        //     that.options.objectType = object;
-        //     form.fields.selection.editor.setOptions(newOptions);
-        // });
 
         this.$el.find('.remove-form').html(this.removeObjectForm.el);
         this.$el.find('.modal-title').html("Remove " + objectType);

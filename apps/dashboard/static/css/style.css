@@ -3881,25 +3881,20 @@ a.control_next {
   border-radius: 2px 0 0 2px;
 }
 
-#edit-slider .make-default-image {
-    opacity: 0;
+#edit-slider .image-label {
     position: absolute;
-    bottom: 2px;
-    left: 20%;
+    top: 2px;
+    left: 2px;
     background: white;
     border: solid 0.5px;
-    -webkit-transition: opacity 0.5s ease-in-out;
-    -moz-transition: opacity 0.5s ease-in-out;
-    -o-transition: opacity 0.5s ease-in-out;
-    -ms-transition: opacity 0.5s ease-in-out;
-    transition: opacity 0.5s ease-in-out;
-}
-
-#edit-slider:hover .make-default-image {
-    opacity: 1;
+    padding: 2px;
 }
 
 /* Slider end */
+
+#default-image-selection {
+    width: 100px;
+}
 
 .edit-modal-image-wrapper {
     position: absolute;
