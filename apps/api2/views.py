@@ -1047,7 +1047,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         # Handle both products query ie /products?id=XXXX and /products data="{'id':XXXX}"
         data = request.data.get('data', {})
-        if isinstance(data, dict):
+        if not isinstance(data, dict):
             data = ast.literal_eval(request.data.get('data', {}))
 
         if data == {}:
@@ -1109,7 +1109,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         # Handle both contents query ie /contents?id=XXXX and /contents data="{'id':XXXX}"
         data = request.data.get('data', {})
-        if isinstance(data, dict):
+        if not isinstance(data, dict):
             data = ast.literal_eval(request.data.get('data', {}))
 
         if data == {}:
@@ -1393,7 +1393,7 @@ class TileDetail(APIView):
 
         if method == 'tag':
             data = request.data.get('data', {})
-            if isinstance(data, dict):
+            if not isinstance(data, dict):
                 data = ast.literal_eval(request.data.get('data', {}))
 
             products = data.get('products', [])

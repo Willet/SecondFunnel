@@ -885,7 +885,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             selectionHeader:    "<div class='custom-header'>Contents to be Tagged</div>",
 
             afterInit: function(ms){
-                var typingTimer, data, result, productsList,
+                var typingTimer, data, result, contentsList,
                     those = this,
                     selectableSearch = that.$el.find('input[name=num-content]');
 
@@ -970,7 +970,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
         }));
 
         try {
-            // Change priorities {priority: newPriority}
+            // Change priorities
             if (newPriority !== this.model.get('priority')) {
                 data['priority'] = newPriority;
             }
