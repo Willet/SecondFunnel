@@ -554,6 +554,19 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     },
 });
 
+App.core.FeedbackLoadingView = Marionette.ItemView.extend({
+    // feedback bar with a loading icon
+    template: _.template($('#feedback-loading-template').html()),
+
+    initialize: function (options) {
+
+    },
+
+    templateHelpers: function () {
+        return this.options;
+    },
+});
+
 App.core.FeedbackView = Marionette.ItemView.extend({
     template: _.template($('#feedback-template').html()),
 
@@ -699,6 +712,12 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     processImageSlider: function (result) {
+        /**
+        Set up the image slider with the product/content images
+
+        inputs:
+            result: the list of either product or content images
+        **/
         var that = this,
             tileDefaultImage = that.options.model.get('defaultImage');
 
@@ -775,6 +794,12 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     populateMultiSelectProduct: function (divName) {
+        /**
+        Populates the multi-select product boxes. Also sets up the search bar for it.
+
+        inputs:
+            divName: divName of the multi-select product box.
+        **/
         var selection, num,
             currentModel = this.model,
             that = this;
@@ -844,6 +869,12 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     populateMultiSelectContent: function(divName) {
+        /**
+        Populates the multi-select content boxes. Also sets up the search bar for it.
+
+        inputs:
+            divName: divName of the multi-select content box.
+        **/
         var selection, num,
             currentModel = this.model,
             that = this;
@@ -915,15 +946,13 @@ App.core.EditModalView = App.core.BaseModalView.extend({
 
     events: {
         "click button#saveChanges": "saveChanges",
-        "click button.make-default-image": "makeDefaultImage",
         "click button#close": "closeModal",
     },
 
-    makeDefaultImage: function () {
-        console.log(this);
-    },
-
     saveChanges: function () {
+        /**
+        Function that is run when the save button is pressed. Saves all info to the server
+        **/
         var result, alertType, status, tile, 
             data = {},
             currModel = this.model,
@@ -1006,6 +1035,13 @@ App.core.EditModalView = App.core.BaseModalView.extend({
     },
 
     hideAndShowFeedback: function (alertType, status) {
+        /**
+        Hides any active feedback and show a new one with the inputs given
+
+        inputs:
+            alertType: alert type of the feedback
+            status: status message of the feedback
+        **/
         App.feedback.empty();
         App.feedback.show(new App.core.FeedbackView({
             'alertType': alertType,
@@ -1025,7 +1061,9 @@ App.core.RemoveModalView = App.core.BaseModalView.extend({
     },
 
     deleteTile: function () {
-        // Remove the tile from the page
+        /**
+        Perform a tile delete by sending a request to the server.
+        **/
         var result, status, alertType,
             currModel   = this.model,
             modelID     = currModel.id;
@@ -1503,6 +1541,13 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
     },
 
     populateMultiSelect: function (divName, object) {
+        /**
+        Populates the multi-select boxes. Also sets up the search bar for it.
+
+        inputs:
+            divName: divName of the multi-select product box.
+            object: the type of object we're working with (Product or Content)
+        **/
         var selection, num,
             objectType = this.options.objectType,
             that = this;
@@ -1630,19 +1675,40 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
     template: _.template($('#upload-object-template').html()),
 
     onRender: function () {
-        var that = this;
+        var uploadURL,
+            that = this;
 
         this.unwrapEl();
-
         this.$el.modal('show'); // Toggle Bootstrap modal to show
 
+        uploadURL = window.location.href;
+
+        if (uploadURL.substr(uploadURL.length - 1) === '/') {
+            uploadURL = uploadURL + 'upload';
+        } else {
+            uploadURL = uploadURL + '/upload'
+        }
+
         $('input[type=file]').change(function(){
-            $(this).simpleUpload(window.location.href + '/upload', {
+            $(this).simpleUpload(uploadURL, {
                 allowedExts: ["jpg", "jpeg", "jpe", "jif", "jfif", "jfi", "png", "gif"],
                 
                 allowedTypes: ["image/pjpeg", "image/jpeg", "image/png", "image/x-png", "image/gif", "image/x-gif"],
 
                 expect: "text",
+
+                init: function(total_uploads) {
+                    console.log(total_uploads);
+                    App.feedback.show(new App.core.FeedbackLoadingView({
+                        'alertType': "info",
+                        'status': total_uploads + " files are being uploaded. "
+                    }));
+                },
+
+                finish: function() {
+                    console.log("done");
+                    App.feedback.empty();
+                },
 
                 start: function(file){
                     this.block = $('<div class="block"></div>');
@@ -1654,6 +1720,9 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
                 success: function(data){
                     var status = "File: " + this.fileName + ". " + data,
                         formatDiv = $('<div class="format"></div>').text(status);
+                    console.log(formatDiv);
+                    console.log(data)
+                    console.log("=====")
                     this.block.append(formatDiv);
                 },
 

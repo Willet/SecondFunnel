@@ -86,6 +86,34 @@
                     </div>
                 </script>
 
+                <script type="text/template" id="feedback-loading-template">
+                    <div class="alert-container">
+                        <div class="alert alert-<%= alertType %>" role="alert">
+                            <div id="loading-spinner">
+                                <div class="windows8">
+                                    <div class="wBall" id="wBall_1">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_2">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_3">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_4">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_5">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            </br>
+                            <%= status %>
+                        </div>
+                    </div>
+                </script>
+
                 <ul id="backbone-tiles">
                     <script type="text/template" id="tile-template">
                         <button class="remove">
