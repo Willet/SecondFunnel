@@ -148,6 +148,8 @@ def dashboard_tiles(request, dashboard_slug):
         return HttpResponseRedirect('/dashboard/')
     dashboard_id = dashboards.first().id
     page_id = dashboards.first().page_id
+    page = Page.objects.get(pk=page_id)
+    store_id = page.store_id
 
     if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
         return HttpResponseRedirect('/dashboard/')
@@ -161,6 +163,7 @@ def dashboard_tiles(request, dashboard_slug):
 
         return render(request, 'tiles.html', {
                 'pageID': page_id,
+                'storeID': store_id,
                 'context': RequestContext(request), 
                 'siteName': dashboard.site_name, 
                 'page': dashboard_page,

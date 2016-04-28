@@ -39,136 +39,242 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
     @list_route(methods=['get'])
-    def bulk(self, request):
-        """
-        Returns a list of products based on given product IDs
-
-        inputs:
-            list of product ids
-
-        returns:
-            list of serialized products
-        """
-        return_dict = []
-
-        if request.data == {}:
-            products = request.GET
-        elif request.GET == {}:
-            products = request.data
-        else:
-            products = []
-
-        if type(products) is QueryDict:
-            products = dict(products.iterlists())
-
-        products = products.get('data', products.get('data[]', None))
-        
-        if type(products) is unicode:
-            products = ast.literal_eval(products)
-
-        try:
-            for x in range(0, len(products)):
-                if products[x] is not int:
-                    products[x] = int(products[x])
-        except ValueError:
-            return_dict = 'Error. One of the IDs provided is not a number.'
-        except TypeError:
-            if type(products) is int:
-                product = get_object_or_404(Product, pk=products)
-                return_dict = (ProductSerializer(product).data)
-        else:
-            for p in products:
-                product = get_object_or_404(Product, pk=p)
-                return_dict.append(ProductSerializer(product).data)
-
-        return Response(return_dict)
-
-
-    @list_route(methods=['post'])
     def search(self, request):
         """
         Search for product
 
         inputs:
-            id/url/name/sku: any of the 4 as an input to search from
+            id/ids/url/urls/name/names/sku/skus: any of those as an input to search from
+            store: id of the store
+            partial:    (optional) default is false. 
+                        allow partial matching (a search for IDs of 1 will return ID 1, 11, etc)
+                        if partial is true, can only search for 1 id/url/name at the same time
+                            to limit processing time
 
         returns:
             status: status message containing result of search task
-            ids: list of id/ids of product/products found
-            product: 
+            ids: list of ids of products found
+            products: list of serialized products found
         """
+
         return_dict = {'status': None, 'ids': [], 'products': []}
-        
+        status_code = 400
+
         try:
-            data = request.POST or ast.literal_eval(request.body)
+            data = request.GET or ast.literal_eval(request.body)
         except SyntaxError:
             data = {}
 
-        # Compare the data keys with approved keys list and put found keys in a new array
-        filter_keys_in_data = set(['id', 'name', 'url', 'sku']) & set(data)
-        if len(filter_keys_in_data) < 1:
-            return_dict['status'] = u"Expecting one of id, name, sku or url for search, got none."
-            status_code = 400
-        elif len(filter_keys_in_data) > 1:
-            return_dict['status'] = (u"Expecting one of id, name, sku or url for search, but got "
-                                    "multiple: {}.").format(" ".join(list(filter_keys_in_data)))
-            status_code  = 400
+        if type(data) is QueryDict:
+            data = dict(data.iterlists())
+
+        if 'store' not in data:
+            return_dict['status'] = u"Missing store ID input."
         else:
-            # Setting up filters to query for product
-            id_filter = data.get('id', None)
-            name_filter = data.get('name', None)
-            sku_filter = data.get('sku', None)
-            url_filter = data.get('url', None)
-            filters = None
+            if isinstance(data['store'], list) and len(data['store']) == 1:
+                data['store'] = data['store'][0]
             try:
-                if id_filter:
-                    id_filter = int(id_filter)
-                    key = ('ID', 'id')
-                    filters = Q(id=id_filter)
-
-                if name_filter:
-                    key = ('name', 'name')
-                    filters = Q(name=name_filter)
-
-                if sku_filter:
-                    sku_filter = int(sku_filter)
-                    key = ('SKU', 'sku')
-                    filters = Q(sku=sku_filter)
-
-                if url_filter:
-                    validator = URLValidator()
-                    try:
-                        validator(url_filter)
-                    except ValidationError:
-                        raise Exception("Bad URL input detected.")
-                    key = ('URL', 'url')
-                    filters = Q(url=url_filter)
-            except (ValueError, TypeError):
-                return_dict['status'] = u"Expecting a number as input, but got non-number."
-                status_code = 400
-            except Exception as e:
-                return_dict['status'] = str(e)
-                status_code = 400
+                store_id = int(data['store'])
+                store = Store.objects.get(pk=store_id)
+            except ValueError:
+                return_dict['status'] = u"Expecting a number as store ID input, but got non-number."
+            except Store.DoesNotExist:
+                return_dict['status'] = u"Store with ID: " + str(store_id) + " has not been found."
             else:
-                try:
-                    product = Product.objects.get(filters)
-                except Product.DoesNotExist:
-                    return_dict['status'] = u"Product with {0}: {1} could not be found.".format(key[0], str(data[key[1]]))
-                    status_code = 404
-                except Product.MultipleObjectsReturned:
-                    products = Product.objects.filter(filters)
-                    status_parts = [u"Multiple products have been found. IDs:"]
-                    for p in products:
-                        status_parts.append(str(p['id']))
-                        return_dict['ids'].append(p['id'])
-                        return_dict['products'].append(ProductSerializer(p).data)
-                    return_dict['status'] = " ".join(status_parts)
-                    status_code = 200
+                partial = bool(data.get('partial', 'False') in ["True", "true"])
+
+                # Compare the data keys with approved keys list and put found keys in a new array
+                id_ids_name_url_input = set(['id', 'ids', 'name', 'names', 'url', 'urls']) & set(data)
+
+                if len(id_ids_name_url_input) < 1:
+                    return_dict['status'] = u"Expecting one of id, ids, name, or url for search, got none."
+                    status_code = 400
+                elif len(id_ids_name_url_input) > 1:
+                    return_dict['status'] = (u"Expecting one of id, ids, name, or url for search, but got "
+                                            "multiple: {}.").format(" ".join(list(id_ids_name_url_input)))
+                    status_code = 400
                 else:
-                    return_dict['status'] = u"Product found: ID {0}.".format(str(product.id))
-                    return_dict['ids'].append(product.id)
-                    return_dict['products'].append(ProductSerializer(product).data)
-                    status_code = 200
+                    # Setting up filters to query for product
+                    id_filter = data.get('id', None)
+                    ids_filter = data.get('ids', None)
+                    sku_filter = data.get('sku', None)
+                    skus_filter = data.get('skus', None)
+                    name_filter = data.get('name', None)
+                    names_filter = data.get('names', None)
+                    url_filter = data.get('url', None)
+                    urls_filter = data.get('urls', None)
+
+                    search_input = {}
+                    filters = None
+                    try:
+                        if id_filter:
+                            if isinstance(id_filter, list):
+                                id_filter = id_filter[0]
+                            id_filter = int(id_filter)
+                            search_input['id'] = [id_filter]
+
+                        elif ids_filter:
+                            if isinstance(ids_filter, list):
+                                temp = ast.literal_eval(ids_filter[0])
+                                if isinstance(temp, list):
+                                    ids_filter = ids_filter[0]
+                            ids_filter = ast.literal_eval(ids_filter)
+                            if not isinstance(ids_filter, list):
+                                raise Exception("ids must be a list of ids.")
+                            for i in range(0, len(ids_filter)):
+                                ids_filter[i] = int(ids_filter[i])
+                            search_input['id'] = ids_filter
+
+                        elif sku_filter:
+                            if isinstance(sku_filter, list):
+                                sku_filter = sku_filter[0]
+                            sku_filter = int(sku_filter)
+                            search_input['sku'] = [sku_filter]
+
+                        elif skus_filter:
+                            if isinstance(skus_filter, list):
+                                temp = ast.literal_eval(skus_filter[0])
+                                if isinstance(temp, list):
+                                    skus_filter = skus_filter[0]
+                            skus_filter = ast.literal_eval(skus_filter)
+                            if not isinstance(skus_filter, list):
+                                raise Exception("ids must be a list of ids.")
+                            for i in range(0, len(skus_filter)):
+                                skus_filter[i] = int(skus_filter[i])
+                            search_input['sku'] = skus_filter
+
+                        elif name_filter:
+                            if isinstance(name_filter, list):
+                                name_filter = name_filter[0]
+                            search_input['name'] = [name_filter]
+
+                        elif names_filter:
+                            if isinstance(names_filter, list):
+                                temp = ast.literal_eval(names_filter[0])
+                                if isinstance(temp, list):
+                                    names_filter = names_filter[0]
+                            names_filter = ast.literal_eval(names_filter)
+                            if not isinstance(names_filter, list):
+                                raise Exception("names must be a list of names.")
+                            search_input['name'] = names_filter
+
+                        elif url_filter:
+                            if isinstance(url_filter, list):
+                                url_filter = url_filter[0]
+                            if not partial:
+                                validator = URLValidator()
+                                try:
+                                    validator(url_filter)
+                                except ValidationError:
+                                    raise Exception("Bad URL input detected.")
+                                parsed_url = urlparse(url_filter)
+
+                                if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
+                                    url_filter = {'url': url_filter}
+                                else:
+                                    url_filter = {'source_url': url_filter}
+                            else:
+                                if 'secondfunnel' in url_filter or 'cloudinary' in url_filter:
+                                    url_filter = {'url': url_filter}
+                                else:
+                                    url_filter = {'source_url': url_filter}
+
+                            search_input['url'] = [url_filter]
+
+                        elif urls_filter:
+                            if isinstance(urls_filter, list):
+                                temp = ast.literal_eval(urls_filter[0])
+                                if isinstance(temp, list):
+                                    urls_filter = urls_filter[0]
+                            validator = URLValidator()
+                            urls_filter = ast.literal_eval(urls_filter)
+                            if not isinstance(urls_filter, list):
+                                raise Exception("urls must be a list of urls.")
+                            for i in range(0, len(urls_filter)):
+                                try:
+                                    validator(urls_filter[i])
+                                except ValidationError:
+                                    raise Exception("Bad URL input detected.")
+                                parsed_url = urlparse(urls_filter[i])
+                                if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
+                                    urls_filter[i] = {'url': urls_filter[i]}
+                                else:
+                                    urls_filter[i] = {'source_url': urls_filter[i]}
+                            search_input['url'] = urls_filter
+
+                    except (ValueError, TypeError) as e:
+                        return_dict['status'] = u"Expecting a number as input, but got non-number."
+                    except Exception as e:
+                        return_dict['status'] = str(e)
+                    else:
+                        search_results = []
+                        product_ids = []
+                        try:
+                            if 'url' in search_input:
+                                search_string = 'url'
+                                search_input = search_input.get('url')
+                            elif 'id' in search_input:
+                                search_string = 'id'
+                                search_input = search_input.get('id')
+                            elif 'sku' in search_input:
+                                search_string = 'sku'
+                                search_input = search_input.get('sku')
+                            else:
+                                search_string = 'name'
+                                search_input = search_input.get('name')
+
+                            if partial and len(search_input) > 1:
+                                raise Exception("Since partial is true, searching for ids/skus/names/urls are not allowed.")
+                            else:
+                                for s in search_input:
+                                    filters = Q(store=store)
+
+                                    if search_string == 'url':
+                                        if partial:
+                                            if 'url' in s:
+                                                filters = filters & Q(url__contains=s.get('url'))
+                                            else:
+                                                filters = filters & Q(source_url__contains=s.get('source_url'))
+                                        else:
+                                            if 'url' in s:
+                                                filters = filters & Q(url=s.get('url'))
+                                            else:
+                                                filters = filters & Q(source_url=s.get('source_url'))
+                                    elif search_string == 'id':
+                                        if partial:
+                                            filters = filters & Q(pk__contains=s)
+                                        else:
+                                            filters = filters & Q(pk=s)
+                                    elif search_string == 'sku':
+                                        if partial:
+                                            filters = filters & Q(sku__contains=s)
+                                        else:
+                                            filters = filters & Q(sku=s)
+                                    else:
+                                        if partial:
+                                            filters = filters & Q(name__contains=s)
+                                        else:
+                                            filters = filters & Q(name=s)
+
+                                    product = Product.objects.filter(filters)
+
+                                    for p in product:
+                                        product_ids.append(p.id)
+                                        search_results.append(ProductSerializer(p).data)
+                        except Exception as e:
+                            return_dict['status'] = str(e)
+                        else:
+                            if len(product_ids) < 1:
+                                return_dict['status'] = "No product was found."
+                                status_code = 404
+                            else:
+                                return_dict['status'] = u"Products with the following ID have been found:"
+                                for p in product_ids:
+                                    return_dict['status'] = return_dict['status'] + ' ' + str(p)
+                                return_dict['status'] = return_dict['status'] + '.'
+                                status_code = 200
+                            return_dict['products'] = search_results
+                            return_dict['ids'] = product_ids
 
         return Response(return_dict, status=status_code)
 
@@ -245,134 +351,214 @@ class ContentViewSet(viewsets.ModelViewSet):
     serializer_class = ContentSerializer
 
     @list_route(methods=['get'])
-    def bulk(self, request):
-        """
-        Returns a list of contents based on given content IDs
-
-        inputs:
-            list of content ids
-
-        returns:
-            list of serialized contents
-        """
-        return_dict = []
-
-        if request.data == {}:
-            contents = request.GET
-        elif request.GET == {}:
-            contents = request.data
-        else:
-            contents = []
-
-        if type(contents) is QueryDict:
-            contents = dict(contents.iterlists())
-
-        contents = contents.get('data', contents.get('data[]', None))
-        
-        if type(contents) is unicode:
-            contents = ast.literal_eval(contents)
-
-        try:
-            for x in range(0, len(contents)):
-                if contents[x] is not int:
-                    contents[x] = int(contents[x])
-        except ValueError:
-            return_dict = 'Error. One of the IDs provided is not a number.'
-        except TypeError:
-            if type(contents) is int:
-                content = get_object_or_404(Content, pk=contents)
-                return_dict = (ContentSerializer(content).data)
-        else:
-            for c in contents:
-                content = get_object_or_404(Content, pk=c)
-                return_dict.append(ContentSerializer(content).data)
-
-        return Response(return_dict)
-
-    @list_route(methods=['post'])
     def search(self, request):
         """
         Search for content
 
         inputs:
-            id/url/name: any of the 3 as an input to search from
+            id/ids/url/urls/name/names: any of the 6 as an input to search from
+            store: id of the store
+            partial:    (optional) default is false. 
+                        allow partial matching (a search for IDs of 1 will return ID 1, 11, etc)
+                        if partial is true, can only search for 1 id/url/name at the same time
+                            to limit processing time
 
         returns:
             status: status message containing result of search task
-            ids: list of id/ids of content/contents found
-            content: resultant added content
+            ids: list of ids of contents found
+            contents: list of serialized contents found
         """
 
         return_dict = {'status': None, 'ids': [], 'contents': []}
+        status_code = 400
 
         try:
-            data = request.POST or ast.literal_eval(request.body)
+            data = request.GET or ast.literal_eval(request.body)
         except SyntaxError:
             data = {}
 
-        # Compare the data keys with approved keys list and put found keys in a new array
-        filter_keys_in_data = set(['id', 'name', 'url']) & set(data) # intersection
-        if len(filter_keys_in_data) < 1:
-            return_dict['status'] = u"Expecting one of id, name, or url for search, got none."
-            status_code = 400
-        elif len(filter_keys_in_data) > 1:
-            return_dict['status'] = (u"Expecting one of id, name, or url for search, but got "
-                                    "multiple: {}.").format(" ".join(list(filter_keys_in_data)))
-            status_code = 400
+        if type(data) is QueryDict:
+            data = dict(data.iterlists())
+
+        if 'store' not in data:
+            return_dict['status'] = u"Missing store ID input."
         else:
-            # Setting up filters to query for content
-            id_filter = data.get('id', None)
-            name_filter = data.get('name', None)
-            url_filter = data.get('url', None)
-            filters = None
+            if isinstance(data['store'], list) and len(data['store']) == 1:
+                data['store'] = data['store'][0]
             try:
-                if id_filter:
-                    id_filter = int(id_filter)
-                    key = ('ID', 'id')
-                    filters = Q(id=id_filter)
-
-                if name_filter:
-                    key = ('name', 'name')
-                    filters = Q(name=name_filter)
-
-                if url_filter:
-                    validator = URLValidator()
-                    try:
-                        validator(url_filter)
-                    except ValidationError:
-                        raise Exception("Bad URL input detected.")
-                    key = ('URL', 'url')
-                    parsed_url = urlparse(url_filter)
-                    if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
-                        filters = Q(url=url_filter)
-                    else:
-                        filters = Q(source_url=url_filter)
-            except (ValueError, TypeError):
-                return_dict['status'] = u"Expecting a number as input, but got non-number."
-                status_code = 400
-            except Exception as e:
-                return_dict['status'] = str(e)
-                status_code = 400
+                store_id = int(data['store'])
+                store = Store.objects.get(pk=store_id)
+            except ValueError:
+                return_dict['status'] = u"Expecting a number as store ID input, but got non-number."
+            except Store.DoesNotExist:
+                return_dict['status'] = u"Store with ID: " + str(store_id) + " has not been found."
             else:
-                try:
-                    content = Content.objects.get(filters)
-                except Content.DoesNotExist:
-                    return_dict['status'] = u"Content with {0}: {1} could not be found.".format(key[0], str(data[key[1]]))
-                    status_code = 404
-                except Content.MultipleObjectsReturned:
-                    contents = Content.objects.filter(filters)
-                    status_parts = [u"Multiple contents have been found. IDs:"]
-                    for c in contents:
-                        status_parts.append(str(c['id']))
-                        return_dict['ids'].append(c['id'])
-                        return_dict['contents'].append(ContentSerializer(c).data)
-                    return_dict['status'] = " ".join(status_parts)
-                    status_code = 200
+                partial = bool(data.get('partial', 'False') in ["True", "true"])
+
+                # Compare the data keys with approved keys list and put found keys in a new array
+                id_ids_name_url_input = set(['id', 'ids', 'name', 'names', 'url', 'urls']) & set(data)
+
+                if len(id_ids_name_url_input) < 1:
+                    return_dict['status'] = u"Expecting one of id, ids, name, or url for search, got none."
+                    status_code = 400
+                elif len(id_ids_name_url_input) > 1:
+                    return_dict['status'] = (u"Expecting one of id, ids, name, or url for search, but got "
+                                            "multiple: {}.").format(" ".join(list(id_ids_name_url_input)))
+                    status_code = 400
                 else:
-                    return_dict['status'] = u"Content with {0}: {1} has been found.".format(key[0], str(data[key[1]]))
-                    return_dict['ids'].append(content.id)       
-                    return_dict['contents'].append(ContentSerializer(content).data)
-                    status_code = 200
+                    # Setting up filters to query for content
+                    id_filter = data.get('id', None)
+                    ids_filter = data.get('ids', None)
+                    name_filter = data.get('name', None)
+                    names_filter = data.get('names', None)
+                    url_filter = data.get('url', None)
+                    urls_filter = data.get('urls', None)
+
+                    search_input = {}
+                    filters = None
+                    try:
+                        if id_filter:
+                            if isinstance(id_filter, list):
+                                id_filter = id_filter[0]
+                            id_filter = int(id_filter)
+                            search_input['id'] = [id_filter]
+
+                        elif ids_filter:
+                            if isinstance(ids_filter, list):
+                                temp = ast.literal_eval(ids_filter[0])
+                                if isinstance(temp, list):
+                                    ids_filter = ids_filter[0]
+                            ids_filter = ast.literal_eval(ids_filter)
+                            if not isinstance(ids_filter, list):
+                                raise Exception("ids must be a list of ids.")
+                            for i in range(0, len(ids_filter)):
+                                ids_filter[i] = int(ids_filter[i])
+                            search_input['id'] = ids_filter
+
+                        elif name_filter:
+                            if isinstance(name_filter, list):
+                                name_filter = name_filter[0]
+                            search_input['name'] = [name_filter]
+
+                        elif names_filter:
+                            if isinstance(names_filter, list):
+                                temp = ast.literal_eval(names_filter[0])
+                                if isinstance(temp, list):
+                                    names_filter = names_filter[0]
+                            names_filter = ast.literal_eval(names_filter)
+                            if not isinstance(names_filter, list):
+                                raise Exception("names must be a list of names.")
+                            search_input['name'] = names_filter
+
+                        elif url_filter:
+                            if isinstance(url_filter, list):
+                                url_filter = url_filter[0]
+                            if not partial:
+                                validator = URLValidator()
+                                try:
+                                    validator(url_filter)
+                                except ValidationError:
+                                    raise Exception("Bad URL input detected.")
+                                parsed_url = urlparse(url_filter)
+
+                                if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
+                                    url_filter = {'url': url_filter}
+                                else:
+                                    url_filter = {'source_url': url_filter}
+                            else:
+                                if 'secondfunnel' in url_filter or 'cloudinary' in url_filter:
+                                    url_filter = {'url': url_filter}
+                                else:
+                                    url_filter = {'source_url': url_filter}
+
+                            search_input['url'] = [url_filter]
+
+                        elif urls_filter:
+                            if isinstance(urls_filter, list):
+                                temp = ast.literal_eval(urls_filter[0])
+                                if isinstance(temp, list):
+                                    urls_filter = urls_filter[0]
+                            validator = URLValidator()
+                            urls_filter = ast.literal_eval(urls_filter)
+                            if not isinstance(urls_filter, list):
+                                raise Exception("urls must be a list of urls.")
+                            for i in range(0, len(urls_filter)):
+                                try:
+                                    validator(urls_filter[i])
+                                except ValidationError:
+                                    raise Exception("Bad URL input detected.")
+                                parsed_url = urlparse(urls_filter[i])
+                                if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
+                                    urls_filter[i] = {'url': urls_filter[i]}
+                                else:
+                                    urls_filter[i] = {'source_url': urls_filter[i]}
+                            search_input['url'] = urls_filter
+
+                    except (ValueError, TypeError) as e:
+                        return_dict['status'] = u"Expecting a number as input, but got non-number."
+                    except Exception as e:
+                        return_dict['status'] = str(e)
+                    else:
+                        search_results = []
+                        content_ids = []
+                        try:
+                            if 'url' in search_input:
+                                search_string = 'url'
+                                search_input = search_input.get('url')
+                            elif 'id' in search_input:
+                                search_string = 'id'
+                                search_input = search_input.get('id')
+                            else:
+                                search_string = 'name'
+                                search_input = search_input.get('name')
+
+                            if partial and len(search_input) > 1:
+                                raise Exception("Since partial is true, searching for ids/names/urls are not allowed.")
+                            else:
+                                for s in search_input:
+                                    filters = Q(store=store)
+
+                                    if search_string == 'url':
+                                        if partial:
+                                            if 'url' in s:
+                                                filters = filters & Q(url__contains=s.get('url'))
+                                            else:
+                                                filters = filters & Q(source_url__contains=s.get('source_url'))
+                                        else:
+                                            if 'url' in s:
+                                                filters = filters & Q(url=s.get('url'))
+                                            else:
+                                                filters = filters & Q(source_url=s.get('source_url'))
+                                    elif search_string == 'id':
+                                        if partial:
+                                            filters = filters & Q(pk__contains=s)
+                                        else:
+                                            filters = filters & Q(pk=s)
+                                    else:
+                                        if partial:
+                                            filters = filters & Q(name__contains=s)
+                                        else:
+                                            filters = filters & Q(name=s)
+
+                                    content = Content.objects.filter(filters)
+
+                                    for c in content:
+                                        content_ids.append(c.id)
+                                        search_results.append(ContentSerializer(c).data)
+                        except Exception as e:
+                            return_dict['status'] = str(e)
+                        else:
+                            if len(content_ids) < 1:
+                                return_dict['status'] = "No content was found."
+                                status_code = 404
+                            else:
+                                return_dict['status'] = u"Contents with the following ID have been found:"
+                                for c in content_ids:
+                                    return_dict['status'] = return_dict['status'] + ' ' + str(c)
+                                return_dict['status'] = return_dict['status'] + '.'
+                                status_code = 200
+                            return_dict['contents'] = search_results
+                            return_dict['ids'] = content_ids
 
         return Response(return_dict, status=status_code)
 
@@ -452,50 +638,219 @@ class ProductImageViewSet(viewsets.ModelViewSet):
     serializer_class = ProductImageSerializer
 
     @list_route(methods=['get'])
-    def bulk(self, request):
+    def search(self, request):
         """
-        Returns a list of product images based on given product image IDs
+        Search for product image
 
         inputs:
-            list of product image ids
+            id/ids/imageurl/imageurls/sourceurl/sourceurls/productid/productids: any of these as an input to search from
+            partial:    (optional) default is false. 
+                        allow partial matching (a search for IDs of 1 will return ID 1, 11, etc)
+                        if partial is true, can only search for 1 id/url/name at the same time
+                            to limit processing time
 
         returns:
-            list of serialized product images
+            status: status message containing result of search task
+            ids: list of ids of product images found
+            productImages: list of serialized product images found
         """
-        return_dict = []
 
-        if request.data == {}:
-            productImagess = request.GET
-        elif request.GET == {}:
-            productImagess = request.data
-        else:
-            productImagess = []
-
-        if type(productImagess) is QueryDict:
-            productImagess = dict(productImagess.iterlists())
-
-        productImagess = productImagess.get('data', productImagess.get('data[]', None))
-        
-        if type(productImagess) is unicode:
-            productImagess = ast.literal_eval(productImagess)
+        return_dict = {'status': None, 'ids': [], 'productImages': []}
+        status_code = 400
 
         try:
-            for x in range(0, len(productImagess)):
-                if productImagess[x] is not int:
-                    productImagess[x] = int(productImagess[x])
-        except ValueError:
-            return_dict = 'Error. One of the IDs provided is not a number.'
-        except TypeError:
-            if type(productImagess) is int:
-                productImage = get_object_or_404(ProductImage, pk=productImagess)
-                return_dict = (ProductImageSerializer(productImage).data)
+            data = request.GET or ast.literal_eval(request.body)
+        except SyntaxError:
+            data = {}
+
+        if type(data) is QueryDict:
+            data = dict(data.iterlists())
+
+        partial = bool(data.get('partial', 'False') in ["True", "true"])
+
+        # Compare the data keys with approved keys list and put found keys in a new array
+        id_ids_name_url_input = set(['id', 'ids', 'productid', 'productids', 'url', 'urls']) & set(data)
+
+        if len(id_ids_name_url_input) < 1:
+            return_dict['status'] = u"Expecting one of id, ids, name, or url for search, got none."
+            status_code = 400
+        elif len(id_ids_name_url_input) > 1:
+            return_dict['status'] = (u"Expecting one of id, ids, name, or url for search, but got "
+                                    "multiple: {}.").format(" ".join(list(id_ids_name_url_input)))
+            status_code = 400
         else:
-            for pi in productImagess:
-                productImage = get_object_or_404(ProductImage, pk=pi)
-                return_dict.append(ProductImageSerializer(productImage).data)
+            # Setting up filters to query for product images
+            id_filter = data.get('id', None)
+            ids_filter = data.get('ids', None)
+            product_id_filter = data.get('productid', None)
+            product_ids_filter = data.get('productids', None)
+            image_url_filter = data.get('imageurl', None)
+            image_urls_filter = data.get('imageurls', None)
+            source_url_filter = data.get('sourceurl', None)
+            source_urls_filter = data.get('sourceurls', None)
 
-        return Response(return_dict)
+            search_input = {}
+            filters = None
+            try:
+                if id_filter:
+                    if isinstance(id_filter, list):
+                        id_filter = id_filter[0]
+                    id_filter = int(id_filter)
+                    search_input['id'] = [id_filter]
 
+                elif ids_filter:
+                    if isinstance(ids_filter, list):
+                        temp = ast.literal_eval(ids_filter[0])
+                        if isinstance(temp, list):
+                            ids_filter = ids_filter[0]
+                    ids_filter = ast.literal_eval(ids_filter)
+                    if not isinstance(ids_filter, list):
+                        raise Exception("ids must be a list of ids.")
+                    for i in range(0, len(ids_filter)):
+                        ids_filter[i] = int(ids_filter[i])
+                    search_input['id'] = ids_filter
+
+                elif product_id_filter:
+                    if isinstance(product_id_filter, list):
+                        product_id_filter = product_id_filter[0]
+                    product_id_filter = int(product_id_filter)
+                    search_input['productid'] = [product_id_filter]
+
+                elif product_ids_filter:
+                    if isinstance(product_ids_filter, list):
+                        temp = ast.literal_eval(product_ids_filter[0])
+                        if isinstance(temp, list):
+                            product_ids_filter = product_ids_filter[0]
+                    product_ids_filter = ast.literal_eval(product_ids_filter)
+                    if not isinstance(product_ids_filter, list):
+                        raise Exception("productids must be a list of ids.")
+                    for i in range(0, len(product_ids_filter)):
+                        product_ids_filter[i] = int(product_ids_filter[i])
+                    search_input['productid'] = product_ids_filter
+
+                elif image_url_filter:
+                    if isinstance(image_url_filter, list):
+                        image_url_filter = image_url_filter[0]
+                    if not partial:
+                        validator = URLValidator()
+                        try:
+                            validator(image_url_filter)
+                        except ValidationError:
+                            raise Exception("Bad URL input detected.")
+                    search_input['image_url'] = [image_url_filter]
+
+                elif image_urls_filter:
+                    if isinstance(image_urls_filter, list):
+                        temp = ast.literal_eval(image_urls_filter[0])
+                        if isinstance(temp, list):
+                            image_urls_filter = image_urls_filter[0]
+                    validator = URLValidator()
+                    image_urls_filter = ast.literal_eval(image_urls_filter)
+                    if not isinstance(image_urls_filter, list):
+                        raise Exception("imageurls must be a list of urls.")
+                    for i in range(0, len(image_urls_filter)):
+                        try:
+                            validator(image_urls_filter[i])
+                        except ValidationError:
+                            raise Exception("Bad URL input detected.")
+                    search_input['image_url'] = image_urls_filter
+
+                elif source_url_filter:
+                    if isinstance(source_url_filter, list):
+                        source_url_filter = source_url_filter[0]
+                    if not partial:
+                        validator = URLValidator()
+                        try:
+                            validator(source_url_filter)
+                        except ValidationError:
+                            raise Exception("Bad URL input detected.")
+                    search_input['source_url'] = [source_url_filter]
+
+                elif source_urls_filter:
+                    if isinstance(source_urls_filter, list):
+                        temp = ast.literal_eval(source_urls_filter[0])
+                        if isinstance(temp, list):
+                            source_urls_filter = source_urls_filter[0]
+                    validator = URLValidator()
+                    source_urls_filter = ast.literal_eval(source_urls_filter)
+                    if not isinstance(source_urls_filter, list):
+                        raise Exception("sourceurls must be a list of urls.")
+                    for i in range(0, len(source_urls_filter)):
+                        try:
+                            validator(source_urls_filter[i])
+                        except ValidationError:
+                            raise Exception("Bad URL input detected.")
+                    search_input['source_url'] = source_urls_filter
+
+            except (ValueError, TypeError) as e:
+                return_dict['status'] = u"Expecting a number as input, but got non-number."
+            except Exception as e:
+                return_dict['status'] = str(e)
+            else:
+                search_results = []
+                product_image_ids = []
+                try:
+                    if 'source_url' in search_input:
+                        search_string = 'source_url'
+                        search_input = search_input.get('source_url')
+                    elif 'image_url' in search_input:
+                        search_string = 'image_url'
+                        search_input = search_input.get('image_url')
+                    elif 'id' in search_input:
+                        search_string = 'id'
+                        search_input = search_input.get('id')
+                    else:
+                        search_string = 'name'
+                        search_input = search_input.get('name')
+
+                    if partial and len(search_input) > 1:
+                        raise Exception("Since partial is true, searching for ids/names/sourceurls/imageurls are not allowed.")
+                    else:
+                        for s in search_input:
+                            filters = Q()
+
+                            if search_string == 'source_url':
+                                if partial:
+                                    filters = filters & Q(original_url__contains=s.get('source_url'))
+                                else:
+                                    filters = filters & Q(original_url=s.get('source_url'))
+                            elif search_string == 'image_url':
+                                if partial:
+                                    filters = filters & Q(image_url__contains=s.get('image_url'))
+                                else:
+                                    filters = filters & Q(image_url=s.get('image_url'))
+                            elif search_string == 'id':
+                                if partial:
+                                    filters = filters & Q(pk__contains=s)
+                                else:
+                                    filters = filters & Q(pk=s)
+                            else:
+                                if partial:
+                                    filters = filters & Q(name__contains=s)
+                                else:
+                                    filters = filters & Q(name=s)
+
+                            productImage = ProductImage.objects.filter(filters)
+
+                            for p in productImage:
+                                product_image_ids.append(p.id)
+                                search_results.append(ProductImageSerializer(p).data)
+                except Exception as e:
+                    return_dict['status'] = str(e)
+                else:
+                    if len(product_image_ids) < 1:
+                        return_dict['status'] = "No product image was found."
+                        status_code = 404
+                    else:
+                        return_dict['status'] = u"Product Images with the following ID have been found:"
+                        for c in product_image_ids:
+                            return_dict['status'] = return_dict['status'] + ' ' + str(c)
+                        return_dict['status'] = return_dict['status'] + '.'
+                        status_code = 200
+                    return_dict['productImages'] = search_results
+                    return_dict['ids'] = product_image_ids
+
+        return Response(return_dict, status=status_code)
 
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
@@ -995,6 +1350,19 @@ class TileDetail(APIView):
         """
         serialized_tile = TileSerializer(tile).data
 
+        products = []
+        for p in tile.products.all():
+            serialized_product = ProductSerializer(p).data
+            products.append(serialized_product)
+
+        contents = []
+        for c in tile.content.all():
+            serialized_content = ContentSerializer(c).data
+            contents.append(serialized_content)
+
+        serialized_tile['products'] = products
+        serialized_tile['content'] = contents
+
         if tile['template'] == 'product':
             product =  tile['products'].first()
             if product is not None:
@@ -1017,6 +1385,11 @@ class TileDetail(APIView):
             else:
                 serialized_tile['defaultImage'] = ''
                 serialized_tile['name'] = 'No name'
+
+        t_categories = []
+        for c in tile.categories.all():
+            t_categories.append({'id': c.id, 'name': c.name })
+        serialized_tile['categories'] = t_categories
 
         return serialized_tile
 
@@ -1207,11 +1580,6 @@ class TileViewSetBulk(ListCreateDestroyBulkUpdateAPIView):
                     serialized_tiles = []
                     for t in tiles:
                         serialized_data = TileDetail.get_serialized_tile(TileDetail(), t)
-                        t_categories = []
-                        for c in t.categories.all():
-                            t_categories.append({'id': c.id, 'name': c.name })
-                        serialized_data['categories'] = t_categories
-
                         serialized_tiles.append(serialized_data)
                     status = serialized_tiles
                     status_code = 200

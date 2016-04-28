@@ -71,15 +71,15 @@ App.core.ContentCollection = App.core.ObjectCollection.extend({
 });
 
 App.core.TileContentCollection = App.core.ObjectCollection.extend({
-    url: App.core.apiURL + 'content/bulk/',
+    url: App.core.apiURL + 'content/search/',
 });
 
 App.core.TileProductCollection = App.core.ObjectCollection.extend({
-    url: App.core.apiURL + 'product/bulk/',
+    url: App.core.apiURL + 'product/search/',
 });
 
 App.core.TileProductImageCollection = App.core.ObjectCollection.extend({
-    url: App.core.apiURL + 'productimage/bulk/',
+    url: App.core.apiURL + 'productimage/search/',
 });
 
 App.core.TileCollection = Backbone.Collection.extend({
@@ -521,6 +521,9 @@ App.core.EditModalView = App.core.BaseModalView.extend({
 
     onRender: function () {
         var products, tileProducts, productImages, tileProductImages, contents, tileContents, result,
+            productIDs = [],
+            productImageIDs = [],
+            contentIDs = [],
             that = this;
 
         App.feedback.show(new App.core.FeedbackNoTimeoutView({
@@ -538,33 +541,37 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                 // Fetch tile content pictures
                 if (that.options.model.get('template') === 'product') {
                     products = that.options.model.get('products');
+                    _.each(products, function(val) {
+                        productIDs.push(val.id);
+                    });
                     tileProducts = new App.core.TileProductCollection();
                     result = tileProducts.fetch({
+                        traditional: true,
                         data: {
-                            'data': products,
-                        },
+                            store: storeID, 
+                            ids: JSON.stringify(productIDs),
+                        }
                     }).done(function () {
                         if (result.status === 200) {
                             result = JSON.parse(result.responseText);
-
                             // Products take images from productImages, so we need to grab the images now
-                            console.log(result);
                             var productImages = [];
 
-                            _.each(result, function (val) {
+                            _.each(result.products, function (val) {
                                 productImages.push(val.default_image);
                             });
 
                             tileProductImages = new App.core.TileProductImageCollection();
                             result = tileProductImages.fetch({
+                                tradition: true,
                                 data: {
-                                    'data': productImages,
+                                    ids: JSON.stringify(productImages),
                                 }
                             }).done(function () {
                                 if (result.status === 200) {
                                     result = JSON.parse(result.responseText);
 
-                                    that.processImageSlider(result);
+                                    that.processImageSlider(result.productImages);
 
                                     App.feedback.empty();
                                     that.unwrapEl();
@@ -581,16 +588,21 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                     });
                 } else {
                     contents = that.options.model.get('content'),
+                    _.each(contents, function(val) {
+                        contentIDs.push(val.id);
+                    });
                     tileContents = new App.core.TileContentCollection(),
                     result = tileContents.fetch({
+                        traditional: true,
                         data: {
-                            'data': contents,
+                            store: storeID, 
+                            ids: JSON.stringify(contentIDs),
                         },
                     }).done(function () {
                         if (result.status === 200) {
                             result = JSON.parse(result.responseText);
 
-                            that.processImageSlider(result);
+                            that.processImageSlider(result.contents);
 
                             App.feedback.empty();
                             that.unwrapEl();
@@ -614,7 +626,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             _.each(result, function (val, i) {
                 var tileID;
                 if (that.options.model.get('template') === 'product') {
-                    tileID = that.options.model.get('products')[i];
+                    tileID = that.options.model.get('products')[i].id;
                 } else {
                     tileID = val.id;
                 }
@@ -629,7 +641,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             } else {
                 var tileID;
                 if (that.options.model.get('template') === 'product') {
-                    tileID = that.options.model.get('products')[0];
+                    tileID = that.options.model.get('products')[0].id;
                 } else {
                     tileID = result[0].id;
                 }

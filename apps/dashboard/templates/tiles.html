@@ -7,6 +7,7 @@
 {% block scripts %}
     <script>
         var pageID = {{ pageID }};
+        var storeID = {{ storeID }};
     </script>
 
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
@@ -229,18 +230,14 @@
                                     Attributes: </br>
                                     <textarea id="attributes-textarea" rows="4" cols="25"><%= JSON.stringify(attributes, null, 2) %></textarea></br>
                                     Tagged-Products:
-                                    <% if (products !== undefined) { %>
-                                        <%= products %>
-                                    <% } else { %>
-                                        []
-                                    <% } %>
+                                    [<% _.each(products, function (val) { %>
+                                        <%= val.id %>,
+                                    <% }) %>]
                                     </br>
                                     Tagged-Contents:
-                                    <% if (content !== undefined) { %>
-                                        <%= content %>
-                                    <% } else { %>
-                                        []
-                                    <% } %>
+                                    [<% _.each(content, function (val) { %>
+                                        <%= val.id %>,
+                                    <% }) %>]
                                     </br>
                                     <div id="editError"></div>
 
