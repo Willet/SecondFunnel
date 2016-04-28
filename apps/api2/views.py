@@ -169,15 +169,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                                     raise Exception("Bad URL input detected.")
                                 parsed_url = urlparse(url_filter)
 
-                                if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
-                                    url_filter = {'url': url_filter}
-                                else:
-                                    url_filter = {'source_url': url_filter}
-                            else:
-                                if 'secondfunnel' in url_filter or 'cloudinary' in url_filter:
-                                    url_filter = {'url': url_filter}
-                                else:
-                                    url_filter = {'source_url': url_filter}
+                            url_filter = {'url': url_filter}
 
                             search_input['url'] = [url_filter]
 
@@ -195,11 +187,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                                     validator(urls_filter[i])
                                 except ValidationError:
                                     raise Exception("Bad URL input detected.")
-                                parsed_url = urlparse(urls_filter[i])
-                                if 'secondfunnel' in parsed_url.netloc or 'cloudinary' in parsed_url.netloc:
-                                    urls_filter[i] = {'url': urls_filter[i]}
-                                else:
-                                    urls_filter[i] = {'source_url': urls_filter[i]}
+                                urls_filter[i] = {'url': urls_filter[i]}
                             search_input['url'] = urls_filter
 
                     except (ValueError, TypeError) as e:
@@ -231,15 +219,9 @@ class ProductViewSet(viewsets.ModelViewSet):
 
                                     if search_string == 'url':
                                         if partial:
-                                            if 'url' in s:
-                                                filters = filters & Q(url__contains=s.get('url'))
-                                            else:
-                                                filters = filters & Q(source_url__contains=s.get('source_url'))
+                                            filters = filters & Q(url__contains=s.get('url'))
                                         else:
-                                            if 'url' in s:
-                                                filters = filters & Q(url=s.get('url'))
-                                            else:
-                                                filters = filters & Q(source_url=s.get('source_url'))
+                                            filters = filters & Q(url=s.get('url'))
                                     elif search_string == 'id':
                                         if partial:
                                             filters = filters & Q(pk__contains=s)
@@ -332,16 +314,18 @@ class ProductViewSet(viewsets.ModelViewSet):
                 p.start()
                 p.join()
 
-                try:
-                    product = Product.objects.get(url=url)
-                except Product.DoesNotExist:
-                    return_dict['status'] = u"Scraping has failed. Product Not Found."
-                    status_code = 404
-                else:
-                    return_dict['status'] = u"Scraping has succeeded. Product ID: {}".format(product.id)
-                    return_dict['id'] = product.id
-                    return_dict['product'] = ProductSerializer(product).data
-                    status_code = 200
+                # try:
+                #     product = Product.objects.get(url=url)
+                # except Product.DoesNotExist:
+                #     return_dict['status'] = u"Scraping has failed. Product Not Found."
+                #     status_code = 404
+                # else:
+                #     return_dict['status'] = u"Scraping has succeeded. Product ID: {}".format(product.id)
+                #     return_dict['id'] = product.id
+                #     return_dict['product'] = ProductSerializer(product).data
+                #     status_code = 200
+                return_dict['status'] = u"Scraping has finished."
+                status_code = 200
 
         return Response(return_dict, status=status_code)
 
@@ -618,7 +602,6 @@ class ContentViewSet(viewsets.ModelViewSet):
                     return_dict['id'] = image.id
                     return_dict['image'] = ImageSerializer(image).data
                     status_code = 200
-
 
         return Response(return_dict, status=status_code)
 
@@ -1162,6 +1145,9 @@ class PageViewSet(viewsets.ModelViewSet):
             status_code = 400
         else:
             contents = Content.objects.filter(filters).order_by('-id')
+
+            if len(contents) == 0 and url_filter:
+                contents = Content.objects.filter(store=store, source_url__icontains=url_filter).order_by('-id')
 
             serialized_contents = [ {'id': c.id, 'name': c.name, } for c in contents[:return_limit]]
 

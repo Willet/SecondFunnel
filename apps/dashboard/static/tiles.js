@@ -82,6 +82,86 @@ App.core.TileProductImageCollection = App.core.ObjectCollection.extend({
     url: App.core.apiURL + 'productimage/search/',
 });
 
+App.core.Product = Backbone.Model.extend({
+    defaults: {},
+
+    url: App.core.apiURL + 'product/search/',
+
+    getCustomURL: function (method) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
+        switch (method) {
+            case 'search':
+                return App.core.apiURL + 'product/' + method + '/';
+            case 'scrape':
+                return App.core.apiURL + 'product/' + method + '/';
+        }
+    },
+
+    scrape: function (URL) {
+        /**
+        Calls for a scrape of the product by doing a Backbone.sync to API server
+
+        inputs:
+            URL: containing the URL to be scraped
+
+        output:
+            API server response
+        **/
+        var options = {
+            'url': this.getCustomURL('scrape'),
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
+    }
+});
+
+App.core.Content = Backbone.Model.extend({
+    defaults: {},
+
+    url: App.core.apiURL + 'content/search/',
+
+    getCustomURL: function (method) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
+        switch (method) {
+            case 'search':
+                return App.core.apiURL + 'content/' + method + '/';
+            case 'scrape':
+                return App.core.apiURL + 'content/' + method + '/';
+        }
+    },
+
+    scrape: function (URL) {
+        /**
+        Calls for a scrape of the product by doing a Backbone.sync to API server
+
+        inputs:
+            URL: containing the URL to be scraped
+
+        output:
+            API server response
+        **/
+        var options = {
+            'url': this.getCustomURL('scrape')
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
+    }
+});
+
 App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
 
@@ -707,7 +787,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             afterInit: function(ms){
                 var typingTimer, data, result, productsList,
                     those = this,
-                    selectableSearch = that.$el.find('input[name=num]');
+                    selectableSearch = that.$el.find('input[name=num-product]');
 
                 _.each(App.productsList.models, function (val) {
                     var modelID = val.get('id'),
@@ -722,8 +802,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                     clearTimeout(typingTimer);
                     typingTimer = setTimeout(function () {
                         var selectedItems = [];
-
-                        _.each(that.$el.find('#object-selector')[0].options, function (val) {
+                        _.each(that.$el.find('#object-selector-product')[0].options, function (val) {
                             if (val.selected) {
                                 selectedItems.push(val.value);
                             }
@@ -734,8 +813,8 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                             'status': "Fetching product info..."
                         }));
                         // Refresh products list by doing API call and refresh multiselect
-                        selection = that.$el.find('.edit-modal-selection-field')[0].value;
-                        num = that.$el.find('.edit-modal-num-field')[0].value;
+                        selection = that.$el.find('.edit-modal-product-selection-field')[0].value;
+                        num = that.$el.find('.edit-modal-product-num-field')[0].value;
 
                         data = {};
                         data[selection] = num;
@@ -777,7 +856,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             afterInit: function(ms){
                 var typingTimer, data, result, productsList,
                     those = this,
-                    selectableSearch = that.$el.find('input[name=num]');
+                    selectableSearch = that.$el.find('input[name=num-content]');
 
                 _.each(App.contentsList.models, function (val) {
                     var modelID = val.get('id'),
@@ -793,7 +872,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                     typingTimer = setTimeout(function () {
                         var selectedItems = [];
 
-                        _.each(that.$el.find('#object-selector')[0].options, function (val) {
+                        _.each(that.$el.find('#object-selector-content')[0].options, function (val) {
                             if (val.selected) {
                                 selectedItems.push(val.value);
                             }
@@ -804,8 +883,8 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                             'status': "Fetching contents info..."
                         }));
                         // Refresh products list by doing API call and refresh multiselect
-                        selection = that.$el.find('.edit-modal-selection-field')[0].value;
-                        num = that.$el.find('.edit-modal-num-field')[0].value;
+                        selection = that.$el.find('.edit-modal-content-selection-field')[0].value;
+                        num = that.$el.find('.edit-modal-content-num-field')[0].value;
 
                         data = {};
                         data[selection] = num;
@@ -998,130 +1077,6 @@ App.core.Categories = Backbone.Collection.extend({
     },
 });
 
-App.core.Product = Backbone.Model.extend({
-    defaults: {},
-
-    urlRoot: App.core.apiURL,
-
-    getCustomURL: function (method) {
-        /**
-        Returns the API URL for REST methods for different methods
-
-        inputs:
-            method: name of the method
-
-        output:
-            URL for REST method
-        **/
-        switch (method) {
-            case 'search':
-                return App.core.apiURL + 'product/' + method + '/';
-            case 'scrape':
-                return App.core.apiURL + 'product/' + method + '/';
-        }
-    },
-
-    sync: function (method, model, options) {
-        options || (options = {});
-        options.url = this.getCustomURL(method.toLowerCase());
-        return Backbone.sync.call(this, method, model, options);
-    },
-
-    search: function (searchString) {
-        /**
-        Calls for a search of the object by doing a Backbone.sync to API server
-
-        inputs:
-            searchString: containing the search options (id/num/etc)
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('search'),
-        };
-        return Backbone.sync.call(this, 'create', searchString, options);
-    },
-
-    scrape: function (URL) {
-        /**
-        Calls for a scrape of the product by doing a Backbone.sync to API server
-
-        inputs:
-            URL: containing the URL to be scraped
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('scrape'),
-        };
-        return Backbone.sync.call(this, 'create', URL, options);
-    }
-});
-
-App.core.Content = Backbone.Model.extend({
-    defaults: {},
-
-    urlRoot: App.core.apiURL,
-
-    getCustomURL: function (method) {
-        /**
-        Returns the API URL for REST methods for different methods
-
-        inputs:
-            method: name of the method
-
-        output:
-            URL for REST method
-        **/
-        switch (method) {
-            case 'search':
-                return App.core.apiURL + 'content/' + method + '/';
-            case 'scrape':
-                return App.core.apiURL + 'content/' + method + '/';
-        }
-    },
-
-    sync: function (method, model, options) {
-        options || (options = {});
-        options.url = this.getCustomURL(method.toLowerCase());
-        return Backbone.sync.call(this, method, model, options);
-    },
-
-    search: function (searchString) {
-        /**
-        Calls for a search of the object by doing a Backbone.sync to API server
-
-        inputs:
-            searchString: containing the search options (id/num/etc)
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('search')
-        };
-        return Backbone.sync.call(this, 'create', searchString, options);
-    },
-
-    scrape: function (URL) {
-        /**
-        Calls for a scrape of the product by doing a Backbone.sync to API server
-
-        inputs:
-            URL: containing the URL to be scraped
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('scrape')
-        };
-        return Backbone.sync.call(this, 'create', URL, options);
-    }
-});
-
 App.core.Page = Backbone.Model.extend({
     defaults: {
         selection: '',
@@ -1274,7 +1229,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         // Add the object to the page.
         var result, idLength, responseText, alertType, status, selection, num, page, 
             searchString, priority, category, options, setTilePriorities, objectType,
-            force_create,
+            force_create, options,
             selected    = [],
             that        = this,
             batch       = this.options.batch;
@@ -1339,22 +1294,28 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                         searchString = new App.core.Product();
                     }
 
+                    options = {
+                        store: storeID,
+                    };
+
                     if (selection === 'URL') {
                         if (num.search('http') === -1) {
                             num = 'http://' + num;
                         }
-                        searchString.set({url: num});
+                        options['url'] =  num;
                     } else {
                         if (selection === 'ID') {
-                            searchString.set({id: num});
+                            options['id'] =  num;
                         } else {
                             if (selection === 'SKU') {
-                                searchString.set({sku: num});
+                                options['url'] =  num;
                             }
                         }
                     }
-
-                    result = searchString.search(searchString);
+                    result = searchString.fetch({
+                        traditional: true,
+                        data: options,
+                    });
                     result.always(function () {
                         responseText = JSON.parse(result.responseText);
                         idLength = responseText.ids.length;
@@ -1426,7 +1387,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                 }));
                             } else {
                                 // No object found
-                                if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
+                                if (selection === 'URL') {
                                     App.feedback.show(new App.core.FeedbackNoTimeoutView({
                                         'alertType': 'info',
                                         'status': "Object could not be found. Scraping..."
@@ -1462,7 +1423,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                             if (objectType === "Product") {
                                                 page = new App.core.Page({
                                                     type: "product",
-                                                    id: responseText.id,
+                                                    url: responseText.id,
                                                     force_create_tile: $('#force-create').is(':checked').toString(),
                                                 });
                                             } else {
