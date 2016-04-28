@@ -65,7 +65,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         except SyntaxError:
             data = {}
 
-        if type(data) is QueryDict:
+        if isinstance(data, QueryDict):
             data = dict(data.iterlists())
 
         if 'store' not in data:
@@ -84,13 +84,13 @@ class ProductViewSet(viewsets.ModelViewSet):
                 partial = bool(data.get('partial', 'False') in ["True", "true"])
 
                 # Compare the data keys with approved keys list and put found keys in a new array
-                id_ids_name_url_input = set(['id', 'ids', 'name', 'names', 'url', 'urls']) & set(data)
+                id_ids_name_url_input = set(['id', 'ids', 'name', 'names', 'url', 'urls', 'sku', 'skus']) & set(data)
 
                 if len(id_ids_name_url_input) < 1:
-                    return_dict['status'] = u"Expecting one of id, ids, name, or url for search, got none."
+                    return_dict['status'] = u"Expecting one of id, ids, name, names, url, urls, sku, skus for search, got none."
                     status_code = 400
                 elif len(id_ids_name_url_input) > 1:
-                    return_dict['status'] = (u"Expecting one of id, ids, name, or url for search, but got "
+                    return_dict['status'] = (u"Expecting one of id, ids, name, names, url, urls, sku, skus for search, but got "
                                             "multiple: {}.").format(" ".join(list(id_ids_name_url_input)))
                     status_code = 400
                 else:
@@ -314,16 +314,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                 p.start()
                 p.join()
 
-                # try:
-                #     product = Product.objects.get(url=url)
-                # except Product.DoesNotExist:
-                #     return_dict['status'] = u"Scraping has failed. Product Not Found."
-                #     status_code = 404
-                # else:
-                #     return_dict['status'] = u"Scraping has succeeded. Product ID: {}".format(product.id)
-                #     return_dict['id'] = product.id
-                #     return_dict['product'] = ProductSerializer(product).data
-                #     status_code = 200
                 return_dict['status'] = u"Scraping has finished."
                 status_code = 200
 
@@ -361,7 +351,7 @@ class ContentViewSet(viewsets.ModelViewSet):
         except SyntaxError:
             data = {}
 
-        if type(data) is QueryDict:
+        if isinstance(data, QueryDict):
             data = dict(data.iterlists())
 
         if 'store' not in data:
@@ -646,7 +636,7 @@ class ProductImageViewSet(viewsets.ModelViewSet):
         except SyntaxError:
             data = {}
 
-        if type(data) is QueryDict:
+        if isinstance(data, QueryDict):
             data = dict(data.iterlists())
 
         partial = bool(data.get('partial', 'False') in ["True", "true"])
@@ -1057,7 +1047,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         # Handle both products query ie /products?id=XXXX and /products data="{'id':XXXX}"
         data = request.data.get('data', {})
-        if type(data) is not dict:
+        if isinstance(data, dict):
             data = ast.literal_eval(request.data.get('data', {}))
 
         if data == {}:
@@ -1119,7 +1109,7 @@ class PageViewSet(viewsets.ModelViewSet):
 
         # Handle both contents query ie /contents?id=XXXX and /contents data="{'id':XXXX}"
         data = request.data.get('data', {})
-        if type(data) is not dict:
+        if isinstance(data, dict):
             data = ast.literal_eval(request.data.get('data', {}))
 
         if data == {}:
@@ -1403,7 +1393,7 @@ class TileDetail(APIView):
 
         if method == 'tag':
             data = request.data.get('data', {})
-            if type(data) is not dict:
+            if isinstance(data, dict):
                 data = ast.literal_eval(request.data.get('data', {}))
 
             products = data.get('products', [])
@@ -1481,7 +1471,7 @@ class TileDetail(APIView):
 
         if 'attributes' in request.data:
             attributes = request.data.get('attributes')
-            if type(attributes) is unicode:
+            if isinstance(attributes, unicode):
                 request.data['attributes'] = ast.literal_eval(request.data['attributes'])
 
         tile_in_user_dashboards = bool(Dashboard.objects.filter(userprofiles=profile, page__feed__tiles=tile).count())
