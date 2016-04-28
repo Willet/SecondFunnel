@@ -642,13 +642,13 @@ class ProductImageViewSet(viewsets.ModelViewSet):
         partial = bool(data.get('partial', 'False') in ["True", "true"])
 
         # Compare the data keys with approved keys list and put found keys in a new array
-        id_ids_name_url_input = set(['id', 'ids', 'productid', 'productids', 'url', 'urls']) & set(data)
+        id_ids_name_url_input = set(['id', 'ids', 'productid', 'productids', 'url', 'urls', 'sourceurl', 'sourceurls']) & set(data)
 
         if len(id_ids_name_url_input) < 1:
-            return_dict['status'] = u"Expecting one of id, ids, name, or url for search, got none."
+            return_dict['status'] = u"Expecting one of id, ids, name, names, url, urls, sourceurl or sourceurls for search, got none."
             status_code = 400
         elif len(id_ids_name_url_input) > 1:
-            return_dict['status'] = (u"Expecting one of id, ids, name, or url for search, but got "
+            return_dict['status'] = (u"Expecting one of id, ids, name, names, url, urls, sourceurl or sourceurls for search, but got "
                                     "multiple: {}.").format(" ".join(list(id_ids_name_url_input)))
             status_code = 400
         else:
@@ -657,8 +657,8 @@ class ProductImageViewSet(viewsets.ModelViewSet):
             ids_filter = data.get('ids', None)
             product_id_filter = data.get('productid', None)
             product_ids_filter = data.get('productids', None)
-            image_url_filter = data.get('imageurl', None)
-            image_urls_filter = data.get('imageurls', None)
+            image_url_filter = data.get('url', None)
+            image_urls_filter = data.get('urls', None)
             source_url_filter = data.get('sourceurl', None)
             source_urls_filter = data.get('sourceurls', None)
 
@@ -789,9 +789,9 @@ class ProductImageViewSet(viewsets.ModelViewSet):
                                     filters = filters & Q(original_url=s.get('source_url'))
                             elif search_string == 'image_url':
                                 if partial:
-                                    filters = filters & Q(image_url__contains=s.get('image_url'))
+                                    filters = filters & Q(url__contains=s.get('image_url'))
                                 else:
-                                    filters = filters & Q(image_url=s.get('image_url'))
+                                    filters = filters & Q(url=s.get('image_url'))
                             elif search_string == 'id':
                                 if partial:
                                     filters = filters & Q(pk__contains=s)

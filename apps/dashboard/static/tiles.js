@@ -85,8 +85,6 @@ App.core.TileProductImageCollection = App.core.ObjectCollection.extend({
 App.core.Product = Backbone.Model.extend({
     defaults: {},
 
-    url: App.core.apiURL + 'product/search/',
-
     getCustomURL: function (method) {
         /**
         Returns the API URL for REST methods for different methods
@@ -98,8 +96,6 @@ App.core.Product = Backbone.Model.extend({
             URL for REST method
         **/
         switch (method) {
-            case 'search':
-                return App.core.apiURL + 'product/' + method + '/';
             case 'scrape':
                 return App.core.apiURL + 'product/' + method + '/';
         }
@@ -125,8 +121,6 @@ App.core.Product = Backbone.Model.extend({
 App.core.Content = Backbone.Model.extend({
     defaults: {},
 
-    url: App.core.apiURL + 'content/search/',
-
     getCustomURL: function (method) {
         /**
         Returns the API URL for REST methods for different methods
@@ -138,8 +132,6 @@ App.core.Content = Backbone.Model.extend({
             URL for REST method
         **/
         switch (method) {
-            case 'search':
-                return App.core.apiURL + 'content/' + method + '/';
             case 'scrape':
                 return App.core.apiURL + 'content/' + method + '/';
         }
@@ -1229,11 +1221,12 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         
         this.$el.find('.modal-title').html("Add " + objectType);
 
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+            'alertType': 'info',
+            'status': "Fetching all " + objectType.toLowerCase() + " info..."
+        }));
+
         if (objectType === "Product") {
-            App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                'alertType': 'info',
-                'status': "Fetching all product info..."
-            }));
             App.productsList = new App.core.ProductCollection();
             App.productsList.fetch().done(function () {
                 App.productsList.sort();
@@ -1243,10 +1236,6 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 that.$el.modal('show'); // Toggle Bootstrap modal to show
             });
         } else {
-            App.feedback.show(new App.core.FeedbackNoTimeoutView({
-                'alertType': 'info',
-                'status': "Fetching all content info..."
-            }));
             App.contentsList = new App.core.ContentCollection();
             App.contentsList.fetch().done(function () {
                 App.contentsList.sort();
@@ -1324,13 +1313,8 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                         priority: priority,
                         category: category
                     });
-                    if (objectType === "Content") {
-                        page.attributes.type = "content";
-                        searchString = new App.core.Content();
-                    } else {
-                        page.attributes.type = "product";
-                        searchString = new App.core.Product();
-                    }
+
+                    page.attributes.type = objectType.toLowerCase();
 
                     options = {
                         store: storeID,
@@ -1346,11 +1330,14 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                             options['id'] =  num;
                         } else {
                             if (selection === 'SKU') {
-                                options['url'] =  num;
+                                options['sku'] =  num;
                             }
                         }
                     }
+
+                    searchString = new Backbone.Model();
                     result = searchString.fetch({
+                        url: App.core.apiURL + objectType.toLowerCase() + '/search/',
                         traditional: true,
                         data: options,
                     });
@@ -1361,19 +1348,11 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                             // object with that selection has been found
 
                             // Add the tile to the page with specified priority
-                            if (objectType === "Product") {
-                                page = new App.core.Page({
-                                    type: "product",
-                                    id: responseText.ids[0],
-                                    force_create_tile: force_create,
-                                });
-                            } else {
-                                page = new App.core.Page({
-                                    type: "content",
-                                    id: responseText.ids[0],
-                                    force_create_tile: force_create,
-                                });
-                            }
+                            page = new App.core.Page({
+                                type: objectType.toLowerCase(),
+                                id: responseText.ids[0],
+                                force_create_tile: force_create,
+                            })
                             if (priority !== "") {
                                 page.set({priority: priority});
                             }
@@ -1458,19 +1437,11 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                                 'status': status,
                                             }));
                                             // Now add tile
-                                            if (objectType === "Product") {
-                                                page = new App.core.Page({
-                                                    type: "product",
-                                                    url: responseText.id,
-                                                    force_create_tile: $('#force-create').is(':checked').toString(),
-                                                });
-                                            } else {
-                                                page = new App.core.Page({
-                                                    type: "content",
-                                                    id: responseText.id,
-                                                    force_create_tile: $('#force-create').is(':checked').toString(),
-                                                });
-                                            }
+                                            page = new App.core.Page({
+                                                type: objectType.toLowerCase(),
+                                                url: responseText.id,
+                                                force_create_tile: $('#force-create').is(':checked').toString(),
+                                            });
                                             if (priority !== "") {
                                                 page.set({priority: priority});
                                             }
@@ -1526,8 +1497,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                             }
                         }
                     });
-                }
-                
+                }   
             }
         }
     },
@@ -1789,25 +1759,19 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             that        = this,
             objectType  = this.options.objectType;
 
+        this.removeObjectForm.commit();
+        selection   = this.removeObjectInstance.get('selection');
+        num         = this.removeObjectInstance.get('num');
+
+        page = new App.core.Page({
+            type: objectType.toLowerCase(),
+            selection: selection,
+            num: num,
+        })
+
         if (objectType === "Product") {
-            this.removeObjectForm.commit();
-            selection   = this.removeObjectInstance.get('selection');
-            num         = this.removeObjectInstance.get('num');
-            page        = new App.core.Page({
-                type: "product",
-                selection: selection,
-                num: num,
-            })
             searchString = new App.core.Product();
         } else {
-            this.removeObjectForm.commit();
-            selection   = this.removeObjectInstance.get('selection'),
-            num         = this.removeObjectInstance.get('num'),
-            page        = new App.core.Page({
-                type: "content",
-                selection: selection,
-                num: num,
-            }),
             searchString = new App.core.Content();
         }
 
@@ -1816,11 +1780,14 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
                 num = 'http://' + num;
             }
             searchString.set({url: num});
+        } else {
+            if (selection === 'ID') {
+                searchString.set({id: num});
+            } else {
+                if (selection === 'SKU')
+                    searchString.set({sku: num});
+            }
         }
-        if (selection === 'ID')
-            searchString.set({id: num});
-        if (selection === 'SKU')
-            searchString.set({sku: num});
 
         result = searchString.search(searchString);
         result.always(function () {
@@ -1828,17 +1795,10 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             idLength = responseText.ids.length;
 
             if (idLength === 1) {
-                if (objectType === "Product") {
-                    page = new App.core.Page({
-                        type: "product",
-                        id: responseText.ids[0],
-                    });
-                } else {
-                    page = new App.core.Page({
-                        type: "content",
-                        id: responseText.ids[0],
-                    });
-                }
+                page = new App.core.Page({
+                    type: objectType.toLowerCase(),
+                    id: responseText.ids[0],
+                });
 
                 result = page.remove(page);
                 result.always(function () {
