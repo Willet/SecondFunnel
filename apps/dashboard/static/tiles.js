@@ -1698,7 +1698,6 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
                 expect: "text",
 
                 init: function(total_uploads) {
-                    console.log(total_uploads);
                     App.feedback.show(new App.core.FeedbackLoadingView({
                         'alertType': "info",
                         'status': total_uploads + " files are being uploaded. "
@@ -1706,7 +1705,6 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
                 },
 
                 finish: function() {
-                    console.log("done");
                     App.feedback.empty();
                 },
 
@@ -1720,9 +1718,6 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
                 success: function(data){
                     var status = "File: " + this.fileName + ". " + data,
                         formatDiv = $('<div class="format"></div>').text(status);
-                    console.log(formatDiv);
-                    console.log(data)
-                    console.log("=====")
                     this.block.append(formatDiv);
                 },
 

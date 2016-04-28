@@ -176,8 +176,6 @@ def upload(request, dashboard_slug):
     page = get_object_or_404(Page, pk=dashboards.first().page_id)
     img_path = create_image_path(page.store_id)
 
-    print "uploading"
-
     if 'file' not in request.FILES:
         status = u"Upload failed. No files were found."
         status_code = 400
