@@ -314,6 +314,8 @@ class ProductViewSet(viewsets.ModelViewSet):
                 p.start()
                 p.join()
 
+                # Need to process the URL like scrapy here so we can use it to find the product ID
+
                 return_dict['status'] = u"Scraping has finished."
                 status_code = 200
 
@@ -579,7 +581,6 @@ class ContentViewSet(viewsets.ModelViewSet):
                         "file_type": img_obj['format'],
                         "attributes": {"sizes": img_obj['sizes']},
                         "dominant_color": img_obj['dominant_color'],
-                        "source": "upload",
                         "source_url": data['url'],
                         "url": img_obj['sizes']['master']['url'],
                         "width": img_obj['sizes']['master']['width'],

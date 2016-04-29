@@ -448,6 +448,7 @@ App.core.TileView = Marionette.ItemView.extend({
         }
 
         App.modal.show(new App.core.AddObjectModalView({
+            objectType: "Content",
             newTilePriority: newTilePriority,
             batch: batch,
         }));
@@ -494,6 +495,7 @@ App.core.TileView = Marionette.ItemView.extend({
         }
 
         App.modal.show(new App.core.AddObjectModalView({
+            objectType: "Content",
             newTilePriority: newTilePriority,
             batch: batch,
         }));
@@ -986,6 +988,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                     selectedContents.push(val.value);
                 }
             });
+
             // Save attributes
             result = currModel.save(data, {
                 patch: true,
@@ -993,7 +996,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             });
             result.always(function () {
                 result = JSON.parse(result.responseText);
-                if (_.has(result,"id")) {
+                if (_.has(result, "id")) {
                     alertType = 'success';
                     status = "The attributes of the tile with ID " + tileID + " has been updated.";
                 } else {
@@ -1005,7 +1008,7 @@ App.core.EditModalView = App.core.BaseModalView.extend({
                 tile.set({data: {
                     'pageID': pageID,
                     'products': selectedProducts,
-                    'contents': selectedContents,
+                    'content': selectedContents,
                 }});
 
                 result = tile.tag(tile, tileID);
@@ -1040,8 +1043,6 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             'status': status
         }));
     },
-
-
 });
 
 App.core.RemoveModalView = App.core.BaseModalView.extend({
@@ -1181,6 +1182,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
 
         var addObjectModel,
             objectType = this.options.objectType,
+            preselected = this.options.selected,
             newPriority = this.options.newTilePriority,
             that = this,
             selectionOptions = {
@@ -1297,6 +1299,8 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                 if ( selected.length < 1) {
                     num = this.addObjectInstance.get('num');
                 } else {
+                    // As the selected's value is based on ID, we change selection type
+                    //    to ID and use the selected's value
                     selection = "ID";
                     num = selected[0];
                 }
@@ -1472,12 +1476,12 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                                             if (result.responseJSON.length !== 0) {
                                                                 // Patch of new tile priority successful
                                                                 location.reload();
+                                                                // Once scrape and add's successful, need to open the modal to edit it
                                                             } else {
                                                                 alertType = 'danger';
                                                                 status = "Tile priority patching failed due to an error.";
+                                                                that.hideAndShowModal(that, alertType, status);
                                                             }
-                                                            that.hideAndShowModal(that, alertType, status);
-                                                            // Once scrape and add's successful, need to open the modal to edit it
                                                         });
                                                     } else {
                                                         location.reload();
@@ -1520,6 +1524,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         **/
         var selection, num,
             objectType = this.options.objectType,
+            preselected = this.options.selected,
             that = this;
 
         that.$el.find(divName).multiSelect({
@@ -1548,6 +1553,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                     modelName = val.get('name');
                                 that.$el.find(divName).multiSelect('addOption', { 
                                     value: modelID, 
+                                    testparam: modelName,
                                     text: modelID + ' - ' + modelName,
                                 });
                             });
@@ -1580,6 +1586,11 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                     text: "Content " + modelID,
                                 });
                             });
+
+                            if ( (preselected !== null) && (preselected !== undefined) ) {
+                                selectableSearch.value = preselected;
+                                that.$el.find(divName).multiSelect('select', preselected);
+                            }
                         });
                     } else {
                         _.each(App.contentsList.models, function (val) {
@@ -1590,6 +1601,10 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                                 text: "Content " + modelID,
                             });
                         });
+                        if ( (preselected !== null) && (preselected !== undefined) ) {
+                            selectableSearch.value = preselected;
+                            that.$el.find(divName).multiSelect('select', preselected);
+                        }
                     }
                 }
 
@@ -1689,6 +1704,11 @@ App.core.UploadObjectModalView = App.core.BaseModalView.extend({
                     var status = "File: " + this.fileName + ". " + data,
                         formatDiv = $('<div class="format"></div>').text(status);
                     this.block.append(formatDiv);
+                    that.$el.modal('hide');
+                    App.modal.show(new App.core.AddObjectModalView({
+                        'objectType': "Content",
+                        'selected': data,
+                    }));
                 },
 
                 error: function(error){
@@ -1754,7 +1774,7 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
 
     removeObject: function () {
         // Remove the object from the page.
-        var result, idLength, responseText, alertType, status,
+        var result, idLength, responseText, alertType, status, options,
             selection, num, page, searchString,
             that        = this,
             objectType  = this.options.objectType;
@@ -1769,27 +1789,30 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
             num: num,
         })
 
-        if (objectType === "Product") {
-            searchString = new App.core.Product();
-        } else {
-            searchString = new App.core.Content();
-        }
+        options = {
+            store: storeID,
+        };
 
         if (selection === 'URL') {
             if (num.search('http') === -1) {
                 num = 'http://' + num;
             }
-            searchString.set({url: num});
+            options['url'] =  num;
         } else {
             if (selection === 'ID') {
-                searchString.set({id: num});
+                options['id'] =  num;
             } else {
                 if (selection === 'SKU')
-                    searchString.set({sku: num});
+                    options['sku'] =  num;
             }
         }
 
-        result = searchString.search(searchString);
+        searchString = new Backbone.Model();
+        result = searchString.fetch({
+            url: App.core.apiURL + objectType.toLowerCase() + '/search/',
+            traditional: true,
+            data: options,
+        });
         result.always(function () {
             responseText = JSON.parse(result.responseText);
             idLength = responseText.ids.length;
@@ -1804,29 +1827,30 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
                 result.always(function () {
                     responseText = JSON.parse(result.responseText);
                     if (result.status === 200) {
-                        alertType = 'success';
+                        // removal was successful
+                        location.reload();
                     }
                     else {
                         alertType = 'warning';
+                        that.$el.modal('hide'); // Toggle Bootstrap modal to hide
+                        App.feedback.show(new App.core.FeedbackView({
+                            'alertType': alertType,
+                            'status': responseText.status
+                        }));
                     }
-                    that.$el.modal('hide'); // Toggle Bootstrap modal to hide
-                    App.feedback.show(new App.core.FeedbackView({
-                        'alertType': alertType,
-                        'status': responseText.status
-                    }));
                 });
             } else {
                 if (idLength > 1) {
-                    App.feedback.show(new App.core.FeedbackView({
-                        'alertType': 'danger',
-                        'status': "Error: " + responseText.status
-                    }));
+                    alertType = 'danger';
+                    status = "Error: " + responseText.status;
                 } else {
-                    App.feedback.show(new App.core.FeedbackView({
-                        'alertType': 'warning',
-                        'status': responseText.status
-                    }));
+                    alertType = 'warning';
+                    status = responseText.status
                 }
+                App.feedback.show(new App.core.FeedbackView({
+                    'alertType': alertType,
+                    'status': status,
+                }))
             }
         });
     },
