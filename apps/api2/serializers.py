@@ -73,7 +73,7 @@ class TileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tile
         fields = ('id', 'feed', 'template', 'products', 'content', 'priority', 'clicks', 'views', 'placeholder',
-            'in_stock', 'attributes')
+            'in_stock', 'attributes', 'categories')
 
 class TileSerializerBulk(BulkSerializerMixin, serializers.ModelSerializer):
     attributes = JSONSerializerField()

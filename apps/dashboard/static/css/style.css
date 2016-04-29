@@ -3819,14 +3819,117 @@ div[data-role="editor-toolbar"] {
     float: left;
 }
 
-.edit-modal-selection-field {
+
+/* Slider */
+
+#edit-slider {
+  position: absolute;
+  top: 0;
+  right: 30px;
+  overflow: hidden;
+  margin: 20px auto 0 auto;
+  border: solid 1px;
+}
+
+#edit-slider ul {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  height: 200px;
+  list-style: none;
+}
+
+#edit-slider ul li {
+  position: relative;
+  display: block;
+  float: left;
+  margin: 0;
+  padding: 0;
+  width: 200px;
+  height: 200px;
+  background: #ccc;
+}
+
+a.control-prev, a.control-next {
+  position: absolute;
+  top: 40%;
+  z-index: 999;
+  display: block;
+  padding: 4% 3%;
+  width: auto;
+  height: auto;
+  background: #2a2a2a;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 18px;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+a.control-prev:hover, a.control-next:hover {
+  opacity: 1;
+  -webkit-transition: all 0.2s ease;
+}
+
+a.control-prev {
+  border-radius: 0 2px 2px 0;
+}
+
+a.control-next {
+  right: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+#edit-slider .image-label {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    background: white;
+    border: solid 0.5px;
+    padding: 2px;
+}
+
+/* Slider end */
+
+#default-image-selection {
+    width: 100px;
+}
+
+.edit-modal-image-wrapper {
+    position: absolute;
+    width: 25%;    
+    height: 15%;
+    overflow: hidden;
+    right: 30px;
+    border: solid 1px;
+}
+
+.edit-modal-image {
+    width: 100%;
+}
+
+.edit-modal-product-selection-field {
     position: inherit;
     float: left;
     width: 15%;
     height: 36px;
 }
 
-.edit-modal-num-field {
+.edit-modal-product-num-field {
+    position: inherit;
+    width: 40%;
+    height: 36px;
+}
+
+.edit-modal-content-selection-field {
+    position: inherit;
+    float: left;
+    width: 15%;
+    height: 36px;
+}
+
+.edit-modal-content-num-field {
     position: inherit;
     width: 40%;
     height: 36px;
@@ -3863,7 +3966,7 @@ div[data-role="editor-toolbar"] {
 }
 
 #attributes-textarea {
-    width: 100%;
+    width: 50%;
     height: 100px;
 }
 

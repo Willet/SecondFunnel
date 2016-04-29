@@ -21,6 +21,11 @@ function toTitleCase(str){
 $(document).ready(function(){
     //var Forms = new formView();
     $.ajaxSetup({
-        headers: { "X-CSRFToken": getCookie("csrftoken")}
+        headers: { 
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Cache-Control": 'max-age=10'
+        },
+        cache: false,
+
     });
 });

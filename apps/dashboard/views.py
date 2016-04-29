@@ -148,6 +148,8 @@ def dashboard_tiles(request, dashboard_slug):
         return HttpResponseRedirect('/dashboard/')
     dashboard_id = dashboards.first().id
     page_id = dashboards.first().page_id
+    page = Page.objects.get(pk=page_id)
+    store_id = page.store_id
 
     if not dashboard_id or not profile.dashboards.filter(id=dashboard_id):
         return HttpResponseRedirect('/dashboard/')
@@ -161,6 +163,7 @@ def dashboard_tiles(request, dashboard_slug):
 
         return render(request, 'tiles.html', {
                 'pageID': page_id,
+                'storeID': store_id,
                 'context': RequestContext(request), 
                 'siteName': dashboard.site_name, 
                 'page': dashboard_page,
@@ -198,7 +201,7 @@ def upload(request, dashboard_slug):
                                                                 }})},
                     "dominant_color": img_obj.get('dominant_color', ''),
                     "source": "upload",
-                    "source_url": img_obj.get('secure_url'),
+                    "source_url": uploaded_file.name,
                     "url": img_obj.get('secure_url', img_obj.get('url', '')),
                     "width": img_obj.get('width', img_obj.get('sizes', {}).get('master', {}).get('width', '')),
                     "height": img_obj.get('height', img_obj.get('sizes', {}).get('master', {}).get('height', '')),
@@ -207,14 +210,9 @@ def upload(request, dashboard_slug):
                 image.save()
 
                 content = get_object_or_404(Content, pk=image.id)
-                (tile, result) = page.feed.add(content)
 
-                if result:
-                    status = u"Uploaded. Image ID: {}. Tile ID: {}.".format(image.id, tile.id)
-                    status_code = 200
-                else:
-                    status = u"Uploaded. Image ID: {}. Tile adding failed due to an unknown error.".format(image.id)
-                    status_code = 400
+                status = image.id
+                status_code = 200
 
     return HttpResponse(status, status=status_code)
 
