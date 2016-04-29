@@ -3850,7 +3850,7 @@ div[data-role="editor-toolbar"] {
   background: #ccc;
 }
 
-a.control_prev, a.control_next {
+a.control-prev, a.control-next {
   position: absolute;
   top: 40%;
   z-index: 999;
@@ -3867,16 +3867,16 @@ a.control_prev, a.control_next {
   cursor: pointer;
 }
 
-a.control_prev:hover, a.control_next:hover {
+a.control-prev:hover, a.control-next:hover {
   opacity: 1;
   -webkit-transition: all 0.2s ease;
 }
 
-a.control_prev {
+a.control-prev {
   border-radius: 0 2px 2px 0;
 }
 
-a.control_next {
+a.control-next {
   right: 0;
   border-radius: 2px 0 0 2px;
 }

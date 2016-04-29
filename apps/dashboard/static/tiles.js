@@ -779,10 +779,10 @@ App.core.EditModalView = App.core.BaseModalView.extend({
             });
         };
 
-        $('a.control_prev').click(function () {
+        $('a.control-prev').click(function () {
             moveLeft();
         });
-        $('a.control_next').click(function () {
+        $('a.control-next').click(function () {
             moveRight();
         });
     },
