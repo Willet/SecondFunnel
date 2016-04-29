@@ -23,6 +23,8 @@ from apps.dashboard.models import Dashboard, UserProfile
 from apps.imageservice.tasks import process_image
 from apps.intentrank.algorithms import ir_magic
 from apps.scrapy.controllers import PageMaintainer
+from apps.scrapy.spiders import pages
+from apps.utils.classes import AttrDict
 from .serializers import CategorySerializer, ContentSerializer, FeedSerializer, GifSerializer, ImageSerializer, \
     PageSerializer, ProductSerializer, ProductImageSerializer, StoreSerializer, TileSerializer, TileSerializerBulk, \
     VideoSerializer
@@ -243,6 +245,28 @@ class ProductViewSet(viewsets.ModelViewSet):
                                     for p in product:
                                         product_ids.append(p.id)
                                         search_results.append(ProductSerializer(p).data)
+
+                                    if len(product) == 0 and search_string == 'url':
+                                        # Now determine scrapy's URL, and use that to do another search
+                                        # Hack: Fake page because we don't have it
+                                        page = AttrDict({"feed": AttrDict({"spider_name": ""}), "store": store})
+                                        pm = PageMaintainer(page)
+                                        spider = pm._get_spider(pages, store.slug)
+
+                                        cleaned_url = spider.clean_url(url)
+
+                                        filters = Q(store=store)
+                                        if partial:
+                                            filters = filters & Q(url__contains=cleaned_url)
+                                        else:
+                                            filters = filters & Q(url=cleaned_url)
+
+                                        product = Product.objects.filter(filters)
+
+                                        for p in product:
+                                            product_ids.append(p.id)
+                                            search_results.append(ProductSerializer(p).data)
+
                         except Exception as e:
                             return_dict['status'] = str(e)
                         else:
@@ -315,9 +339,18 @@ class ProductViewSet(viewsets.ModelViewSet):
                 p.join()
 
                 # Need to process the URL like scrapy here so we can use it to find the product ID
+                pm = PageMaintainer(page)
+                spider = pm._get_spider(pages, pm.spider_name)
+                new_url = spider.clean_url(url)
 
-                return_dict['status'] = u"Scraping has finished."
-                status_code = 200
+                try:
+                    product = Product.objects.get(url=new_url)
+                except Product.DoesNotExist:
+                    return_dict['status'] = u"Scraping has finished but product was not found"
+                    status_code = 400
+                else:
+                    return_dict['status'] = u"Scraping has finished. Product ID: " + product.id
+                    status_code = 200
 
         return Response(return_dict, status=status_code)
 
@@ -1081,8 +1114,21 @@ class PageViewSet(viewsets.ModelViewSet):
             status_code = 400
         else:
             products = Product.objects.filter(filters).order_by('-id')
-
             serialized_products = [ {'id': p.id, 'name': p.name, } for p in products[:return_limit]]
+
+            if url_filter:
+                # Now determine scrapy's URL, and use that to do another search
+                pm = PageMaintainer(page)
+                spider = pm._get_spider(pages, pm.spider_name)
+
+                cleaned_url = spider.clean_url(url_filter)
+
+                filters = Q(store=store)
+                filters = filters & Q(url__icontains=cleaned_url)
+
+                products = Product.objects.filter(filters).order_by('-id')
+                for p in products[:return_limit]:
+                    serialized_products.append({'id': p.id, 'name': p.name})
 
             return_dict = serialized_products
             status_code = 200

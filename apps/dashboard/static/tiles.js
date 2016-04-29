@@ -1572,7 +1572,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                     if ( (App.contentsList == null) || (App.contentsList == undefined) ){
                         App.feedback.show(new App.core.FeedbackNoTimeoutView({
                             'alertType': 'info',
-                            'status': "Fetching all product info..."
+                            'status': "Fetching all content info..."
                         }));
                         App.contentsList = new App.core.ContentCollection();
                         App.contentsList.fetch().done(function () {
@@ -1614,7 +1614,7 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
                         typingTimer = setTimeout(function () {
                             App.feedback.show(new App.core.FeedbackNoTimeoutView({
                                 'alertType': 'info',
-                                'status': "Fetching product info..."
+                                'status': "Fetching " + objectType.toLowerCase() + " info..."
                             }));
                             // Refresh products list by doing API call and refresh multiselect
                             selection = that.$el.find('select[name=selection]').val();
