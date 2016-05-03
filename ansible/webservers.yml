@@ -2,28 +2,24 @@
 - name: "Pre Configuration"
   hosts: webservers:!building
   remote_user: "{{common_user}}"
-  gather_facts: False # since we are just notifying hipchat anyways
+  gather_facts: False # notifying Slack
   tasks:
-    - name: "Notify hipchat of configuration changes"
-      local_action: hipchat
-        token="{{ hipchat.token }}"
-        room="{{ hipchat.room }}"
-        msg="(duke) Let's rock! ({{app_environment|title}} deployment, {{play_hosts|length}} machines)"
-        color="gray"
-        from="Duke Nukem"
-        validate_certs=no
+    - name: "Notify Slack of configuration changes"
+      local_action: slack
+        token="{{ slack.token }}"
+        channel="{{ slack.channel }}"
+        msg="{{app_environment|title}} deployment - {{play_hosts|length}} machines"
+        color=normal
       tags: deploy
       run_once: True
       when: (app_environment | default('vagrant') != 'vagrant') and 'autoscale' not in groups
 
-    - name: "Notify hipchat of Auto-Scaling"
-      local_action: hipchat
-        token="{{ hipchat.token }}"
-        room="{{ hipchat.room }}"
+    - name: "Notify Slack of Auto-Scaling"
+      local_action: slack
+        token="{{ slack.token }}"
+        channel="{{ slack.channel }}"
         msg="AutoScale - (begin) increasing web machines by 1"
-        color="gray"
-        from="AWS Gods"
-        validate_certs=no
+        color=normal
       tags: deploy
       run_once: True
       when: ('autoscale' in groups) and ('vagrant' not in groups)
@@ -112,28 +108,24 @@
 - name: "Post Configuration"
   hosts: webservers:!building
   remote_user: "{{common_user}}"
-  gather_facts: False # since we are just notifying hipchat anyways
+  gather_facts: False # notifying Slack
   tasks:
-    - name: "Notify hipchat of configuration changes"
-      local_action: hipchat
-        token="{{ hipchat.token }}"
-        room="{{ hipchat.room }}"
-        msg="(goodnews)(doge) {{app_environment|title}} deployment and configuration complete. ({{play_hosts|length}} machines were updated)"
-        color="green"
-        from="Hubert"
-        validate_certs=no
+    - name: "Notify Slack of configuration changes"
+      local_action: slack
+        token="{{ slack.token }}"
+        channel="{{ slack.channel }}"
+        msg="{{app_environment|title}} deployment complete. ({{play_hosts|length}} machines were updated)"
+        color=good
       tags: deploy
       run_once: true
       when: (app_environment | default('vagrant') != 'vagrant') and 'autoscale' not in groups
 
-    - name: "Notify hipchat of Auto-Scaling"
-      local_action: hipchat
-        token="{{ hipchat.token }}"
-        room="{{ hipchat.room }}"
+    - name: "Notify Slack of Auto-Scaling"
+      local_action: slack
+        token="{{ slack.token }}"
+        channel="{{ slack.channel }}"
         msg="AutoScale - (end) increased web machines by 1"
-        color="green"
-        from="AWS Gods"
-        validate_certs=no
+        color=good
       tags: deploy
       run_once: True
       when: ('autoscale' in groups) and ('vagrant' not in groups)
