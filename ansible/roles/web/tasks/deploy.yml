@@ -78,7 +78,7 @@
   async: 3600
   poll: 10
   #register: gulp_result
-  #failed_when: ( gulp_result.stdout.find("Error") != -1 )
+  #failed_when: "'Error' in gulp_result.stdout"
 
 - name: Migration of database, etc
   shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
