@@ -9,7 +9,6 @@
         token="{{ slack.token }}"
         channel="{{ slack.channel }}"
         msg="{{app_environment|title}} deployment - {{play_hosts|length}} machines"
-        color=normal
       tags: deploy
       run_once: True
       when: (app_environment | default('vagrant') != 'vagrant') and 'autoscale' not in groups
@@ -19,7 +18,6 @@
         token="{{ slack.token }}"
         channel="{{ slack.channel }}"
         msg="AutoScale - (begin) increasing web machines by 1"
-        color=normal
       tags: deploy
       run_once: True
       when: ('autoscale' in groups) and ('vagrant' not in groups)
@@ -115,7 +113,6 @@
         token="{{ slack.token }}"
         channel="{{ slack.channel }}"
         msg="{{app_environment|title}} deployment complete. ({{play_hosts|length}} machines were updated)"
-        color=good
       tags: deploy
       run_once: true
       when: (app_environment | default('vagrant') != 'vagrant') and 'autoscale' not in groups
@@ -125,7 +122,6 @@
         token="{{ slack.token }}"
         channel="{{ slack.channel }}"
         msg="AutoScale - (end) increased web machines by 1"
-        color=good
       tags: deploy
       run_once: True
       when: ('autoscale' in groups) and ('vagrant' not in groups)
