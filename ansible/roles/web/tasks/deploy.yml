@@ -84,6 +84,7 @@
   register: gulp_result
   until: gulp_result.finished
   failed_when: ("Finished 'build'" not in gulp_result.stdout)
+  retries: 30
 
 - name: Migration of database, etc
   shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
