@@ -77,8 +77,13 @@
   command: chdir="{{application_directory}}/apps/light" gulp build
   async: 3600
   poll: 10
-  #register: gulp_result
-  #failed_when: "'Error' in gulp_result.stdout"
+  register: gulp_async
+
+- name: Check Gulp
+  async_status: jid="{{ gulp_async.ansible_job_id }}"
+  register: gulp_result
+  until: gulp_result.finished
+  failed_when: ("Finished 'build'" not in gulp_result.stdout)
 
 - name: Migration of database, etc
   shell: ". /etc/profile && {{virtualenv_directory}}/bin/python manage.py {{item}} --settings=$DJANGO_SETTINGS_MODULE"
