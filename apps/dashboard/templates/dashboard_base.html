@@ -7,15 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
     <title>{% block head %}Secondfunnel {% endblock %}Console</title>
-
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
     <!--  Bootstrap  -->
-    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
-    <link href="{% static "css/font-awesome.min.css" %}" rel="stylesheet">
-    <link href="{% static "css/style.css" %}" rel="stylesheet">
-    <link href="{% static "css/style-responsive.css" %}" rel="stylesheet">
-    <link href="{% static "css/jquerysctipttop.css" %}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type='text/css' href="{% static "bootstrap/css/bootstrap.min.css" %}">
+    <link rel="stylesheet" type='text/css' href="{% static "multiselect/css/multi-select.css" %}">
+
+    <link rel="stylesheet" type='text/css' href='http://fonts.googleapis.com/css?family=Open+Sans:400,300'>
+    <link rel="stylesheet" type='text/css' href="{% static "css/font-awesome.min.css" %}">
+    <link rel="stylesheet" type='text/css' href="{% static "css/style.css" %}">
+    <link rel="stylesheet" type='text/css' href="{% static "css/style-responsive.css" %}">
+    <link rel="stylesheet" type='text/css' href="{% static "css/jquerysctipttop.css" %}">
     <!--  HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries  -->
     <!--  WARNING: Respond.js doesn't work if you view the page via file://  -->
     <!-- [if lt IE 9]>
@@ -29,13 +33,25 @@
 {% endblock %}
 
 <!--  jQuery (necessary for Bootstrap's JavaScript plugins)  -->
-<script src="{% static "js/jquery-2.0.2.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/jquery-2.0.2.min.js" %}"></script>
 <!--  Include all compiled plugins (below), or include individual files as needed  -->
-<script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
-<script src="{% static "js/accordion.js" %}"></script>
-<script src="{% static "js/common-script.js" %}"></script>
-<script src="{% static "js/jquery.nicescroll.js" %}"></script>
+
+<script type="text/javascript" src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/accordion.js" %}"></script>
+<script type="text/javascript" src="{% static "js/common-script.js" %}"></script>
+<script type="text/javascript" src="{% static "js/jquery.nicescroll.js" %}"></script>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+<script type="text/javascript" src="{% static "js/jquery-ui.min.js" %}"></script>
+<script type="text/javascript" src='{% static 'js/underscore-min.js' %}'></script>
+<script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/backbone.marionette.min.js" %}"></script>
+
+<script type="text/javascript" src="{% static "js/simpleUpload.min.js" %}"></script>
+<script type="text/javascript" src="{% static "multiselect/js/jquery.multi-select.js" %}"></script>
+
+
 {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -38,6 +38,122 @@ App.core = {};
 
 App.core.apiURL = "http://" + window.location.host + "/api2/";
 
+App.core.ObjectCollection = Backbone.Collection.extend({
+    defaults: {},
+
+    parse: function (response) {
+        return response;
+    },
+
+    comparator: function (a, b) {
+        /**
+        Comparator used when sorting products, sort from highest product ID at top
+        to lowest product ID at bottom
+        **/
+        if (a.get("id") > b.get("id")) {
+            return -1;
+        }
+        if (a.get("id") < b.get("id")) {
+            return 1;
+        }
+        if (a.get("id") === b.get("id")) {
+            return 0;
+        }
+    },
+});
+
+App.core.ProductCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'page/' + pageID + '/products/',
+});
+
+App.core.ContentCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'page/' + pageID + '/contents/',
+});
+
+App.core.TileContentCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'content/search/',
+});
+
+App.core.TileProductCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'product/search/',
+});
+
+App.core.TileProductImageCollection = App.core.ObjectCollection.extend({
+    url: App.core.apiURL + 'productimage/search/',
+});
+
+App.core.Product = Backbone.Model.extend({
+    defaults: {},
+
+    getCustomURL: function (method) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
+        switch (method) {
+            case 'scrape':
+                return App.core.apiURL + 'product/' + method + '/';
+        }
+    },
+
+    scrape: function (URL) {
+        /**
+        Calls for a scrape of the product by doing a Backbone.sync to API server
+
+        inputs:
+            URL: containing the URL to be scraped
+
+        output:
+            API server response
+        **/
+        var options = {
+            'url': this.getCustomURL('scrape'),
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
+    }
+});
+
+App.core.Content = Backbone.Model.extend({
+    defaults: {},
+
+    getCustomURL: function (method) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
+        switch (method) {
+            case 'scrape':
+                return App.core.apiURL + 'content/' + method + '/';
+        }
+    },
+
+    scrape: function (URL) {
+        /**
+        Calls for a scrape of the product by doing a Backbone.sync to API server
+
+        inputs:
+            URL: containing the URL to be scraped
+
+        output:
+            API server response
+        **/
+        var options = {
+            'url': this.getCustomURL('scrape')
+        };
+        return Backbone.sync.call(this, 'create', URL, options);
+    }
+});
+
 App.core.TileCollection = Backbone.Collection.extend({
     defaults: {},
 
@@ -240,6 +356,50 @@ App.core.TileCollection = Backbone.Collection.extend({
     },
 });
 
+App.core.Tile = Backbone.Model.extend({
+    defaults: {},
+
+    urlRoot: App.core.apiURL,
+
+    getCustomURL: function (method, tileID) {
+        /**
+        Returns the API URL for REST methods for different methods
+
+        inputs:
+            method: name of the method
+
+        output:
+            URL for REST method
+        **/
+        switch (method) {
+            case 'tag':
+                return App.core.apiURL + 'tile/' + tileID + '/' + method;
+        }
+    },
+
+    sync: function (method, model, options) {
+        options || (options = {});
+        options.url = this.getCustomURL(method.toLowerCase());
+        return Backbone.sync.call(this, method, model, options);
+    },
+
+    tag: function (tagObject, tileID) {
+        /**
+        Calls for a tag of the tile by doing a Backbone.sync to API server
+
+        inputs:
+            tagObject: containing the tag information (Products/Content IDs)
+
+        output:
+            API server response
+        **/
+        var options = {
+            'url': this.getCustomURL('tag', tileID),
+        };
+        return Backbone.sync.call(this, 'create', tagObject, options);
+    },   
+});
+
 App.core.TileView = Marionette.ItemView.extend({
     template: _.template($('#tile-template').html()),
 
@@ -264,11 +424,11 @@ App.core.TileView = Marionette.ItemView.extend({
             batch = [],
             tileCollection = this._parent.collection,
             tiles = tileCollection.models,
-            tilePriority = this.model.attributes.priority,
-            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)}),
+            tilePriority = this.model.get('priority'),
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.get('id'))}),
             newTilePriority = tilePriority + 1;
 
-        if ( (tileInd !== 0) && (tiles[tileInd - 1].attributes.priority <= tilePriority + 1) ){
+        if ( (tileInd !== 0) && (tiles[tileInd - 1].get('priority') <= tilePriority + 1) ){
             // This means the tiles on the left is either same priority or has prio = ind + 1
             // So need to +1 to priority of everything to the beginning 
 
@@ -288,6 +448,7 @@ App.core.TileView = Marionette.ItemView.extend({
         }
 
         App.modal.show(new App.core.AddObjectModalView({
+            objectType: "Content",
             newTilePriority: newTilePriority,
             batch: batch,
         }));
@@ -304,8 +465,8 @@ App.core.TileView = Marionette.ItemView.extend({
             batch = [],
             tileCollection = this._parent.collection,
             tiles = tileCollection.models,
-            tilePriority = this.model.attributes.priority,
-            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.attributes.id)});
+            tilePriority = this.model.get('priority'),
+            tileInd = tileCollection.findIndexWhere({'id': parseInt(this.model.get('id'))});
 
         if (tileInd !== tiles.length - 1) {
             newTilePriority = tiles[tileInd+1].get('priority') + 1;
@@ -334,6 +495,7 @@ App.core.TileView = Marionette.ItemView.extend({
         }
 
         App.modal.show(new App.core.AddObjectModalView({
+            objectType: "Content",
             newTilePriority: newTilePriority,
             batch: batch,
         }));
@@ -386,6 +548,19 @@ App.core.TileCollectionView = Marionette.CollectionView.extend({
     },
 });
 
+App.core.FeedbackLoadingView = Marionette.ItemView.extend({
+    // feedback bar with a loading icon
+    template: _.template($('#feedback-loading-template').html()),
+
+    initialize: function (options) {
+
+    },
+
+    templateHelpers: function () {
+        return this.options;
+    },
+});
+
 App.core.FeedbackView = Marionette.ItemView.extend({
     template: _.template($('#feedback-template').html()),
 
@@ -396,6 +571,13 @@ App.core.FeedbackView = Marionette.ItemView.extend({
 
     templateHelpers: function () {
         return this.options;
+    },
+});
+
+App.core.FeedbackNoTimeoutView = App.core.FeedbackView.extend({
+    // Identical to FeedbackView except there are no timeouts after 10s
+    initialize: function (options) {
+
     },
 });
 
@@ -424,52 +606,442 @@ App.core.BaseModalView = Marionette.ItemView.extend({
 App.core.EditModalView = App.core.BaseModalView.extend({
     template: _.template($('#edit-modal-template').html()),
 
-    events: {
-        "click button#close": "closeModal",
-        "click button#change": "changePriority",
+    onRender: function () {
+        var products, tileProducts, productImages, tileProductImages, contents, tileContents, result,
+            productIDs = [],
+            productImageIDs = [],
+            contentIDs = [],
+            that = this;
+
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+            'alertType': 'info',
+            'status': "Fetching product and content info..."
+        }));
+        App.productsList = new App.core.ProductCollection();
+        App.productsList.fetch().done(function () {
+            App.productsList.sort();
+
+            App.contentsList = new App.core.ContentCollection();
+            App.contentsList.fetch().done(function () {
+                App.contentsList.sort();
+                
+                // Fetch tile content pictures
+                if (that.options.model.get('template') === 'product') {
+                    products = that.options.model.get('products');
+                    _.each(products, function(val) {
+                        productIDs.push(val.id);
+                    });
+                    tileProducts = new App.core.TileProductCollection();
+                    result = tileProducts.fetch({
+                        traditional: true,
+                        data: {
+                            store: storeID, 
+                            ids: JSON.stringify(productIDs),
+                        }
+                    }).done(function () {
+                        if (result.status === 200) {
+                            result = JSON.parse(result.responseText);
+                            // Products take images from productImages, so we need to grab the images now
+                            var productImages = [];
+
+                            _.each(result.products, function (val) {
+                                productImages.push(val.default_image);
+                            });
+
+                            tileProductImages = new App.core.TileProductImageCollection();
+                            result = tileProductImages.fetch({
+                                tradition: true,
+                                data: {
+                                    ids: JSON.stringify(productImages),
+                                }
+                            }).done(function () {
+                                if (result.status === 200) {
+                                    result = JSON.parse(result.responseText);
+
+                                    that.processImageSlider(result.productImages);
+
+                                    App.feedback.empty();
+                                    that.unwrapEl();
+                                    that.$el.modal('show'); // Toggle Bootstrap modal to show
+                                    that.populateMultiSelectProduct('#object-selector-product');
+                                    that.populateMultiSelectContent('#object-selector-content'); 
+                                } else {
+                                    that.hideAndShowFeedback('warning', result.responseText);
+                                }
+                            });
+                        } else {
+                            that.hideAndShowFeedback('warning', result.responseText);
+                        }
+                    });
+                } else {
+                    contents = that.options.model.get('content'),
+                    _.each(contents, function(val) {
+                        contentIDs.push(val.id);
+                    });
+                    tileContents = new App.core.TileContentCollection(),
+                    result = tileContents.fetch({
+                        traditional: true,
+                        data: {
+                            store: storeID, 
+                            ids: JSON.stringify(contentIDs),
+                        },
+                    }).done(function () {
+                        if (result.status === 200) {
+                            result = JSON.parse(result.responseText);
+
+                            that.processImageSlider(result.contents);
+
+                            App.feedback.empty();
+                            that.unwrapEl();
+                            that.$el.modal('show'); // Toggle Bootstrap modal to show
+                            that.populateMultiSelectProduct('#object-selector-product');
+                            that.populateMultiSelectContent('#object-selector-content');
+                        } else {
+                            that.hideAndShowFeedback('warning', result.responseText);       
+                        }
+                    });
+                }
+            })
+        });
     },
 
-    changePriority: function () {
-        // Change the priority to the specified value
-        var result, status, alertType,
+    processImageSlider: function (result) {
+        /**
+        Set up the image slider with the product/content images
+
+        inputs:
+            result: the list of either product or content images
+        **/
+        var that = this,
+            tileDefaultImage = that.options.model.get('defaultImage');
+
+        if (result.length > 1) {
+            _.each(result, function (val, i) {
+                var tileID;
+                if (that.options.model.get('template') === 'product') {
+                    tileID = that.options.model.get('products')[i].id;
+                } else {
+                    tileID = val.id;
+                }
+                that.$el.find('#edit-slider ul').append(
+                    '<li id="' + val.id + ' "><div class="image-label">' + tileID +'</div><img class="edit-modal-image" src="' + val.url + '" alt="' + tileID + '"></li>'
+                );
+            });
+        } else {
+            if (result.length === 0) {
+                that.$el.find('#edit-slider ul').append('<li></li>');
+                that.$el.find('#edit-slider ul').append('<li></li>');
+            } else {
+                var tileID;
+                if (that.options.model.get('template') === 'product') {
+                    tileID = that.options.model.get('products')[0].id;
+                } else {
+                    tileID = result[0].id;
+                }
+                that.$el.find('#edit-slider ul').append(
+                    '<li id="' + result[0].id + ' "><div class="image-label">' + tileID + '</div><img class="edit-modal-image" src="' + result[0].url + '" alt="' + tileID + '"></li>'
+                );
+                that.$el.find('#edit-slider ul').append(
+                    '<li id="' + result[0].id + ' "><div class="image-label">' + tileID + '</div><img class="edit-modal-image" src="' + result[0].url + '" alt="' + tileID + '"></li>'
+                );
+            }
+        }
+
+        var slider = that.$el.find('#edit-slider'),
+            sliderUl = that.$el.find('#edit-slider ul'),
+            sliderUlLi = that.$el.find('#edit-slider ul li'),
+            sliderLastChild = that.$el.find('#edit-slider ul li:last-child'),
+            sliderFirstChild = that.$el.find('#edit-slider ul li:first-child'),
+
+            slideCount = sliderUlLi.length,
+            slideWidth = sliderUlLi.width(),
+            slideHeight = sliderUlLi.height(),
+            sliderUlWidth = slideCount * slideWidth;
+
+        slider.css({ width: slideWidth, height: slideHeight });
+        sliderUl.css({ width: sliderUlWidth, marginLeft: - slideWidth });
+        sliderLastChild.prependTo(sliderUl);
+
+        function moveLeft () {
+            sliderUl.animate({
+                left: + slideWidth
+            }, 200, function () {
+                that.$el.find('#edit-slider ul li:last-child').prependTo(sliderUl);
+                sliderUl.css('left', '');
+            });
+        };
+        function moveRight () {
+            $('#edit-slider ul').animate({
+                left: - slideWidth
+            }, 200, function () {
+                that.$el.find('#edit-slider ul li:first-child').appendTo(sliderUl);
+                sliderUl.css('left', '');
+            });
+        };
+
+        $('a.control-prev').click(function () {
+            moveLeft();
+        });
+        $('a.control-next').click(function () {
+            moveRight();
+        });
+    },
+
+    populateMultiSelectProduct: function (divName) {
+        /**
+        Populates the multi-select product boxes. Also sets up the search bar for it.
+
+        inputs:
+            divName: divName of the multi-select product box.
+        **/
+        var selection, num,
+            currentModel = this.model,
+            that = this;
+
+        that.$el.find(divName).multiSelect({
+            selectableHeader:   "<div class='custom-header'>List of Products</div>",
+
+            selectionHeader:    "<div class='custom-header'>Products to be Tagged</div>",
+
+            afterInit: function(ms){
+                var typingTimer, data, result, productsList,
+                    those = this,
+                    selectableSearch = that.$el.find('input[name=num-product]');
+
+                _.each(App.productsList.models, function (val) {
+                    var modelID = val.get('id'),
+                        modelName = val.get('name');
+                    that.$el.find(divName).multiSelect('addOption', { 
+                        value: modelID, 
+                        text: modelID + ' - ' + modelName,
+                    });
+                });
+
+                selectableSearch.keyup(function(){
+                    clearTimeout(typingTimer);
+                    typingTimer = setTimeout(function () {
+                        var selectedItems = [];
+                        _.each(that.$el.find('#object-selector-product')[0].options, function (val) {
+                            if (val.selected) {
+                                selectedItems.push(val.value);
+                            }
+                        });
+
+                        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                            'alertType': 'info',
+                            'status': "Fetching product info..."
+                        }));
+                        // Refresh products list by doing API call and refresh multiselect
+                        selection = that.$el.find('.edit-modal-product-selection-field')[0].value;
+                        num = that.$el.find('.edit-modal-product-num-field')[0].value;
+
+                        data = {};
+                        data[selection] = num;
+
+                        productsList = new App.core.ProductCollection();
+                        result = productsList.fetch({
+                            data: data,
+                        });
+                        result.always(function () {
+                            App.feedback.empty();
+                            if (result.status === 200) {
+                                App.productsList = productsList;
+                                that.$el.find(divName).empty();
+                                that.$el.find(divName).multiSelect('refresh');
+                            } else {
+                                App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                    'alertType': 'warning',
+                                    'status': JSON.parse(result.responseText).status,
+                                }));
+                            }
+                        });
+                    }, 2000);
+                });
+            },
+        }); // Must run this before we can access
+            //    multiSelect's options
+    },
+
+    populateMultiSelectContent: function(divName) {
+        /**
+        Populates the multi-select content boxes. Also sets up the search bar for it.
+
+        inputs:
+            divName: divName of the multi-select content box.
+        **/
+        var selection, num,
+            currentModel = this.model,
+            that = this;
+
+        that.$el.find(divName).multiSelect({
+            selectableHeader:   "<div class='custom-header'>List of Contents</div>",
+
+            selectionHeader:    "<div class='custom-header'>Contents to be Tagged</div>",
+
+            afterInit: function(ms){
+                var typingTimer, data, result, contentsList,
+                    those = this,
+                    selectableSearch = that.$el.find('input[name=num-content]');
+
+                _.each(App.contentsList.models, function (val) {
+                    var modelID = val.get('id'),
+                        modelName = val.get('name');
+                    that.$el.find(divName).multiSelect('addOption', { 
+                        value: modelID, 
+                        text: "Content " + modelID,
+                    });
+                });
+
+                selectableSearch.keyup(function(){
+                    clearTimeout(typingTimer);
+                    typingTimer = setTimeout(function () {
+                        var selectedItems = [];
+
+                        _.each(that.$el.find('#object-selector-content')[0].options, function (val) {
+                            if (val.selected) {
+                                selectedItems.push(val.value);
+                            }
+                        });
+
+                        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                            'alertType': 'info',
+                            'status': "Fetching contents info..."
+                        }));
+                        // Refresh products list by doing API call and refresh multiselect
+                        selection = that.$el.find('.edit-modal-content-selection-field')[0].value;
+                        num = that.$el.find('.edit-modal-content-num-field')[0].value;
+
+                        data = {};
+                        data[selection] = num;
+
+                        contentsList = new App.core.ContentCollection();
+                        result = contentsList.fetch({
+                            data: data,
+                        });
+                        result.always(function () {
+                            App.feedback.empty();
+                            if (result.status === 200) {
+                                App.contentsList = contentsList;
+                                that.$el.find(divName).empty();
+                                that.$el.find(divName).multiSelect('refresh');
+                            } else {
+                                App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                    'alertType': 'warning',
+                                    'status': JSON.parse(result.responseText).status,
+                                }));
+                            }
+                        });
+                    }, 2000);
+                });
+            },
+        }); // Must run this before we can access
+            //    multiSelect's options
+    },
+
+    events: {
+        "click button#saveChanges": "saveChanges",
+        "click button#close": "closeModal",
+    },
+
+    saveChanges: function () {
+        /**
+        Function that is run when the save button is pressed. Saves all info to the server
+        **/
+        var result, alertType, status, tile, 
+            data = {},
             currModel = this.model,
-            newPriority = this.$el.find('#new_priority').val();
+            tileID = this.model.get('id'),
+            newPriority = this.$el.find('#new-priority').val(),
+            newTemplate = this.$el.find('#new-template').val(),
+            newAttributes = this.$el.find('#attributes-textarea').val(),
+            selectedProducts = [],
+            selectedContents = [],
+            that = this;
+
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+            'alertType': 'info',
+            'status': 'Processing... Please wait.'
+        }));
 
         try {
-            if (newPriority === '' || newPriority === null) {
-                throw "Error. New priority input is empty."
+            // Change priorities
+            if (newPriority !== this.model.get('priority')) {
+                data['priority'] = newPriority;
             }
-            if (isNaN(newPriority)) {
-                throw "Error. A valid integer is required."
+            // Change template
+            if (newTemplate !== this.model.get('template')) {
+                data['template'] = newTemplate;
             }
-            this.$el.modal('hide'); // Toggle Bootstrap modal to hide
-
-            App.feedback.show(new App.core.FeedbackView({
-                'alertType': 'info',
-                'status': 'Processing... Please wait.'
-            }));
-
-            result = currModel.save({priority: newPriority}, {
-                patch: true,
-                url: App.core.apiURL + 'tile/' + currModel.id + '/',
+            // Change attributes
+            JSON.parse(newAttributes);
+            if (newAttributes !== this.model.get('attributes')) {
+                data['attributes'] = newAttributes;
+            }
+            // Tag tiles
+            _.each(this.$el.find('#object-selector-product')[0].options, function (val) {
+                if (val.selected) {
+                    selectedProducts.push(val.value);
+                }
+            });
+            _.each(this.$el.find('#object-selector-content')[0].options, function (val) {
+                if (val.selected) {
+                    selectedContents.push(val.value);
+                }
             });
 
+            // Save attributes
+            result = currModel.save(data, {
+                patch: true,
+                url: App.core.apiURL + 'tile/' + tileID + '/',
+            });
             result.always(function () {
                 result = JSON.parse(result.responseText);
-                if (_.has(result,"id")) {
+                if (_.has(result, "id")) {
                     alertType = 'success';
-                    status = "The priority of tile with ID: " + currModel.id +
-                             " has been changed to " + currModel.get('priority') + ".";
+                    status = "The attributes of the tile with ID " + tileID + " has been updated.";
                 } else {
                     alertType = 'danger';
                     status = result.priority;
                 }
-                App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
+                // tile attributes saving is done, now tag tiles
+                tile = new App.core.Tile();
+                tile.set({data: {
+                    'pageID': pageID,
+                    'products': selectedProducts,
+                    'content': selectedContents,
+                }});
+
+                result = tile.tag(tile, tileID);
+                result.always(function () {
+                    status = status + " " + JSON.parse(result.responseText)['detail'];
+                    if (result.status === 200) {
+                        location.reload();
+                    } else {
+                        alertType = 'warning';
+                        that.hideAndShowFeedback(alertType, status);
+                    }
+                });
             });
         }
-        catch(err) {
-            this.$el.find('#editError').html(err);
+        catch (e) {
+            App.feedback.empty();
+            this.$el.find('#editError').html(e.message);
         }
+    },
+
+    hideAndShowFeedback: function (alertType, status) {
+        /**
+        Hides any active feedback and show a new one with the inputs given
+
+        inputs:
+            alertType: alert type of the feedback
+            status: status message of the feedback
+        **/
+        App.feedback.empty();
+        App.feedback.show(new App.core.FeedbackView({
+            'alertType': alertType,
+            'status': status
+        }));
     },
 });
 
@@ -482,13 +1054,15 @@ App.core.RemoveModalView = App.core.BaseModalView.extend({
     },
 
     deleteTile: function () {
-        // Remove the tile from the page
+        /**
+        Perform a tile delete by sending a request to the server.
+        **/
         var result, status, alertType,
             currModel   = this.model,
             modelID     = currModel.id;
         this.$el.modal('hide'); // Toggle Bootstrap modal to hide
 
-        App.feedback.show(new App.core.FeedbackView({
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
             'alertType': 'info',
             'status': 'Processing... Please wait.'
         }));
@@ -515,6 +1089,7 @@ App.core.RemoveModalView = App.core.BaseModalView.extend({
                     }
                 }
             }
+            App.feedback.empty();
             App.feedback.show(new App.core.FeedbackView({'alertType': alertType, 'status': status}));
         })
     },
@@ -531,130 +1106,6 @@ App.core.Categories = Backbone.Collection.extend({
         response.categories.unshift({'id': 0, name: 'View all tiles'});
         return response.categories;
     },
-});
-
-App.core.Product = Backbone.Model.extend({
-    defaults: {},
-
-    urlRoot: App.core.apiURL,
-
-    getCustomURL: function (method) {
-        /**
-        Returns the API URL for REST methods for different methods
-
-        inputs:
-            method: name of the method
-
-        output:
-            URL for REST method
-        **/
-        switch (method) {
-            case 'search':
-                return App.core.apiURL + 'product/' + method + '/';
-            case 'scrape':
-                return App.core.apiURL + 'product/' + method + '/';
-        }
-    },
-
-    sync: function (method, model, options) {
-        options || (options = {});
-        options.url = this.getCustomURL(method.toLowerCase());
-        return Backbone.sync.call(this, method, model, options);
-    },
-
-    search: function (searchString) {
-        /**
-        Calls for a search of the object by doing a Backbone.sync to API server
-
-        inputs:
-            searchString: containing the search options (id/num/etc)
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('search'),
-        };
-        return Backbone.sync.call(this, 'create', searchString, options);
-    },
-
-    scrape: function (URL) {
-        /**
-        Calls for a scrape of the product by doing a Backbone.sync to API server
-
-        inputs:
-            URL: containing the URL to be scraped
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('scrape'),
-        };
-        return Backbone.sync.call(this, 'create', URL, options);
-    }
-});
-
-App.core.Content = Backbone.Model.extend({
-    defaults: {},
-
-    urlRoot: App.core.apiURL,
-
-    getCustomURL: function (method) {
-        /**
-        Returns the API URL for REST methods for different methods
-
-        inputs:
-            method: name of the method
-
-        output:
-            URL for REST method
-        **/
-        switch (method) {
-            case 'search':
-                return App.core.apiURL + 'content/' + method + '/';
-            case 'scrape':
-                return App.core.apiURL + 'content/' + method + '/';
-        }
-    },
-
-    sync: function (method, model, options) {
-        options || (options = {});
-        options.url = this.getCustomURL(method.toLowerCase());
-        return Backbone.sync.call(this, method, model, options);
-    },
-
-    search: function (searchString) {
-        /**
-        Calls for a search of the object by doing a Backbone.sync to API server
-
-        inputs:
-            searchString: containing the search options (id/num/etc)
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('search')
-        };
-        return Backbone.sync.call(this, 'create', searchString, options);
-    },
-
-    scrape: function (URL) {
-        /**
-        Calls for a scrape of the product by doing a Backbone.sync to API server
-
-        inputs:
-            URL: containing the URL to be scraped
-
-        output:
-            API server response
-        **/
-        var options = {
-            'url': this.getCustomURL('scrape')
-        };
-        return Backbone.sync.call(this, 'create', URL, options);
-    }
 });
 
 App.core.Page = Backbone.Model.extend({
@@ -728,10 +1179,16 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
     onRender: function () {
         // Once the add modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
-        var newPriority,
+
+        var addObjectModel,
             objectType = this.options.objectType,
+            preselected = this.options.selected,
             newPriority = this.options.newTilePriority,
-            that = this;
+            that = this,
+            selectionOptions = {
+                'Product': ['URL', 'ID', 'SKU', 'Name'],
+                'Content': ['URL', 'ID']
+            };
 
         if ( (objectType == null) || (objectType == undefined) ){
             objectType = 'Product';
@@ -741,21 +1198,14 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             newPriority = 0;
         }
 
-        var selectionOptions = {
-            'Product': ['URL', 'ID', 'SKU'],
-            'Content': ['URL', 'ID']
-        };
-
-        var addObjectModel = Backbone.Model.extend({
+        addObjectModel = Backbone.Model.extend({
             schema: {
-                object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
-                selection: { title: 'Selection', type: 'Select', options: selectionOptions[objectType] },
-                num:       { title: 'Number', type: 'Text' },
-                category:  { title: 'Category', type: 'Text' },
-                priority: { title: 'Priority', type: 'Text' },
+                selection:  { title: '', type: 'Select', options: selectionOptions[objectType] },
+                num:        { title: '', type: 'Text' },
+                category:   { title: 'Category', type: 'Text' },
+                priority:   { title: 'Priority', type: 'Text' },
             },
             defaults: {
-                object: objectType,
                 selection: 'ID',
                 priority: newPriority,
             },
@@ -764,19 +1214,39 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         this.addObjectInstance = new addObjectModel();
 
         this.addObjectForm = new Backbone.Form({
+            template: _.template($('#add-form-template').html()),
+
             model: this.addObjectInstance,
         }).render();
 
-        this.addObjectForm.on('object:change', function(form, addObjectEditor) {
-            var object = addObjectEditor.getValue(),
-                newOptions = selectionOptions[object];
-            
-            that.options.objectType = object;
-            form.fields.selection.editor.setOptions(newOptions);
-        });
-
         this.$el.find('.add-form').html(this.addObjectForm.el);
-        this.$el.modal('show'); // Toggle Bootstrap modal to show
+        
+        this.$el.find('.modal-title').html("Add " + objectType);
+
+        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+            'alertType': 'info',
+            'status': "Fetching all " + objectType.toLowerCase() + " info..."
+        }));
+
+        if (objectType === "Product") {
+            App.productsList = new App.core.ProductCollection();
+            App.productsList.fetch().done(function () {
+                App.productsList.sort();
+                App.feedback.empty();
+
+                that.populateMultiSelect('#object-selector', objectType + "s");
+                that.$el.modal('show'); // Toggle Bootstrap modal to show
+            });
+        } else {
+            App.contentsList = new App.core.ContentCollection();
+            App.contentsList.fetch().done(function () {
+                App.contentsList.sort();
+                App.feedback.empty();
+
+                that.populateMultiSelect('#object-selector', objectType + "s");
+                that.$el.modal('show'); // Toggle Bootstrap modal to show
+            });
+        }
     },
 
     events: {
@@ -788,146 +1258,252 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
         // Add the object to the page.
         var result, idLength, responseText, alertType, status, selection, num, page, 
             searchString, priority, category, options, setTilePriorities, objectType,
+            force_create, options,
+            selected    = [],
             that        = this,
             batch       = this.options.batch;
 
-        this.addObjectForm.commit();
-        objectType  = this.addObjectInstance.attributes.object;
-        selection   = this.addObjectInstance.attributes.selection;
-        num         = this.addObjectInstance.attributes.num;
-        priority    = this.addObjectInstance.attributes.priority;
-        category    = this.addObjectInstance.attributes.category;
-
-        page = new App.core.Page({
-            selection: selection,
-            num: num,
-            priority: priority,
-            category: category
-        });
-        if (objectType === "Content") {
-            page.attributes.type = "content";
-            searchString = new App.core.Content();
-        } else {
-            page.attributes.type = "product";
-            searchString = new App.core.Product();
+        if ( (batch == null) || (batch == undefined) ){
+            batch = [];
         }
-        if (selection === 'URL')
-            searchString.set({url: num});
-        if (selection === 'ID')
-            searchString.set({id: num});
-        if (selection === 'SKU')
-            searchString.set({sku: num});
 
-        result = searchString.search(searchString);
-        result.always(function () {
-            responseText = JSON.parse(result.responseText);
-            idLength = responseText.ids.length;
+        this.addObjectForm.commit();
+        objectType      = this.options.objectType;
+        priority        = this.addObjectInstance.get('priority');
+        category        = this.addObjectInstance.get('category');
+        selection       = this.addObjectInstance.get('selection');
+        force_create    = $('#force-create').is(':checked').toString()
+
+        _.each(that.$el.find('#object-selector')[0].options, function (val) {
+            if (val.selected) {
+                selected.push(val.value);
+            }
+        });
+
+        if ( selected.length > 1 ) {
             App.feedback.show(new App.core.FeedbackView({
+                'alertType': 'warning',
+                'status': 'Choose only 1 object to add.'
+            }));
+        } else {
+            App.feedback.show(new App.core.FeedbackNoTimeoutView({
                 'alertType': 'info',
                 'status': 'Processing... Please wait.'
             }));
-            if (idLength === 1) {
-                // object with that selection has been found
-
-                // Add the tile to the page with specified priority
-                if (objectType === "Product") {
-                    page = new App.core.Page({
-                        type: "product",
-                        id: responseText.ids[0],
-                        force_create: $('#force-create').is(':checked').toString(),
-                    });
-                } else {
-                    page = new App.core.Page({
-                        type: "content",
-                        id: responseText.ids[0],
-                        force_create: $('#force-create').is(':checked').toString(),
-                    });
-                }
-                if (priority !== "") {
-                    page.set({priority: priority});
-                }
-                if (category !== "") {
-                    page.set({category: category});
-                }
-
-                result = page.add(page);
-                result.always(function () {
-                    responseText = JSON.parse(result.responseText);
-                    status = responseText.status;
-                    if (result.status === 200) {
-                        // Use batch to update the other tiles' priorities ONLY if adding
-                        //     was successful
-                        if (batch.length !== 0) {
-                            // Only do an API call if batch contains items to be updated
-                            batch = JSON.stringify(batch);
-                            options = {
-                                'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
-                            };
-
-                            setTilePriorities = new App.core.TileCollection();
-                            setTilePriorities.set({data: batch});
-
-                            result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
-                            result.always(function () {
-                                if (result.responseJSON.length !== 0) {
-                                    // Patch of new tile priority successful
-                                    alertType = 'success';
-                                    status = status + ' Please refresh to see the new tile.'
-                                } else {
-                                    alertType = 'danger';
-                                    status = "Tile priority patching failed due to an error.";
-                                }
-                                that.hideAndShowModal(that, alertType, status);
-                            });
-                        } else {
-                            that.hideAndShowModal(that, 'success', status + ' Please refresh to see the new tile.');
-                        }
-                    } else {
-                        that.hideAndShowModal(that, 'warning', status);
-                    }
-                });
+            if ( ( selection === 'Name' ) && ( selected.length < 1 ) ){
+                App.feedback.show(new App.core.FeedbackView({
+                    'alertType': 'warning',
+                    'status': 'Cannot add using Name.'
+                }));
             } else {
-                if (idLength > 1) {
-                    // Multiple objects found
+                if ( selected.length < 1) {
+                    num = this.addObjectInstance.get('num');
+                } else {
+                    // As the selected's value is based on ID, we change selection type
+                    //    to ID and use the selected's value
+                    selection = "ID";
+                    num = selected[0];
+                }
+
+                if (num === '') {
                     App.feedback.show(new App.core.FeedbackView({
-                        'alertType': 'danger',
-                        'status': "Error: " + responseText.status
+                        'alertType': 'warning',
+                        'status': 'No ' + objectType.toLowerCase() + ' was selected or ID/SKU entered'
                     }));
                 } else {
-                    // No object found
-                    if ((selection === 'URL') && (responseText.status.indexOf("could not be found") >= 0)) {
-                        App.feedback.show(new App.core.FeedbackView({
-                            'alertType': 'info',
-                            'status': responseText.status + " Scraping..."
-                        }));
-                        if (objectType === "Product") {
-                            var processURL = new App.core.Product({
-                                url: num,
-                                page_id: pageID
+                    page = new App.core.Page({
+                        selection: selection,
+                        num: num,
+                        priority: priority,
+                        category: category
+                    });
+
+                    page.attributes.type = objectType.toLowerCase();
+
+                    options = {
+                        store: storeID,
+                    };
+
+                    if (selection === 'URL') {
+                        if (num.search('http') === -1) {
+                            num = 'http://' + num;
+                        }
+                        options['url'] =  num;
+                    } else {
+                        if (selection === 'ID') {
+                            options['id'] =  num;
+                        } else {
+                            if (selection === 'SKU') {
+                                options['sku'] =  num;
+                            }
+                        }
+                    }
+
+                    searchString = new Backbone.Model();
+                    result = searchString.fetch({
+                        url: App.core.apiURL + objectType.toLowerCase() + '/search/',
+                        traditional: true,
+                        data: options,
+                    });
+                    result.always(function () {
+                        responseText = JSON.parse(result.responseText);
+                        idLength = responseText.ids.length;
+                        if (idLength === 1) {
+                            // object with that selection has been found
+
+                            // Add the tile to the page with specified priority
+                            page = new App.core.Page({
+                                type: objectType.toLowerCase(),
+                                id: responseText.ids[0],
+                                force_create_tile: force_create,
+                            })
+                            if (priority !== "") {
+                                page.set({priority: priority});
+                            }
+                            if (category !== "") {
+                                page.set({category: category});
+                            }
+                            result = page.add(page);
+                            result.always(function () {
+                                App.feedback.empty();
+                                responseText = JSON.parse(result.responseText);
+                                status = responseText.status;
+                                if (result.status === 200) {
+                                    // Use batch to update the other tiles' priorities ONLY if adding
+                                    //     was successful
+                                    if (batch.length !== 0) {
+                                        // Only do an API call if batch contains items to be updated
+                                        batch = JSON.stringify(batch);
+                                        options = {
+                                            'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
+                                        };
+
+                                        setTilePriorities = new App.core.TileCollection();
+                                        setTilePriorities.set({data: batch});
+
+                                        result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
+                                        result.always(function () {
+                                            if (result.responseJSON.length !== 0) {
+                                                // Patch of new tile priority successful
+                                                location.reload();
+                                            } else {
+                                                alertType = 'danger';
+                                                status = "Tile priority patching failed due to an error.";
+                                                that.hideAndShowModal(that, alertType, status);
+                                            }
+                                        });
+                                    } else {
+                                        location.reload();
+                                    }
+                                } else {
+                                    that.hideAndShowModal(that, 'warning', status);
+                                }
                             });
                         } else {
-                            var processURL = new App.core.Content({
-                                url: num,
-                                page_id: pageID
-                            });
+                            if (idLength > 1) {
+                                // Multiple objects found
+                                App.feedback.show(new App.core.FeedbackView({
+                                    'alertType': 'danger',
+                                    'status': "Error: " + responseText.status
+                                }));
+                            } else {
+                                // No object found
+                                if (selection === 'URL') {
+                                    App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                        'alertType': 'info',
+                                        'status': "Object could not be found. Scraping..."
+                                    }));
+                                    if (objectType === "Product") {
+                                        var processURL = new App.core.Product({
+                                            url: num,
+                                            page_id: pageID
+                                        });
+                                    } else {
+                                        var processURL = new App.core.Content({
+                                            url: num,
+                                            page_id: pageID
+                                        });
+                                    }
+                                    result = processURL.scrape(processURL);
+                                    result.always(function () {
+                                        App.feedback.empty();
+                                        responseText = JSON.parse(result.responseText);
+                                        if (result.status !== 200) {
+                                            App.feedback.show(new App.core.FeedbackView({
+                                                'alertType': 'danger',
+                                                'status': responseText.status,
+                                            }));
+                                        } else {
+                                            alertType = 'success';
+                                            status = responseText.status + ". Creating tile.";
+                                            App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                                'alertType': alertType,
+                                                'status': status,
+                                            }));
+                                            // Now add tile
+                                            page = new App.core.Page({
+                                                type: objectType.toLowerCase(),
+                                                url: responseText.id,
+                                                force_create_tile: $('#force-create').is(':checked').toString(),
+                                            });
+                                            if (priority !== "") {
+                                                page.set({priority: priority});
+                                            }
+                                            if (category !== "") {
+                                                page.set({category: category});
+                                            }
+
+                                            result = page.add(page);
+                                            result.always(function () {
+                                                App.feedback.empty();
+                                                responseText = JSON.parse(result.responseText);
+                                                status = responseText.status;
+                                                if (result.status === 200) {
+                                                    // Use batch to update the other tiles' priorities ONLY if adding
+                                                    //     was successful
+                                                    if (batch.length !== 0) {
+                                                        // Only do an API call if batch contains items to be updated
+                                                        batch = JSON.stringify(batch);
+                                                        options = {
+                                                            'url': App.tiles.currentView.collection.getCustomURL('moveTile'),
+                                                        };
+
+                                                        setTilePriorities = new App.core.TileCollection();
+                                                        setTilePriorities.set({data: batch});
+
+                                                        result = Backbone.sync.call(this, 'patch', setTilePriorities, options);
+                                                        result.always(function () {
+                                                            if (result.responseJSON.length !== 0) {
+                                                                // Patch of new tile priority successful
+                                                                location.reload();
+                                                                // Once scrape and add's successful, need to open the modal to edit it
+                                                            } else {
+                                                                alertType = 'danger';
+                                                                status = "Tile priority patching failed due to an error.";
+                                                                that.hideAndShowModal(that, alertType, status);
+                                                            }
+                                                        });
+                                                    } else {
+                                                        location.reload();
+                                                    }
+                                                } else {
+                                                    that.hideAndShowModal(that, 'warning', status);
+                                                }
+                                            });
+                                        }
+                                    })
+                                } else {
+                                    App.feedback.show(new App.core.FeedbackView({
+                                        'alertType': 'warning',
+                                        'status': responseText.status
+                                    }));
+                                }
+                            }
                         }
-                        result = processURL.scrape(processURL);
-                        result.always(function () {
-                            responseText = JSON.parse(result.responseText);
-                            App.feedback.show(new App.core.FeedbackView({
-                                'alertType': 'success',
-                                'status': responseText.status
-                            }));
-                        })
-                    } else {
-                        App.feedback.show(new App.core.FeedbackView({
-                            'alertType': 'warning',
-                            'status': responseText.status
-                        }));
-                    }
-                }
+                    });
+                }   
             }
-        });
+        }
     },
 
     hideAndShowModal: function (instance, alertType, status) {
@@ -936,7 +1512,217 @@ App.core.AddObjectModalView = App.core.BaseModalView.extend({
             'alertType': alertType,
             'status': status
         }));
-    }
+    },
+
+    populateMultiSelect: function (divName, object) {
+        /**
+        Populates the multi-select boxes. Also sets up the search bar for it.
+
+        inputs:
+            divName: divName of the multi-select product box.
+            object: the type of object we're working with (Product or Content)
+        **/
+        var selection, num,
+            objectType = this.options.objectType,
+            preselected = this.options.selected,
+            that = this;
+
+        that.$el.find(divName).multiSelect({
+            selectableHeader:   "<div class='custom-header'>List of " + object + "</div>",
+
+            selectionHeader:    "<div class='custom-header'>" + object + " to be Added</div>",
+
+            afterInit: function(ms){
+                var typingTimer, data, result, objectsList,
+                    those = this,
+                    selectableSearch = that.$el.find('input[name=num]');
+
+                if (object === "Products") {
+                    if ( (App.productsList == null) || (App.productsList == undefined) ){
+                        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                            'alertType': 'info',
+                            'status': "Fetching all product info..."
+                        }));
+                        App.productsList = new App.core.ProductCollection();
+                        App.productsList.fetch().done(function () {
+                            App.productsList.sort();
+                            App.feedback.empty();
+
+                            _.each(App.productsList.models, function (val) {
+                                var modelID = val.get('id'),
+                                    modelName = val.get('name');
+                                that.$el.find(divName).multiSelect('addOption', { 
+                                    value: modelID, 
+                                    testparam: modelName,
+                                    text: modelID + ' - ' + modelName,
+                                });
+                            });
+                        });
+                    } else {
+                        _.each(App.productsList.models, function (val) {
+                            var modelID = val.get('id'),
+                                modelName = val.get('name');
+                            that.$el.find(divName).multiSelect('addOption', { 
+                                value: modelID, 
+                                text: modelID + ' - ' + modelName,
+                            });
+                        });
+                    }
+                } else {
+                    if ( (App.contentsList == null) || (App.contentsList == undefined) ){
+                        App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                            'alertType': 'info',
+                            'status': "Fetching all content info..."
+                        }));
+                        App.contentsList = new App.core.ContentCollection();
+                        App.contentsList.fetch().done(function () {
+                            App.contentsList.sort();
+                            App.feedback.empty();
+
+                            _.each(App.contentsList.models, function (val) {
+                                var modelID = val.get('id');
+                                that.$el.find(divName).multiSelect('addOption', { 
+                                    value: modelID, 
+                                    text: "Content " + modelID,
+                                });
+                            });
+
+                            if ( (preselected !== null) && (preselected !== undefined) ) {
+                                selectableSearch.value = preselected;
+                                that.$el.find(divName).multiSelect('select', preselected);
+                            }
+                        });
+                    } else {
+                        _.each(App.contentsList.models, function (val) {
+                            var modelID = val.get('id'),
+                                modelName = val.get('name');
+                            that.$el.find(divName).multiSelect('addOption', { 
+                                value: modelID, 
+                                text: "Content " + modelID,
+                            });
+                        });
+                        if ( (preselected !== null) && (preselected !== undefined) ) {
+                            selectableSearch.value = preselected;
+                            that.$el.find(divName).multiSelect('select', preselected);
+                        }
+                    }
+                }
+
+                selectableSearch.keyup(function(){
+                    clearTimeout(typingTimer);
+                    if (selectableSearch.val()) {
+                        typingTimer = setTimeout(function () {
+                            App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                'alertType': 'info',
+                                'status': "Fetching " + objectType.toLowerCase() + " info..."
+                            }));
+                            // Refresh products list by doing API call and refresh multiselect
+                            selection = that.$el.find('select[name=selection]').val();
+                            num = selectableSearch.val();
+
+                            data = {};
+                            data[selection] = num;
+
+                            if (objectType === "Product") {
+                                objectsList = new App.core.ProductCollection();
+                            } else {
+                                objectsList = new App.core.ContentCollection();
+                            }
+                            result = objectsList.fetch({
+                                data: data,
+                            });
+                            result.always(function () {
+                                App.feedback.empty();
+                                if (result.status === 200) {
+                                    if (objectType === "Product") {
+                                        App.productsList = objectsList;
+                                    } else {
+                                        App.contentsList = objectsList;
+                                    }
+                                    that.$el.find(divName).empty();
+                                    that.$el.find(divName).multiSelect('refresh');
+                                } else {
+                                    App.feedback.show(new App.core.FeedbackNoTimeoutView({
+                                        'alertType': 'warning',
+                                        'status': JSON.parse(result.responseText).status,
+                                    }));
+                                }
+                            });
+                        }, 1000);
+                    }
+                });
+            },
+        });
+    },
+});
+
+App.core.UploadObjectModalView = App.core.BaseModalView.extend({
+    template: _.template($('#upload-object-template').html()),
+
+    onRender: function () {
+        var uploadURL,
+            that = this;
+
+        this.unwrapEl();
+        this.$el.modal('show'); // Toggle Bootstrap modal to show
+
+        uploadURL = window.location.href;
+
+        if (uploadURL.substr(uploadURL.length - 1) === '/') {
+            uploadURL = uploadURL + 'upload';
+        } else {
+            uploadURL = uploadURL + '/upload'
+        }
+
+        $('input[type=file]').change(function(){
+            $(this).simpleUpload(uploadURL, {
+                allowedExts: ["jpg", "jpeg", "jpe", "jif", "jfif", "jfi", "png", "gif"],
+                
+                allowedTypes: ["image/pjpeg", "image/jpeg", "image/png", "image/x-png", "image/gif", "image/x-gif"],
+
+                expect: "text",
+
+                init: function(total_uploads) {
+                    App.feedback.show(new App.core.FeedbackLoadingView({
+                        'alertType': "info",
+                        'status': total_uploads + " files are being uploaded. "
+                    }));
+                },
+
+                finish: function() {
+                    App.feedback.empty();
+                },
+
+                start: function(file){
+                    this.block = $('<div class="block"></div>');
+                    that.$el.find('#uploads').append(this.block);
+
+                    this.fileName = file.name;
+                },
+
+                success: function(data){
+                    var status = "File: " + this.fileName + ". " + data,
+                        formatDiv = $('<div class="format"></div>').text(status);
+                    this.block.append(formatDiv);
+                    that.$el.modal('hide');
+                    App.modal.show(new App.core.AddObjectModalView({
+                        'objectType': "Content",
+                        'selected': data,
+                    }));
+                },
+
+                error: function(error){
+                    var error = "File: " + this.fileName + ". " + error.message,
+                        errorDiv = $('<div class="error"></div>').text(error);
+                    this.block.append(errorDiv);
+                }
+            });
+        });
+    },
+
+    events: {
+        "click button#close": "closeModal",
+    },
 });
 
 App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
@@ -946,22 +1732,24 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
         // Once the remove modal has been rendered, generate the form and add to the body of the modal.
         this.unwrapEl();
 
-        var objectType = this.options.objectType;
-        var that = this;
+        var removeObjectModel,
+            objectType = this.options.objectType,
+            that = this,
+            selectionOptions = {
+                'Product': ['URL', 'ID', 'SKU'],
+                'Content': ['URL', 'ID']
+            };
 
-        var selectionOptions = {
-            'Product': ['URL', 'ID', 'SKU'],
-            'Content': ['URL', 'ID']
-        };
+        if ( (objectType == null) || (objectType == undefined) ){
+            objectType = 'Product';
+        }
 
-        var removeObjectModel = Backbone.Model.extend({
+        removeObjectModel = Backbone.Model.extend({
             schema: {
-                object: { title: 'Object type', type: 'Select', options: ['Product', 'Content'] },
-                selection: { title: 'Selection', type: 'Select', options: selectionOptions[objectType] },
-                num:       { title: 'Number', type: 'Text' },
+                selection: { title: '', type: 'Select', options: selectionOptions[objectType] },
+                num:       { title: '', type: 'Text' },
             },
             defaults: {
-                object: objectType,
                 selection: 'ID',
             },
         });
@@ -969,18 +1757,13 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
         this.removeObjectInstance = new removeObjectModel();
         
         this.removeObjectForm = new Backbone.Form({
+            template: _.template($('#remove-form-template').html()),
+
             model: this.removeObjectInstance,
         }).render();
 
-        this.removeObjectForm.on('object:change', function(form, removeObjectEditor) {
-            var object = removeObjectEditor.getValue(),
-                newOptions = selectionOptions[object];
-            
-            that.options.objectType = object;
-            form.fields.selection.editor.setOptions(newOptions);
-        });
-
         this.$el.find('.remove-form').html(this.removeObjectForm.el);
+        this.$el.find('.modal-title').html("Remove " + objectType);
         this.$el.modal('show'); // Toggle Bootstrap modal to show
     },
 
@@ -991,85 +1774,83 @@ App.core.RemoveObjectModalView = App.core.BaseModalView.extend({
 
     removeObject: function () {
         // Remove the object from the page.
-        var result, idLength, responseText, alertType, status,
+        var result, idLength, responseText, alertType, status, options,
             selection, num, page, searchString,
             that        = this,
             objectType  = this.options.objectType;
 
-        if (objectType === "Product") {
-            this.removeObjectForm.commit();
-            selection   = this.removeObjectInstance.attributes.selection;
-            num         = this.removeObjectInstance.attributes.num;
-            page        = new App.core.Page({
-                type: "product",
-                selection: selection,
-                num: num,
-            })
-            searchString = new App.core.Product();
+        this.removeObjectForm.commit();
+        selection   = this.removeObjectInstance.get('selection');
+        num         = this.removeObjectInstance.get('num');
+
+        page = new App.core.Page({
+            type: objectType.toLowerCase(),
+            selection: selection,
+            num: num,
+        })
+
+        options = {
+            store: storeID,
+        };
+
+        if (selection === 'URL') {
+            if (num.search('http') === -1) {
+                num = 'http://' + num;
+            }
+            options['url'] =  num;
         } else {
-            this.removeObjectForm.commit();
-            selection   = this.removeObjectInstance.attributes.selection,
-            num         = this.removeObjectInstance.attributes.num,
-            page        = new App.core.Page({
-                type: "content",
-                selection: selection,
-                num: num,
-            }),
-            searchString = new App.core.Content();
+            if (selection === 'ID') {
+                options['id'] =  num;
+            } else {
+                if (selection === 'SKU')
+                    options['sku'] =  num;
+            }
         }
 
-        if (selection === 'URL')
-            searchString.set({url: num});
-        if (selection === 'ID')
-            searchString.set({id: num});
-        if (selection === 'SKU')
-            searchString.set({sku: num});
-
-        result = searchString.search(searchString);
+        searchString = new Backbone.Model();
+        result = searchString.fetch({
+            url: App.core.apiURL + objectType.toLowerCase() + '/search/',
+            traditional: true,
+            data: options,
+        });
         result.always(function () {
             responseText = JSON.parse(result.responseText);
             idLength = responseText.ids.length;
 
             if (idLength === 1) {
-                if (objectType === "Product") {
-                    page = new App.core.Page({
-                        type: "product",
-                        id: responseText.ids[0],
-                    });
-                } else {
-                    page = new App.core.Page({
-                        type: "content",
-                        id: responseText.ids[0],
-                    });
-                }
+                page = new App.core.Page({
+                    type: objectType.toLowerCase(),
+                    id: responseText.ids[0],
+                });
 
                 result = page.remove(page);
                 result.always(function () {
                     responseText = JSON.parse(result.responseText);
                     if (result.status === 200) {
-                        alertType = 'success';
+                        // removal was successful
+                        location.reload();
                     }
                     else {
                         alertType = 'warning';
+                        that.$el.modal('hide'); // Toggle Bootstrap modal to hide
+                        App.feedback.show(new App.core.FeedbackView({
+                            'alertType': alertType,
+                            'status': responseText.status
+                        }));
                     }
-                    that.$el.modal('hide'); // Toggle Bootstrap modal to hide
-                    App.feedback.show(new App.core.FeedbackView({
-                        'alertType': alertType,
-                        'status': responseText.status
-                    }));
                 });
             } else {
                 if (idLength > 1) {
-                    App.feedback.show(new App.core.FeedbackView({
-                        'alertType': 'danger',
-                        'status': "Error: " + responseText.status
-                    }));
+                    alertType = 'danger';
+                    status = "Error: " + responseText.status;
                 } else {
-                    App.feedback.show(new App.core.FeedbackView({
-                        'alertType': 'warning',
-                        'status': responseText.status
-                    }));
+                    alertType = 'warning';
+                    status = responseText.status
                 }
+                App.feedback.show(new App.core.FeedbackView({
+                    'alertType': alertType,
+                    'status': status,
+                }))
             }
         });
     },
@@ -1096,7 +1877,11 @@ App.core.ControlBarView = Marionette.ItemView.extend({
         "click button#remove-product": "removeProduct",
         "click button#add-content": "addContent",
         "click button#remove-content": "removeContent",
+        "click button#upload-content": "uploadContent",
+        "click button#tag-product": "tagProduct",
     },
+
+    className: 'control-bar-wrapper',
 
     filterClicked: function (e) {
         /**
@@ -1137,6 +1922,11 @@ App.core.ControlBarView = Marionette.ItemView.extend({
     removeContent: function () {
         // Generate and render the remove content modal
         App.modal.show(new App.core.RemoveObjectModalView({'objectType': "Content"}));
+    },
+
+    uploadContent: function () {
+        // Generate and render the upload content modal
+        App.modal.show(new App.core.UploadObjectModalView({'objectType': "Content"}));
     },
 });
 

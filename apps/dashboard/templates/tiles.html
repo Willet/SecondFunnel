@@ -7,12 +7,9 @@
 {% block scripts %}
     <script>
         var pageID = {{ pageID }};
+        var storeID = {{ storeID }};
     </script>
-    <script src="{% static "js/jquery-ui.min.js" %}"></script>
-    <script type='text/javascript' src='{% static 'js/underscore-min.js' %}'></script>
-    <script type="text/javascript" src="{% static "js/backbone-min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/backbone-forms.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/backbone.marionette.min.js" %}"></script>
+
     <script type="text/javascript" src="{% static "tiles.js" %}"></script>
     <script type="text/javascript" src="{% static "common.js" %}"></script>
 {% endblock %}
@@ -62,33 +59,58 @@
                 </script>
 
                 <script type="text/template" id="control-bar-template">
-                    <table class="control-bar-table">
-                        <td width="2%">Category: </td>
-                        <td width="45%">
-                            <div class="dropdown" id="category-filter">
+                    <div class="category-label">Category: </div>
+                    <div class="category-dropdown">
+                        <div class="dropdown" id="category-filter">
                             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" id="category-dropdown-button">View all tiles
                             <span class="caret"></span></button>
                             <ul class="dropdown-menu" id="categories">
-                        </td>
-                        <td width="12%" class="object-add-remove">
-                            <div>
-                                Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
-                                            <button type="button" id="remove-product" class="btn btn-default">Remove</button>
-                            </div>
-                        </td>
-                        <td width="1%"></td>
-                        <td width="12%" class="object-add-remove">
-                            <div>
-                                Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
-                                            <button type="button" id="remove-content" class="btn btn-default">Remove</button>
-                            </div>
-                        </td>
-                    </table>
+                        </div>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Image upload: <button type="button" id="upload-content" class="btn btn-default">Upload</button>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Content:    <button type="button" id="add-content" class="btn btn-default">Add</button>
+                                    <button type="button" id="remove-content" class="btn btn-default">Remove</button>
+                    </div>
+                    <div class="object-add-remove-upload">
+                        Product:    <button type="button" id="add-product" class="btn btn-default">Add</button>
+                                    <button type="button" id="remove-product" class="btn btn-default">Remove</button>
+                    </div>
                 </script>
 
                 <script type="text/template" id="feedback-template">
                     <div class="alert-container">
                         <div class="alert alert-<%= alertType %>" role="alert"><%= status %></div>
+                    </div>
+                </script>
+
+                <script type="text/template" id="feedback-loading-template">
+                    <div class="alert-container">
+                        <div class="alert alert-<%= alertType %>" role="alert">
+                            <div id="loading-spinner">
+                                <div class="windows8">
+                                    <div class="wBall" id="wBall_1">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_2">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_3">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_4">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                    <div class="wBall" id="wBall_5">
+                                        <div class="wInnerBall"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            </br>
+                            <%= status %>
+                        </div>
                     </div>
                 </script>
 
@@ -122,13 +144,30 @@
                     </script>
                 </ul>
 
+                <script id="add-form-template" type="text/html">
+                    <form>
+                        <div data-fields="selection" class="selection-field"></div>
+                        <div data-fields="num" class="num-field"></div>
+                        <select multiple="multiple" id="object-selector" name="object-selector[]"></select>
+                        <hr>
+                        <div data-fields="category,priority"></div>
+                    </form>
+                </script>
+
+                <script id="remove-form-template" type="text/html">
+                    <form>
+                        <div data-fields="selection" class="selection-field"></div>
+                        <div data-fields="num" class="num-field"></div>
+                    </form>
+                </script>
+
                 <script type="text/template" id="add-object-template">
                     <div class="modal" id="modal-dialog-box" role="dialog" >
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Add Object</br></h4>
+                                    <h4 class="modal-title"></h4>
                                 </div>
                                 <div class="modal-body">
                                     <div class="add-form"></div>
@@ -153,7 +192,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title">Remove <%= objectType %></br></h4>
+                                    <h4 class="modal-title"></br></h4>
                                 </div>
                                 <div class="modal-body">
                                     <div class="remove-form"></div>
@@ -171,22 +210,86 @@
                     </div>
                 </script>
 
+                <script type="text/template" id="upload-object-template">
+                    <div class="modal" id="modal-dialog-box" role="dialog" >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Upload</br></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="uploads"></div>
+                                    <div class="browse-button-wrapper">
+                                        <div class="btn btn-default btn-file" id="browse-button">
+                                            Browse <input type="file">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="close" class="btn btn-default">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
                 <script type="text/template" id="edit-modal-template">
                     <div class="modal" id="modal-dialog-box" role="dialog" >
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <h4 class="modal-title"><%= name %> </br></h4>
+                                    <h4 class="modal-title"><%= id %> - <%= name %> </br></h4>
                                 </div>
                                 <div class="modal-body">
-                                    Current Priority: <%= priority %></br>
-                                    New Priority: <input type="text" id="new_priority">
+                                    <div id="edit-slider">
+                                        <a href="#" class="control-next">></a>
+                                        <a href="#" class="control-prev"><</a>
+                                        <ul class="edit-slider-ul">
+                                        </ul>
+                                    </div>
+                                    Priority: <input type="text" id="new-priority" value="<%= priority %>"></br>
+                                    Template:  <input type="text" id="new-template" value="<%= template %>"></br>
+                                    In-stock: <%= in_stock %></br>
+                                    Placeholder: <%= placeholder %></br>
+                                    Attributes: </br>
+                                    <textarea id="attributes-textarea" rows="4" cols="25"><%= JSON.stringify(attributes, null, 2) %></textarea></br>
+                                    Tagged-Products:
+                                    [<% _.each(products, function (val) { %>
+                                        <%= val.id %>,
+                                    <% }) %>]
+                                    </br>
+                                    Tagged-Contents:
+                                    [<% _.each(content, function (val) { %>
+                                        <%= val.id %>,
+                                    <% }) %>]
+                                    </br>
                                     <div id="editError"></div>
+
+                                    <hr>
+                                    <select id="edit-modal-selection-product" name="selection-product" class="edit-modal-product-selection-field">
+                                        <option>URL</option>
+                                        <option selected="selected">ID</option>
+                                        <option>SKU</option>
+                                        <option>Name</option>
+                                    </select>
+                                    <input id="edit-modal-input-product" name="num-product" type="text" class="edit-modal-product-num-field">
+                                    <select multiple="multiple" id="object-selector-product" name="object-selector-product[]"></select>
+
+                                    <hr>
+                                    <select id="edit-modal-selection-content" name="selection-content" class="edit-modal-content-selection-field">
+                                        <option>URL</option>
+                                        <option selected="selected">ID</option>
+                                    </select>
+                                    <input id="edit-modal-input-content" name="num-content" type="text" class="edit-modal-content-num-field">
+                                    <select multiple="multiple" id="object-selector-content" name="object-selector-content[]"></select>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" id="change" class="btn btn-default">
-                                        Change Priority
+                                    <button type="button" id="saveChanges" class="btn btn-default">
+                                        Save
                                     </button>
                                     <button type="button" id="close" class="btn btn-default">
                                         Close
@@ -198,7 +301,7 @@
                 </script>
 
                 <script type="text/template" id="remove-modal-template">
-                    <div class="modal" id="remove-modal-dialog-box" role="dialog">
+                    <div class="modal" id="modal-dialog-box" role="dialog">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -219,8 +322,7 @@
                             </div>
                         </div>
                     </div>
-                </script>  
-
+                </script>
             </div>
         </div>
     </div>
