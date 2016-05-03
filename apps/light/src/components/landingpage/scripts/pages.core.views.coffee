@@ -23,7 +23,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     class module.CarouselView extends Marionette.ItemView
         template: "#carousel_template"
 
-        #events:
+        events:
             'click .carousel-swipe-left, .carousel-swipe-right, .carousel-swipe-up, .carousel-swipe-down': (ev) ->
                 if $(ev.target).hasClass("carousel-swipe-left")
                     @calculateHorizontalPosition("left")
