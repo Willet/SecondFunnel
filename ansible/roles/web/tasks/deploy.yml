@@ -41,12 +41,19 @@
   when: "'vagrant' in groups"
   async: 3600
   poll: 10
+  register: pip_async
 
 - name: Install Python Application Requirements (non-dev)
   pip: requirements={{ application_directory }}/requirements.txt virtualenv={{virtualenv_directory}}
   when: "'vagrant' not in groups and git_repo|changed"
   async: 3600
   poll: 10
+  register: pip_async
+
+- name: Check pip
+  async_status: jid="{{ pip_async.ansible_job_id }}"
+  register: pip_result
+  failed_when: pip_result.finished != 1 or pip_result.rc != 0
 
 - name: Determine if node_modules or bower_libs exist
   stat: path="{{item.src}}"
