@@ -35,7 +35,7 @@ The SecondFunnel project has a few primary components:
 * [**Scrapy**](.#-scrapy): The system for keeping products and content continually updated.
 
 #### <a id="API2"></a>API2
-The SecondFunnel API2 is a RESTful list of resources, for internal use only.
+The SecondFunnel API2 is a RESTful list of resources, for internal use only.  Currently it is primarily used by the `dashboard`
 
 
 #### <a id="IntentRank"></a>IntentRank
