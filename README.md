@@ -23,6 +23,7 @@ The SecondFunnel project is broken into different folders for the application.
     - `scrapy`: A scraper to update product & content from websites & datafeeds
     - `tracking`: A web tracking pixel loader
     - `utils`: A whole whack of utilities
+    - `website`: All thats left is a redirect to Squarespace
 - `scripts + fabfile`: Python and Bash scripts for deployment and/or utility
 
 Documentation
