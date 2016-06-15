@@ -550,7 +550,7 @@ div.loading {
                     background-position: center center;
                 }
 
-                div.video-thumbnail:before {
+                .video-thumbnail:before {
                     background-image: url('/static/light/landingpage/images/video-playbutton.png');
                     content: "";
                     width: 66px;
@@ -565,68 +565,67 @@ div.loading {
             width: 100%;
             height: 115px;
             margin-bottom: 20px;
+        }
+        .hero-thumbnail {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
 
-            .hero-thumbnail {
+        .hero-thumbnail-container {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            margin: auto;
+            width: 93%;
+            height: 100%;
+            overflow: hidden;
+            .hero-thumbnail-main {
+                overflow: visible;
                 width: 100%;
                 height: 100%;
                 text-align: center;
-                overflow: hidden;
                 white-space: nowrap;
-                position: relative;
-            }
-
-            .hero-thumbnail-container {
                 position: absolute;
-                top: 0; left: 0; right: 0;
-                margin: auto;
-                width: 93%;
-                height: 100%;
-                overflow: hidden;
-                .hero-thumbnail-main {
-                    overflow: visible;
-                    width: 100%;
-                    height: 100%;
-                    text-align: center;
-                    white-space: nowrap;
-                    position: absolute;
-                }
             }
+        }
+    
+        .thumbnail-item {
+            width: 120px;
+            height: 111px;
+            display: inline-block;
+            margin: 0 3px;
+            cursor: pointer;
         
-            .thumbnail-item {
+            p {
+                margin: 0;
+                font-size: 13px;
+                line-height: 19px;
+            }
+
+            .thumbnail-image {
                 width: 120px;
-                height: 111px;
+                height: 90px;
+                background-size: cover;
+            }
+
+            .thumbnail-image:before {
+                background-image: url('/static/light/landingpage/images/video-playbutton.png');
+                background-size: 30% 40%;
+                background-position: center;
+                content: "";
+                width: 120px;
+                height: 90px;
+                position: relative;
                 display: inline-block;
-                margin: 0 3px;
-                cursor: pointer;
-            
-                p {
-                    margin: 0;
-                    font-size: 13px;
-                    line-height: 19px;
-                }
+                background-repeat: no-repeat;
+                box-shadow: inset 0 0 200px #6e6e6e
+            }
 
-                div.thumbnail-image {
-                    width: 120px;
-                    height: 90px;
-                    background-size: cover;
-                }
-
-                div.thumbnail-image:before {
-                    background-image: url('/static/light/landingpage/images/video-playbutton.png');
-                    background-size: 30% 40%;
-                    background-position: center;
-                    content: "";
-                    width: 120px;
-                    height: 90px;
-                    position: relative;
-                    display: inline-block;
-                    background-repeat: no-repeat;
-                    box-shadow: inset 0 0 200px #6e6e6e
-                }
-
-                div.thumbnail-image.playing:before {
-                    box-shadow: none;
-                }
+            .thumbnail-image.playing:before {
+                box-shadow: none;
             }
         }
     }
