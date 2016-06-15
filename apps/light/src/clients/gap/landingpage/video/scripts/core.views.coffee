@@ -4,64 +4,6 @@ swipe = require('jquery-touchswipe')
 Modernizr = require('modernizr')
 
 module.exports = (module, App, Backbone, Marionette, $, _) ->
-    # This includes a herovideo thumbnail modifications that would have been
-    # better as a subclass to CarouselView. Not worth the effort now
-    module.CarouselView::calculateDistance = ->
-        if App.support.mobile()
-            if App.utils.landscape()
-                @calculateVerticalPosition()
-            else
-                @calculateHorizontalPosition()
-        else if @attrs['type'] is "herovideo"
-            @calculateHorizontalPosition()
-        else if @attrs['orientation'] is "landscape"
-            @calculateHorizontalPosition()
-        else if @attrs['orientation'] is "portrait"
-            @calculateVerticalPosition()
-        return
-
-    module.CarouselView::calculateHorizontalPosition = (direction='none') ->
-        # This includes some herovideo thumbnail modifications that would have been
-        # better as a subclass to CarouselView. Not worth the effort now
-        $container = @container
-        $items = @slide.children(":visible")
-        if direction is 'left'
-            leftMostItem = $items[@index]
-            unless leftMostItem is undefined
-                # number of pixels needed to move leftmost item to the end of carousel
-                difference = @container.width()
-                index = _.findIndex($items, (item) ->
-                    # true if item is visible after moving leftmost item
-                    return Math.round($(item).width() + $(item).offset().left + difference) > Math.round($container.offset().left)
-                )
-        else if direction is "right"
-            index = _.findIndex($items, (item) ->
-                # true if item is only partially visible
-                return Math.round($(item).width() + $(item).offset().left) > Math.round($container.width() + $container.offset().left)
-            )
-        else
-            # reposition only if items overflow
-            totalItemWidth = _.reduce($items, (sum, item) ->
-                return sum + $(item).outerWidth()
-            , 0)
-            if totalItemWidth > @container.width()
-                if @attrs['type'] is "herovideo"
-                    distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
-                else
-                    distance = @slide.offset().left - $($items.get(@index)).offset().left
-            else
-                distance = 0
-            @updateCarousel(distance, "landscape", 0)
-            return
-        if index > -1
-            @index = index
-            if direction is "right" and @attrs['type'] is "herovideo"
-                distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
-            else
-                distance = @slide.offset().left - $($items.get(@index)).offset().left
-            @updateCarousel(distance, "landscape")
-        return
-
     _.extend(module.ExpandedContent.prototype.events,
         "click .look-image": (event) ->
             $image = $(event.target)
@@ -182,23 +124,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 App.vent.once('tracking:videoPlay', (videoId, event) ->
                     event.target.cueVideoById(String(youtubeId))?.playVideo()
                 )
-
-    module.HeroContent::onShow = ->
-        video = @model.get('video')
-        if video?
-            videoInstance = new module.YoutubeVideoView(video)
-            @video.show(videoInstance)
-        unless App.support.mobile()
-            @leftArrow = @$el.find('.hero-swipe-left')
-            @rightArrow = @$el.find('.hero-swipe-right')
-            carouselInstance = new module.CarouselView(
-                index: @model.get('thumbnails').length - 1,
-                items: @model.get('thumbnails'),
-                attrs:
-                    'template': @model.get('template')
-            )
-            @carouselRegion.show(carouselInstance)
-        return
 
     App.vent.once('tracking:videoFinish', (videoId, event) ->
         event.target.cuePlaylist(
