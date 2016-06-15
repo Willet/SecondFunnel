@@ -40,6 +40,77 @@
     @@include('shared/campaign_body.html')
 
     <div>
+        <script type="text/template" id="herovideo_template">
+            <div id="hero-container">
+                <div class="hero-video-wrapper">
+                    <div class="hero-banner-image mobile-only">
+                        <img src="<%= images[1].url %>" />
+                    </div>
+                    <div class="hero-banner-image desktop-only">
+                         <img src="<%= images[0].url %>" />
+                    </div>
+                    <div class="hero-video"></div>
+                </div>
+                <div class="hero-thumbnail mobile-only">
+                    <% var thumbnails = (obj["thumbnails"] || []); %>
+                    <% var numDefaultThumbnails = 1; %>
+                    <% var numThumbnails = (Math.min(thumbnails.length, numDefaultThumbnails)); %>
+                    <table class="thumbnail-table">
+                        <thead>
+                            <tr>
+                                <th id="thumbnail-header">a 12-part microseries.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% for(i = 0; i < numThumbnails; i++) { %>
+                                <tr><td>
+                                    <div class="thumbnail-item" data-index="<%- i %>">
+                                        <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
+                                            style="background-image: url('<%= thumbnails[i].url %>');">
+                                        </div>
+                                        <p>Video <%= i + 1 %></p>
+                                    </div>
+                                </td></tr>
+                            <% } %>
+                            <% if (thumbnails.length > numDefaultThumbnails) { %>
+                                <tfoot>
+                                    <tr><td>
+                                        <button id="more-button">More</button>
+                                    </td></tr>
+                                </tfoot>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="hero-carousel-region desktop-only"></div>
+            </div>
+            <div class="stv mobile-only">
+                <p>shop the looks</p>
+                <div id="down-arrow"></div>
+            </div>
+        </script>
+
+        <script type="text/template" id="herovideo_carousel_template">
+            <div class="hero-thumbnail hero-carousel desktop-only">
+                <div class="hero-swipe-left carousel-swipe-left"></div>
+                <div class="hero-swipe-right carousel-swipe-right"></div>
+                <div class="hero-thumbnail-container carousel-container">
+                    <div class="hero-thumbnail-main carousel-slide">
+                        <% var thumbnails = obj.items; %>
+                        <% for(i = 0; i < thumbnails.length; i++) { %>
+                            <div class="thumbnail-item" data-index="<%- i %>">
+                                <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
+                                    style="background-image: url('<%= thumbnails[i].url %>');">
+                                </div>
+                                <p>Video <%= i + 1 %></p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+                <img class="load-image image" src="/static/light/images/icon-check-16x16.png" alt="this img tag intentionally left blank" />
+            </div>
+        </script>
+
         <script type="text/template" id="product_galleryDots_template">
             <% for (var i = 0; i < obj.images.length; i++) { %>
                 <div class="item" data-index="<%- i %>"></div>
@@ -429,6 +500,15 @@
         @@include('shared/default_templates.html')
     </div>
     <script type="text/javascript" src="/static/light/surlatable/landingpage/lite/scripts/main.js"></script>
+
+    <!-- Youtube Iframe API -->
+    <script>
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    </script>
+    
     <script type="text/javascript">
         // Fanplyr
         !function(e,t,a){var n=e.createElement(a),r=e.getElementsByTagName(a)[0];n.async=!0,n.src="//d38nbbai6u794i.cloudfront.net/customers/surlatable/adaptor/surlatable.js",r.parentNode.insertBefore(n,r)}(document,window,"script");
