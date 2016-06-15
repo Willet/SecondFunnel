@@ -68,7 +68,7 @@
                                         <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
                                             style="background-image: url('<%= thumbnails[i].url %>');">
                                         </div>
-                                        <p>Video <%= i + 1 %></p>
+                                        <p><%= thumbnails[i].name %></p>
                                     </div>
                                 </td></tr>
                             <% } %>
@@ -99,7 +99,7 @@
                                 <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
                                     style="background-image: url('<%= thumbnails[i].url %>');">
                                 </div>
-                                <p>Video <%= i + 1 %></p>
+                                <p><%= thumbnails[i].name %></p>
                             </div>
                         <% } %>
                     </div>
