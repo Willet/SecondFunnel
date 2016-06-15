@@ -80,8 +80,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     swipeStatus: _.bind(@swipeStatus, @)
                     allowPageScroll: 'auto'
                 )
-            #imagesLoaded($("img", @el), (=> @calculateDistance()))
-            @calculateDistance()
+            imagesLoaded($("img", @el), (=> @calculateDistance()))
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
