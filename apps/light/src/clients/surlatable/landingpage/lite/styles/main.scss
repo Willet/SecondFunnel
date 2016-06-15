@@ -382,6 +382,15 @@ body {
             }
         }
     }
+    #hero-container {
+        .hero-carousel-region {
+            .thumbnail-item {
+                p {
+                    font-family: $slt-basic-font;
+                }
+            }
+        }
+    }
 }
 
 .tile {
@@ -1008,9 +1017,11 @@ body {
     }
 }
 
-.stl-carousel, .tagged-product {
+.stl-carousel, .hero-carousel, .tagged-product {
     .stl-swipe-up, .stl-swipe-down,
     .stl-swipe-left, .stl-swipe-right,
+    .hero-swipe-up, .hero-swipe-down,
+    .hero-swipe-left, .hero-swipe-right,
     .gallery-swipe-left, .gallery-swipe-right {
         display: block;
         background-repeat: no-repeat;
@@ -1023,7 +1034,8 @@ body {
         background-size: contain;
         margin: 0;
     }
-    .stl-swipe-up, .stl-swipe-down {
+    .stl-swipe-up, .stl-swipe-down,
+    .hero-swipe-up, .hero-swipe-down {
         display: none;
         width: 100%;
         height: 10%;
@@ -1031,7 +1043,8 @@ body {
         background-size: 15%;
         background-position: center 40%;
     }
-    .stl-swipe-left, .stl-swipe-right {
+    .stl-swipe-left, .stl-swipe-right,
+    .hero-swipe-left, .hero-swipe-right {
         display: none;
         width: 5%;
         height: 100%;
@@ -1045,19 +1058,19 @@ body {
         top: 0;
         background-size: 70%;
     }
-    .stl-swipe-up {
+    .stl-swipe-up, .hero-swipe-up {
         background-image: url('/static/light/surlatable/landingpage/default/images/up.png');
         top: 0;
     }
-    .stl-swipe-down {
+    .stl-swipe-down, .hero-swipe-down {
         background-image: url('/static/light/surlatable/landingpage/default/images/down.png');
         bottom: 0;
     }
-    .stl-swipe-left, .gallery-swipe-left {
+    .stl-swipe-left, .gallery-swipe-left, .hero-swipe-left {
         background-image: url('/static/light/surlatable/landingpage/default/images/left.png');
         left: 0;
     }
-    .stl-swipe-right, .gallery-swipe-right {
+    .stl-swipe-right, .gallery-swipe-right, .hero-swipe-right {
         background-image: url('/static/light/surlatable/landingpage/default/images/right.png');
         right: 0;
     }
@@ -1065,6 +1078,35 @@ body {
 
 // DESKTOP ONLY
 @media screen and (min-width: 992px) {
+    #hero-area {
+        #hero-container {
+            .hero-video-wrapper {
+                .hero-banner-image {
+                    width: 510px;
+                    height: 360px;
+                    img {
+                        width: auto;
+                        height: 100%;
+                    }
+                }
+                .hero-video {
+                    width: 640px;
+                    height: 360px;
+                }
+            }
+        }
+    }
+}
+
+// DESKTOP & TABLET ONLY
+@media screen and (min-width: 769px) {
+    #hero-area {
+        #hero-container {
+            .hero-video-wrapper {
+                margin-top: 15px;
+            }
+        }
+    }
 }
 
 // MOBILE & TABLET ONLY
@@ -1144,12 +1186,89 @@ body {
     }
     #hero-area {
         position: relative;
+        font-size: 15px;
+        height: auto;
         .visible-xs.jumbotron,
         .visible-sm.jumbotron {
             height: 100%;
             margin-bottom: 1px;
             .title {
                 font-size: 30px;
+            }
+        }
+        #hero-container {
+            height: auto;
+            left: 0;
+            .hero-video-wrapper {
+                margin-bottom: 5px;
+                .hero-banner-image {
+                    background: none;
+                    img {
+                        width: 100%;
+                    }
+                }
+                .hero-video {
+                    position: relative;
+                    width: 100%;
+                    padding-bottom: 56.25%;
+                }
+            }
+
+            .hero-thumbnail {
+                max-width: 100%;
+                height: auto;
+                margin: 5px;
+                padding: 0 15px;
+                text-align: left;
+                border: 1px solid $slt-grey-color;
+                border-radius: 4px;
+                .thumbnail-table {
+                    font-family: $slt-modern-font;
+                    color: #000000;
+                    margin-bottom: 10px;
+                    width: 100%;
+                    #more-button {
+                        font-family: $slt-modern-font;
+                        font-size: 14px;
+                        color: #4a4a4a;
+                        line-height: 15px;
+                        border: 1px solid $slt-grey-color;
+                        border-radius: 2px;
+                        background-color: #ccc;
+                        padding: 7px 15px;
+                    }
+                    #thumbnail-header {
+                        padding: 5px 0;
+                        border-bottom: 1px solid $slt-grey-color;
+                    }
+                    .thumbnail-item {
+                        margin: 0;
+                        padding: 7px 0;
+                        width: 100%;
+                        height: auto;
+                        overflow: hidden;
+                        display: block;
+                        border-top: 1px solid $slt-grey-color;
+                        p {
+                            margin: 5px 0 0 5px;
+                            font-family: $slt-modern-font;
+                            font-size: 14px;
+                            color: #000000;
+                            line-height: 16px;
+                            display: inline-block;
+                        }
+                        .thumbnail-image {
+                            height: 67px;
+                            background-position: top center;
+                            display: inline-block;
+                            vertical-align: top;
+                        }
+                        .thumbnail-image:before {
+                            height: 67px;   
+                            background-size: 44% 80%;
+                        }
+                    }
+                }
             }
         }
     }

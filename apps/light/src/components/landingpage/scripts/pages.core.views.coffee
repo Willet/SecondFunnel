@@ -257,6 +257,55 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             @slide.swipe("destroy")
             return
 
+    ###
+    A Carousel the always displays horizontally on desktop/tablet
+    ###
+    class module.HorizontalCarouselView extends module.CarouselView
+        calculateDistance: ->
+            if App.support.mobile()
+                if App.utils.landscape()
+                    @calculateVerticalPosition()
+                else
+                    @calculateHorizontalPosition()
+            else
+                @calculateHorizontalPosition()
+
+        calculateHorizontalPosition: (direction='none') ->
+            $container = @container
+            $items = @slide.children(":visible")
+            if direction is 'left'
+                leftMostItem = $items[@index]
+                unless leftMostItem is undefined
+                    # number of pixels needed to move leftmost item to the end of carousel
+                    difference = @container.width()
+                    index = _.findIndex($items, (item) ->
+                        # true if item is visible after moving leftmost item
+                        return Math.round($(item).width() + $(item).offset().left + difference) > Math.round($container.offset().left)
+                    )
+            else if direction is "right"
+                index = _.findIndex($items, (item) ->
+                    # true if item is only partially visible
+                    return Math.round($(item).width() + $(item).offset().left) > Math.round($container.width() + $container.offset().left)
+                )
+            else
+                # reposition only if items overflow
+                totalItemWidth = _.reduce($items, (sum, item) ->
+                    return sum + $(item).outerWidth()
+                , 0)
+                if totalItemWidth > @container.width()
+                    distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
+                else
+                    distance = 0
+                @updateCarousel(distance, "landscape", 0)
+                return
+            if index > -1
+                @index = index
+                if direction is "right"
+                    distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
+                else
+                    distance = @slide.offset().left - $($items.get(@index)).offset().left
+                @updateCarousel(distance, "landscape")
+            return
 
     ###
     View responsible for Youtube videos in heros / previews
@@ -390,6 +439,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if video?
                 videoInstance = new module.YoutubeVideoView(video)
                 @video.show(videoInstance)
+            unless App.support.mobile()
+                @leftArrow = @$el.find('.hero-swipe-left')
+                @rightArrow = @$el.find('.hero-swipe-right')
+                # support for video thumbnails
+                if @model.get('thumbnails')?.length
+                    carouselInstance = new module.HorizontalCarouselView(
+                        index: @model.get('thumbnails').length - 1,
+                        items: @model.get('thumbnails'),
+                        attrs:
+                            'template': @model.get('template')
+                    )
+                    @carouselRegion.show(carouselInstance)
             return
 
 
