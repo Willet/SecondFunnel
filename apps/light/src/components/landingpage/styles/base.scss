@@ -573,6 +573,19 @@ div.loading {
             overflow: hidden;
             white-space: nowrap;
             position: relative;
+            tbody {
+                tr {
+                    display: none;
+                }
+                tr:first-child {
+                    display: block;
+                }
+            }
+            &.show-all {
+                tbody tr {
+                    display: block;
+                }
+            }
         }
 
         .hero-thumbnail-container {

@@ -54,21 +54,17 @@
                 <div class="hero-thumbnail mobile-only">
                     <% var thumbnails = (obj["thumbnails"] || []); %>
                     <% var numDefaultThumbnails = 1; %>
-                    <% var numThumbnails = (Math.min(thumbnails.length, numDefaultThumbnails)); %>
                     <table class="thumbnail-table">
-                        <thead>
-                            <tr>
-                                <th id="thumbnail-header">a 12-part microseries.</th>
-                            </tr>
-                        </thead>
                         <tbody>
-                            <% for(i = 0; i < numThumbnails; i++) { %>
+                            <% for(i = 0; i < thumbnails.length; i++) { %>
                                 <tr><td>
                                     <div class="thumbnail-item" data-index="<%- i %>">
                                         <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
                                             style="background-image: url('<%= thumbnails[i].url %>');">
                                         </div>
-                                        <p><%= thumbnails[i].name %></p>
+                                        <div class="thumbnail-name">
+                                            <p><%= thumbnails[i].name %></p>
+                                        </div>
                                     </div>
                                 </td></tr>
                             <% } %>
@@ -99,7 +95,9 @@
                                 <div class="thumbnail-image <% if (thumbnails[i]['youtubeId']) { %>playing<% } %>"
                                     style="background-image: url('<%= thumbnails[i].url %>');">
                                 </div>
-                                <p><%= thumbnails[i].name %></p>
+                                <div class="thumbnail-name">
+                                    <p><%= thumbnails[i].name %></p>
+                                </div>
                             </div>
                         <% } %>
                     </div>

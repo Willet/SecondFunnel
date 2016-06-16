@@ -448,8 +448,6 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                         )
                     )
             unless App.support.mobile()
-                @leftArrow = @$el.find('.hero-swipe-left')
-                @rightArrow = @$el.find('.hero-swipe-right')
                 # support for video thumbnails
                 if @model.get('thumbnails')?.length
                     carouselInstance = new module.HorizontalCarouselView(
