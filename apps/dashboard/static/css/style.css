@@ -4151,14 +4151,12 @@ a.control-next {
     box-shadow: 0 8px 6px -6px black;
 }
 
-.category-label {
-    display: inline-block;
-    float: left;
-}
-
+.category-label,
 .category-dropdown {
     display: inline-block;
     float: left;
+    line-height: 40px;
+    padding-right: 5px;
 }
 
 .content .red {
