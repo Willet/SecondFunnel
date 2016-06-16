@@ -384,9 +384,23 @@ body {
     }
     #hero-container {
         .hero-carousel-region {
+            height: 100%;
+            margin-bottom: 10px;
+            font-size: 16px;
+            .hero-thumbnail {
+                height: 152px;
+            }
             .thumbnail-item {
-                p {
-                    font-family: $slt-basic-font;
+                height: 100%;
+                vertical-align: top;
+                .thumbnail-name {
+                    display: inline-block;
+                    p {
+                        white-space: initial;
+                        font-family: $slt-modern-font;
+                        font-size: 16px;
+                        display: block;
+                    }
                 }
             }
         }
@@ -1082,16 +1096,17 @@ body {
         #hero-container {
             .hero-video-wrapper {
                 .hero-banner-image {
-                    width: 510px;
-                    height: 360px;
+                    width: auto;
+                    height: 315px;
                     img {
                         width: auto;
                         height: 100%;
                     }
                 }
                 .hero-video {
-                    width: 640px;
-                    height: 360px;
+                    width: 560px;
+                    height: 315px;
+                    right: 5px;
                 }
             }
         }
@@ -1104,6 +1119,8 @@ body {
         #hero-container {
             .hero-video-wrapper {
                 margin-top: 15px;
+                margin-left: 5px;
+                margin-right: 5px;
             }
         }
     }
@@ -1215,7 +1232,7 @@ body {
             }
 
             .hero-thumbnail {
-                max-width: 100%;
+                width: calc(100% - 10px);
                 height: auto;
                 margin: 5px;
                 padding: 0 15px;
@@ -1227,6 +1244,12 @@ body {
                     color: #000000;
                     margin-bottom: 10px;
                     width: 100%;
+                    tr {
+                        border-top: 1px solid $slt-grey-color;
+                        &:first-child {
+                            border-top: none;
+                        }
+                    }
                     #more-button {
                         font-family: $slt-modern-font;
                         font-size: 14px;
@@ -1248,15 +1271,6 @@ body {
                         height: auto;
                         overflow: hidden;
                         display: block;
-                        border-top: 1px solid $slt-grey-color;
-                        p {
-                            margin: 5px 0 0 5px;
-                            font-family: $slt-modern-font;
-                            font-size: 14px;
-                            color: #000000;
-                            line-height: 16px;
-                            display: inline-block;
-                        }
                         .thumbnail-image {
                             height: 67px;
                             background-position: top center;
@@ -1266,6 +1280,16 @@ body {
                         .thumbnail-image:before {
                             height: 67px;   
                             background-size: 44% 80%;
+                        }
+                        .thumbnail-name {
+                            display: inline-block;
+                            p {
+                                margin: 5px 0 0 5px;
+                                font-family: $slt-modern-font;
+                                font-size: 16px;
+                                color: #000000;
+                                line-height: 16px;
+                            }
                         }
                     }
                 }

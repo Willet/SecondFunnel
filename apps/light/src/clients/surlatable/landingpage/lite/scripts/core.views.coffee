@@ -159,17 +159,8 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
 
     module.HeroContent.prototype.events =
         'click #more-button': ->
-            numDefaultThumbnails = 1
-            @$("#more-button").attr("style", "display: none;")
-            table = @$(".thumbnail-table>tbody")[0]
-            thumbnailTemplate = _.template("<td><div class='thumbnail-item' data-index='<%- i %>'>
-                    <div class='thumbnail-image<% if (thumbnail.youtubeId) { %> playing<% } %>' style='background-image: url(\"<%= thumbnail.url %>\");'></div>
-                    <p>Episode <%= i + 1 %> <br><%= thumbnail.date %></p>
-                </div></td>")
-            if table
-                for thumbnail, i in @model.get('thumbnails') when i >= numDefaultThumbnails
-                    thumbnailElem = thumbnailTemplate({ "thumbnail" : thumbnail, "i" : i })
-                    table.insertRow(-1).innerHTML = thumbnailElem
+            @$("#more-button").hide()
+            @$(".hero-thumbnail").addClass('show-all')
             return
 
         'click .thumbnail-item': (ev) ->
