@@ -80,12 +80,13 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     swipeStatus: _.bind(@swipeStatus, @)
                     allowPageScroll: 'auto'
                 )
-            imagesLoaded($("img", @el), (=> @calculateDistance()))
+            @updateOrientation()
+            imagesLoaded($("img", @el), (=> @updateArrows()))
             return
 
         swipeStatus: (event, phase, direction, distance, fingers, duration) ->
             if phase is 'end'
-                if App.utils.portrait()
+                if @orientation is "portrait"
                     # flip direction for 'natural' scroll
                     direction = if direction is 'left' then 'right' else 'left'
                     @calculateHorizontalPosition(direction)
@@ -94,44 +95,51 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     @calculateVerticalPosition(direction)
             return @
 
-        ###
-        Moves carousel and shows/hides arrows based on updated carousel position.
+        updateOrientation: ->
+            if App.support.mobile()
+                @orientation = if App.utils.landscape() then "landscape" else "portrait"
+            else
+                @orientation = @attrs['orientation']
+            return
 
-        @param distance    : number of pixels to move carousel, set by @calculateHorizontalPosition/@calculateVerticalPosition
-        @param orientation : landscape or portrait
-        @param duration    : duration of animation in milliseconds
-        ###
-        updateCarousel: (distance, orientation, duration=300) ->
-            updateArrows = =>
-                $items = @slide.children(":visible")
-                unless $items.length == 0
-                    if orientation is "landscape"
-                        if Math.round($items.first().offset().left) >= Math.round(@container.offset().left)
-                            @leftArrow.hide()
-                        else
-                            @leftArrow.show()
-                        if Math.round($items.last().offset().left + $items.last().width()) <= Math.round(@container.offset().left + @container.width())
-                            @rightArrow.hide()
-                        else
-                            @rightArrow.show()
-                    else
-                        if Math.round($items.first().offset().top) >= Math.round(@container.offset().top)
-                            @upArrow.hide()
-                        else
-                            @upArrow.show()
-                        if Math.round($items.last().offset().top + $items.last().outerHeight()) <= Math.round(@container.offset().top + @container.height())
-                            @downArrow.hide()
-                        else
-                            @downArrow.show()
-                return
+        updateArrows: ->
             @upArrow.hide()
             @downArrow.hide()
             @leftArrow.hide()
             @rightArrow.hide()
+            $items = @slide.children(":visible")
+            unless $items.length == 0
+                if @orientation is "landscape"
+                    if Math.round($items.first().offset().left) >= Math.round(@container.offset().left)
+                        @leftArrow.hide()
+                    else
+                        @leftArrow.show()
+                    if Math.round($items.last().offset().left + $items.last().width()) <= Math.round(@container.offset().left + @container.width())
+                        @rightArrow.hide()
+                    else
+                        @rightArrow.show()
+                else
+                    if Math.round($items.first().offset().top) >= Math.round(@container.offset().top)
+                        @upArrow.hide()
+                    else
+                        @upArrow.show()
+                    if Math.round($items.last().offset().top + $items.last().outerHeight()) <= Math.round(@container.offset().top + @container.height())
+                        @downArrow.hide()
+                    else
+                        @downArrow.show()
+            return
+
+        ###
+        Moves carousel and shows/hides arrows based on updated carousel position.
+
+        @param distance    : number of pixels to move carousel, set by @calculateHorizontalPosition/@calculateVerticalPosition
+        @param duration    : duration of animation in milliseconds
+        ###
+        updateCarousel: (distance, duration=300) ->
             # Small random number added to ensure transitionend is triggered.
             distance += Math.random() / 1000
             
-            if orientation is "landscape"
+            if @orientation is "landscape"
                 translate3d = 'translate3d(' + distance + 'px, 0px, 0px)'
                 translate = 'translateX(' + distance + 'px)'
                 # Must resize container if switching from landscape to portrait on mobile (% based on initial style).
@@ -157,23 +165,18 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 '-webkit-transform': translate3d,
                 '-ms-transform': translate,
                 'transform': translate3d
-            ).one('webkitTransitionEnd msTransitionEnd transitionend', updateArrows)
+            ).one('webkitTransitionEnd msTransitionEnd transitionend', (=> @updateArrows()))
             if duration is 0
-                updateArrows()
+                @updateArrows()
             return
 
         ###
         Helper method that calls the correct carousel slide translation depending on the use case
         ###
         calculateDistance: ->
-            if App.support.mobile()
-                if App.utils.landscape()
-                    @calculateVerticalPosition()
-                else
-                    @calculateHorizontalPosition()
-            else if @attrs['orientation'] is "landscape"
+            if @orientation is "landscape"
                 @calculateHorizontalPosition()
-            else if @attrs['orientation'] is "portrait"
+            else
                 @calculateVerticalPosition()
             return
 
@@ -209,12 +212,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     return sum + $(item).outerWidth()
                 , 0)
                 distance = if totalItemWidth <= @container.width() then 0 else @slide.offset().left - $($items.get(@index)).offset().left 
-                @updateCarousel(distance, "landscape", 0)
+                @updateCarousel(distance, 0)
                 return
             if index > -1
                 @index = index
                 distance = @slide.offset().left - $($items.get(@index)).offset().left
-                @updateCarousel(distance, "landscape")
+                @updateCarousel(distance)
             return
 
         ###
@@ -245,12 +248,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 )
             else
                 distance = @slide.offset().top - $($items[@index]).offset().top
-                @updateCarousel(distance, "portrait", 0)
+                @updateCarousel(distance, 0)
                 return
             if index > -1
                 @index = index
                 distance = @slide.offset().top - $($items[@index]).offset().top
-                @updateCarousel(distance, "portrait")
+                @updateCarousel(distance)
             return
 
         destroy: ->
@@ -261,14 +264,12 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
     A Carousel the always displays horizontally on desktop/tablet
     ###
     class module.HorizontalCarouselView extends module.CarouselView
-        calculateDistance: ->
+        updateOrientation: ->
             if App.support.mobile()
-                if App.utils.landscape()
-                    @calculateVerticalPosition()
-                else
-                    @calculateHorizontalPosition()
+                @orientation = if App.utils.landscape() then "landscape" else "portrait"
             else
-                @calculateHorizontalPosition()
+                @orientation = "landscape"
+            return
 
         calculateHorizontalPosition: (direction='none') ->
             $container = @container
@@ -296,7 +297,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
                 else
                     distance = 0
-                @updateCarousel(distance, "landscape", 0)
+                @updateCarousel(distance, 0)
                 return
             if index > -1
                 @index = index
@@ -304,7 +305,7 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                     distance = (@slide.offset().left + @slide.width()) - ($($items.get(@index)).offset().left + $($items.get(@index)).width())
                 else
                     distance = @slide.offset().left - $($items.get(@index)).offset().left
-                @updateCarousel(distance, "landscape")
+                @updateCarousel(distance)
             return
 
     ###
@@ -439,9 +440,14 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
             if video?
                 videoInstance = new module.YoutubeVideoView(video)
                 @video.show(videoInstance)
+                if @model.get('youtubePlaylist')?
+                    App.vent.once('tracking:videoFinish', (videoId, event) ->
+                        event.target.cuePlaylist(
+                            "listType": "list"
+                            "list": @model.get('youtubePlaylist')
+                        )
+                    )
             unless App.support.mobile()
-                @leftArrow = @$el.find('.hero-swipe-left')
-                @rightArrow = @$el.find('.hero-swipe-right')
                 # support for video thumbnails
                 if @model.get('thumbnails')?.length
                     carouselInstance = new module.HorizontalCarouselView(
