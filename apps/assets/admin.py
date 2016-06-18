@@ -122,6 +122,7 @@ class ContentAdmin(BaseAdmin):
     list_display = ['id', 'store'] + BaseAdmin.list_display
     search_fields = ['id', 'url']
     filter_horizontal = ('tagged_products',)
+    form = LimitedResultsForm
 
 
 class ThemeAdmin(BaseAdmin):

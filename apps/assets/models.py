@@ -471,6 +471,10 @@ class ProductImage(BaseModel):
             self.attributes = {}
 
     @property
+    def store(self):
+        return self.product.store
+
+    @property
     def orientation(self):
         return "landscape" if self.width > self.height else "portrait"
 
@@ -1401,6 +1405,10 @@ class Tile(BaseModel):
             serializer = serializers.DefaultTileSerializer
         
         return serializer().to_str([self], skip_cache=skip_cache)
+
+    @property
+    def store(self):
+        return self.feed.store
 
     @property
     def product(self):

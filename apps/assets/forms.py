@@ -76,10 +76,23 @@ class HTMLPasswordResetForm(PasswordResetForm):
 
 
 class LimitedResultsForm(ModelForm):
-    products = ModelMultipleChoiceField(Product.objects.all(),
-                  widget=FilteredSelectMultiple("Product", False, attrs={'rows':'10'}))
-    content = ModelMultipleChoiceField(Content.objects.all(),
-                 widget=FilteredSelectMultiple("Content", False, attrs={'rows':'10'}))
+    """
+    Restrict the number of product & content initial results
+    """
+    def __init__(self, *args, **kwargs):
+        super(LimitedResultsForm, self).__init__(*args, **kwargs)
+        limited_results = (
+            ('products', Product),
+            ('tagged_products', Product),
+            ('similar_products', Product),
+            ('content', Content),
+        )
+
+        for field, cls in limited_results:
+            if field in self.fields:
+                ids = set(cls.objects.filter(store=self.instance.store).order_by('-created_at').values_list('id', flat=True)[:50])
+                ids.update(getattr(self.instance, field).values_list('id', flat=True))
+                self.fields[field].queryset = cls.objects.filter(id__in=ids)
 
 
 class TagForm(ModelForm):
