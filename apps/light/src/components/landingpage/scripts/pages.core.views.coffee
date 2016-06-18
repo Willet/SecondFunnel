@@ -441,10 +441,11 @@ module.exports = (module, App, Backbone, Marionette, $, _) ->
                 videoInstance = new module.YoutubeVideoView(video)
                 @video.show(videoInstance)
                 if @model.get('youtubePlaylist')?
+                    playlist = @model.get('youtubePlaylist')
                     App.vent.once('tracking:videoFinish', (videoId, event) ->
                         event.target.cuePlaylist(
                             "listType": "list"
-                            "list": @model.get('youtubePlaylist')
+                            "list": playlist
                         )
                     )
             unless App.support.mobile()
