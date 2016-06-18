@@ -1,6 +1,7 @@
 from django.template import loader
-from django.forms import ModelForm
+from django.forms import ModelMultipleChoiceField, ModelForm
 from django.core.exceptions import ValidationError
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.sites.models import get_current_site
 from django.core.mail import EmailMessage, get_connection
@@ -8,7 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import int_to_base36
 from django.utils.translation import ugettext as _
 
-from apps.assets.models import Category, Tag, Feed
+from apps.assets.models import Category, Content, Feed, Product, Tag
 
 
 class HTMLPasswordResetForm(PasswordResetForm):
@@ -72,6 +73,13 @@ class HTMLPasswordResetForm(PasswordResetForm):
         if content_subtype:
             msg.content_subtype = content_subtype
         return msg.send()
+
+
+class LimitedResultsForm(ModelForm):
+    products = ModelMultipleChoiceField(Product.objects.all(),
+                  widget=FilteredSelectMultiple("Product", False, attrs={'rows':'10'}))
+    content = ModelMultipleChoiceField(Content.objects.all(),
+                 widget=FilteredSelectMultiple("Content", False, attrs={'rows':'10'}))
 
 
 class TagForm(ModelForm):

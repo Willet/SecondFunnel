@@ -2,9 +2,9 @@ from admin_extend.extend import extend_registered, add_bidirectional_m2m, regist
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db import models
-from django.forms import SelectMultiple, ModelMultipleChoiceField
+from django.forms import SelectMultiple, ModelMultipleChoiceField, ModelForm
 
-from .forms import CategoryForm, TagForm
+from .forms import CategoryForm, LimitedResultsForm, TagForm
 from .models import BaseModel, Category, Store, Page, Tile, Feed, Product, \
                     ProductImage, Image, Content, Theme, Review, Video, Tag, Gif
 from .utils import disable_tile_serialization
@@ -72,6 +72,7 @@ class TileAdmin(BaseAdmin):
     search_fields = ['id', 'template']
     list_filter = ('feed',)
     filter_horizontal = ('products', 'content',)
+    form = LimitedResultsForm
 
     def save_model(self, request, obj, form, change):
         """
