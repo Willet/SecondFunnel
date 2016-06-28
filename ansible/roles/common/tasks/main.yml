@@ -19,6 +19,9 @@
     - realpath
     - apache2-utils
     - ntp
+    - build-essential
+    - libffi-dev
+    - libssl-dev
   sudo: yes
 
 - name: "Setup Locales (Ubuntu)"
