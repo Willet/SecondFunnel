@@ -106,12 +106,21 @@ class PageMaintainer(object):
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
             'skip_similar_products': <bool> Do not update similar products.
+            'slice': Optional [<int|None>,<int|None>] Slice products from start:end
         }
         """
-        # Add more logic here re start_urls
         start_urls = set(self.feed.get_all_products(
                             skip_similar_products=options.get('skip_similar_products', False)
                         ).values_list('url', flat=True))
+        
+        # Apply slice args to start_urls, if they exist
+        try:
+            start, end = options.get('slice', False)
+        except (TypeError, ValueError) as e:
+            logging.debug(u"Updating all {} products.".format(len(start_urls)))
+        else:
+            start_urls = set(list(start_urls)[start:end])
+            logging.debug(u"Updating {} products starting from the {}th.".format(len(start_urls), start))
 
         # Override for page's spider_name to enable added spider functionality
         spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
