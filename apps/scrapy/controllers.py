@@ -112,6 +112,7 @@ class PageMaintainer(object):
         start_urls = set(self.feed.get_all_products(
                             skip_similar_products=options.get('skip_similar_products', False)
                         ).values_list('url', flat=True))
+        reporting_name = u"page {}".format(self.page.url_slug.upper())
         
         # Apply slice args to start_urls, if they exist
         try:
@@ -120,6 +121,8 @@ class PageMaintainer(object):
             logging.info(u"Updating all {} products.".format(len(start_urls)))
         else:
             start_urls = set(list(start_urls)[start:end])
+            # use 1-based indexing for reporting name
+            reporting_name += u" [{}:{}]".format(('' if start is None else start), ('' if end is None else end))
             logging.info(u"Updating {} products starting from the {}th.".format(len(start_urls), start))
 
         # Override for page's spider_name to enable added spider functionality
@@ -137,7 +140,7 @@ class PageMaintainer(object):
             'skip_images': options.get('skip_images', True),
             'skip_tiles': options.get('skip_tiles', True),
             'page_update': True,
-            'reporting_name': 'page {}'.format(self.page.url_slug.upper()),
+            'reporting_name': reporting_name,
         }
 
         self._run_scraper(spider_name=spider_name,

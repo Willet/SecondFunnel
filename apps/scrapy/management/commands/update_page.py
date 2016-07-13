@@ -7,10 +7,13 @@ from apps.scrapy.controllers import PageMaintainer
 
 def get_slice_args(option, opt, value, parser):
     args = value.split(',')
-    iargs = [int(a) if len(a) > 0 else None for a in args]
+    try:
+        iargs = [int(a) if len(a) > 0 else None for a in args]
+    except ValueError:
+        raise ValueError("slice option requires integer or empty start and end arguments.")
     # Must have start and end, even if they are both None
     if len(iargs) is not 2:
-        iargs = None
+        raise ValueError("slice option requires a start and end argument, separated by a comma. Either may be empty.")
     setattr(parser.values, option.dest, iargs)
 
 
