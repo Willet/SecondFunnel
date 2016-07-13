@@ -5,6 +5,15 @@ from apps.assets.models import Page
 from apps.scrapy.controllers import PageMaintainer
 
 
+def get_slice_args(option, opt, value, parser):
+    args = value.split(',')
+    iargs = [int(a) if len(a) > 0 else None for a in args]
+    # Must have start and end, even if they are both None
+    if len(iargs) is not 2:
+        iargs = None
+    setattr(parser.values, option.dest, iargs)
+
+
 class Command(BaseCommand):
     help = """Updates all products in a given page.
     Usage:
@@ -24,6 +33,8 @@ class Command(BaseCommand):
 
     -f, --fast
         Skips similar products (note: can reduce scrape time by 3x - 4x)
+    -l, --slice start,end
+        Update slice of products from [start:end]
     """
     option_list = BaseCommand.option_list + (
             make_option('-t','--recreate-tiles',
@@ -46,6 +57,12 @@ class Command(BaseCommand):
                 dest="skip_similar_products",
                 default=False,
                 help="Skips similar products, can 3x improve scrape time."),
+            make_option('-l','--slice',
+                action="callback",
+                type="string",
+                callback=get_slice_args,
+                dest="slice_args",
+                help="Slice page products from [start:end]. None is empty."),
         )
 
     def handle(self, url_slug, **options):
@@ -55,6 +72,7 @@ class Command(BaseCommand):
             'skip_images': not options['update_images'],
             'skip_tiles': True,
             'skip_similar_products': options['skip_similar_products'],
+            'slice': options.get('slice_args', None),
             'project': 'pages' if options['scrape'] else 'datafeeds',
         })
         

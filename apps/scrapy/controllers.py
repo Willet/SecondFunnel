@@ -61,7 +61,7 @@ class PageMaintainer(object):
 
         raises: django.core.execeptions.ValidationError for invalid url
         """
-        logging.debug(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))
+        logging.info(u"Adding/updating {} with {} urls".format(self.page, len(source_urls)))
 
         # Override for page's spider_name to enable added spider functionality
         spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
@@ -106,22 +106,31 @@ class PageMaintainer(object):
             'skip_images': <bool> Do not scrape product images. Useful if you want a fast data-only update.
             'skip_tiles': <bool> Do not create new tiles if a product or content does not have one already.
             'skip_similar_products': <bool> Do not update similar products.
+            'slice': Optional [<int|None>,<int|None>] Slice products from start:end
         }
         """
-        # Add more logic here re start_urls
         start_urls = set(self.feed.get_all_products(
                             skip_similar_products=options.get('skip_similar_products', False)
                         ).values_list('url', flat=True))
+        
+        # Apply slice args to start_urls, if they exist
+        try:
+            start, end = options.get('slice', False)
+        except (TypeError, ValueError) as e:
+            logging.info(u"Updating all {} products.".format(len(start_urls)))
+        else:
+            start_urls = set(list(start_urls)[start:end])
+            logging.info(u"Updating {} products starting from the {}th.".format(len(start_urls), start))
 
         # Override for page's spider_name to enable added spider functionality
         spider_name = options.pop('spider_name') if 'spider_name' in options else self.spider_name
         # Override for project to enable scraper updating
         if options.pop('project', None) == 'pages':
             project = pages
-            logging.debug(u"Updating {} from pages".format(self.page))
+            logging.info(u"Updating {} from pages".format(self.page))
         else:
             project = datafeeds
-            logging.debug(u"Updating {} from datafeed".format(self.page))
+            logging.info(u"Updating {} from datafeed".format(self.page))
 
         opts = {
             'recreate_tiles': options.get('recreate_tiles', False), # In case you screwed up? Not very useful
@@ -159,7 +168,7 @@ class PageMaintainer(object):
                       categories=categories,
                       **options)
 
-        logging.debug(u"Starting scraper with options: {}".format(options))
+        logging.info(u"Starting scraper with options: {}".format(options))
 
         process.start()
 
