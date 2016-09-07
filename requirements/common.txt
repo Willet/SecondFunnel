@@ -109,7 +109,7 @@ scrapy-sentry==0.6.1
 scrapy-djangoitem==1.0.0
 Twisted==13.2.0
 cffi==0.8.2
-cryptography==0.4
+cryptography==0.6
 cssselect==0.9.1
 pyOpenSSL==0.14
 pycparser==2.10
