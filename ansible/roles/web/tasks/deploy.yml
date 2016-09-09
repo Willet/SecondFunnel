@@ -114,3 +114,7 @@
   register: compress_result
   failed_when: compress_result.rc == 0 or compress_result.stderr.find("No 'compress' template tags found in templates") == -1
   when: "'vagrant' not in groups and git_repo|changed"
+
+- name: Set ghostdriver.log permissions
+  shell: "touch ghostdriver.log && chmod 777 ghostdriver.log"
+  sudo: true
