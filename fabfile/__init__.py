@@ -7,7 +7,7 @@ from fabric.api import env, task
 from aws.api import get_instances
 
 # set default user to be ec2-user for remote executions
-env.user = 'willet'
+env.user = 'ec2-user'
 env.environment = 'dev'
 env.shell = "/usr/bin/zsh -l -i -c" # interactive login shell, so .zshrc is loaded
 env.forward_agent = True # cause people don't like having their SSH config setup in the same way as me
